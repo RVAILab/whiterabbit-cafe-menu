@@ -51,7 +51,7 @@ export function ModifierGroup({ modifier }: ModifierGroupProps) {
           </span>
 
           {/* Global Price Display */}
-          {globalPrice !== undefined && globalPrice > 0 && (
+          {globalPrice !== undefined && (
             <span
               className="tabular-nums"
               style={{
@@ -88,7 +88,7 @@ export function ModifierGroup({ modifier }: ModifierGroupProps) {
         }}
       >
         {title}
-        {globalPrice !== undefined && globalPrice > 0 && (
+        {globalPrice !== undefined && (
           <span
             className="tabular-nums"
             style={{
@@ -133,7 +133,7 @@ export function ModifierGroup({ modifier }: ModifierGroupProps) {
             </span>
 
             {/* Show individual prices when they exist */}
-            {option.price > 0 && (
+            {option.price !== undefined && (
               <span
                 className="tabular-nums"
                 style={{
