@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+/* Custom Font Declarations */
+@font-face {
+  font-family: 'PP Pangram Sans Rounded';
+  src: url('/fonts/pppangramsansrounded-bold-webfont.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PP Pangram Sans Rounded';
+  src: url('/fonts/pppangramsansrounded-light-webfont.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PP Pangram Sans Rounded';
+  src: url('/fonts/pppangramsansrounded-thin-webfont.woff') format('woff');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Projector-Optimized Theme Configuration */
+@theme {
+  /* High Contrast Dark Colors for Projector Display */
+  --color-dark-bg: #0a0a0a; /* Very dark, almost black */
+  --color-light-text: #ffffff; /* Pure white for items */
+  --color-accent-pink: #ff4d9f; /* Pink/magenta for headers */
+  --color-accent-green: #7ed957; /* Green for prices */
+  --color-muted: #666666; /* Gray for descriptions */
+  --color-warning: #fbbf24; /* amber-400 */
+
+  /* Viewport-based Typography Scale - adjusted for elegant thin font */
+  --font-size-xs: 1.2vw;
+  --font-size-sm: 1.5vw;
+  --font-size-base: 1.8vw;
+  --font-size-lg: 2.2vw;
+  --font-size-xl: 3vw;
+  --font-size-2xl: 3.5vw;
+  --font-size-3xl: 5vw;
+  --font-size-header: 8vw;
+
+  /* Spacing Scale (viewport-based) */
+  --spacing-1: 0.5vw;
+  --spacing-2: 1vw;
+  --spacing-3: 1.5vw;
+  --spacing-4: 2vw;
+  --spacing-5: 2.5vw;
+  --spacing-6: 3vw;
+  --spacing-8: 4vw;
+
+  /* Font Families - custom PP Pangram Sans Rounded */
+  --font-sans: 'PP Pangram Sans Rounded', 'Helvetica Neue', 'Arial', system-ui, -apple-system, sans-serif;
+  --font-bold: 'PP Pangram Sans Rounded', 'Helvetica Neue', 'Arial', system-ui, sans-serif;
+  --font-light: 'PP Pangram Sans Rounded', 'Helvetica Neue', 'Arial', system-ui, sans-serif;
+}
+
+/* Global Styles for Kiosk/Projector Mode */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden; /* Prevent scrolling */
+  cursor: none !important; /* Hide mouse cursor */
+  background-color: #0a0a0a;
+  color: #ffffff;
+  font-family: 'PP Pangram Sans Rounded', 'Helvetica Neue', 'Arial', system-ui, sans-serif;
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+/* Ensure all interactive elements also hide cursor */
+*,
+*:hover,
+*:active,
+*:focus {
+  cursor: none !important;
+}
+
+/* Remove default focus outlines for kiosk display */
+*:focus {
+  outline: none;
+}
+
+/* Prevent text selection in kiosk mode */
+* {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
