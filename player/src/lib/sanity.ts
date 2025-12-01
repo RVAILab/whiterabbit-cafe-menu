@@ -50,14 +50,3 @@ export const ACTIVE_BOARD_QUERY = `
     }
   }
 `
-
-// Type for Sanity listener events
-export type ListenerEvent<T> = {
-  type: 'mutation' | 'welcome' | 'reconnect'
-  documentId?: string
-  result?: T
-  mutations?: Array<{
-    type: 'create' | 'createOrReplace' | 'delete' | 'patch'
-    documentId: string
-  }>
-}

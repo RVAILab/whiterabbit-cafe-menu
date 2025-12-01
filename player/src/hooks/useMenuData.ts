@@ -20,7 +20,7 @@ export function useMenuData(): MenuData {
   const lastGoodDataRef = useRef<KioskSettings | null>(null)
 
   // Ref to track subscription and prevent double-mounting in StrictMode
-  const subscriptionRef = useRef<ReturnType<typeof client.listen> | null>(null)
+  const subscriptionRef = useRef<{ unsubscribe: () => void } | null>(null)
 
   // Ref to track debounce timer for re-fetching
   const refetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -72,7 +72,7 @@ export function useMenuData(): MenuData {
       subscriptionRef.current = client
         .listen(listenerQuery, {}, { includeResult: false })
         .subscribe({
-          next: (update) => {
+          next: (update: any) => {
             // Ignore draft document changes (we only care about published docs)
             if (update.documentId?.startsWith('drafts.')) {
               console.log('⏭️ Skipping draft update:', update.documentId)
