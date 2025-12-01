@@ -44,3 +44,7 @@ lerna-debug.log*
 
 # TypeScript
 *.tsbuildinfo
+
+# Test scripts (may contain sensitive data)
+test-sanity.js
+**/test-sanity.js
