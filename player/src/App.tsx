@@ -4,6 +4,15 @@ import { BoardLayout } from './components/BoardLayout'
 function App() {
   const { kioskSettings, isLoading, error } = useMenuData()
 
+  // Debug logging
+  console.log('🔍 App render:', {
+    isLoading,
+    hasKioskSettings: !!kioskSettings,
+    hasActiveBoard: !!kioskSettings?.activeBoard,
+    sectionsCount: kioskSettings?.activeBoard?.sections?.length,
+    error
+  })
+
   // Loading state
   if (isLoading && !kioskSettings) {
     return (

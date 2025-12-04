@@ -24,6 +24,13 @@ export function MetaCategoryGroup({
     section => section.metaCategory === metaCategory
   )
 
+  // Debug logging
+  console.log(`🔖 MetaCategoryGroup [${metaCategory}]:`, {
+    totalSections: sections.length,
+    filteredSections: filteredSections.length,
+    sections: filteredSections.map(s => ({ heading: s.heading, itemCount: s.items?.length }))
+  })
+
   // Empty state
   if (filteredSections.length === 0) {
     return (

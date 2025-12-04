@@ -13,6 +13,14 @@ export function BoardLayout({ board, announcementBar, ignoreStockLevels }: Board
   // Safety check: ensure sections is an array
   const safeSections = sections || []
 
+  // Debug logging
+  console.log('🎨 BoardLayout render:', {
+    title,
+    sectionsCount: safeSections.length,
+    sections: safeSections.map(s => ({ heading: s.heading, metaCategory: s.metaCategory, itemCount: s.items?.length })),
+    ignoreStockLevels
+  })
+
   return (
     <div className="w-full h-full flex flex-col" style={{ backgroundColor: '#0a0a0a', padding: '10px' }}>
       {/* Announcement Bar */}
