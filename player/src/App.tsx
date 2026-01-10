@@ -3,7 +3,27 @@ import { BoardLayout } from './components/BoardLayout'
 import { SecondaryScreenLayout } from './components/SecondaryScreenLayout'
 import { ScreenProvider, useScreenContext } from './context/ScreenContext'
 import { useKeyboardControls } from './hooks/useKeyboardControls'
+import { AnimatePresence, motion } from 'framer-motion'
 import type { MenuBoard } from './types'
+
+// Transition variants for screen switching - sliding/bumping effect
+const primaryVariants = {
+  initial: { x: '-100%' },
+  animate: { x: 0 },
+  exit: { x: '-100%' },
+}
+
+const secondaryVariants = {
+  initial: { x: '100%' },
+  animate: { x: 0 },
+  exit: { x: '100%' },
+}
+
+const transition = {
+  type: 'spring' as const,
+  stiffness: 300,
+  damping: 22,
+}
 
 function App() {
   const { kioskSettings, secondaryScreens, isLoading, error } = useMenuData()
@@ -102,7 +122,7 @@ function App() {
 }
 
 /**
- * Inner component that handles screen mode switching.
+ * Inner component that handles screen mode switching with smooth transitions.
  * Must be inside ScreenProvider to access context.
  */
 function ScreenRenderer({
@@ -119,18 +139,56 @@ function ScreenRenderer({
   // Set up keyboard controls
   useKeyboardControls()
 
-  // Show secondary screen if active
-  if (mode === 'secondary' && activeScreen) {
-    return <SecondaryScreenLayout screen={activeScreen} />
-  }
-
-  // Default: show primary menu board
   return (
-    <BoardLayout
-      board={board}
-      announcementBar={announcementBar}
-      ignoreStockLevels={ignoreStockLevels}
-    />
+    <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
+      <AnimatePresence initial={false}>
+        {mode === 'secondary' && activeScreen ? (
+          <motion.div
+            key="secondary"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              width: '100%',
+              height: '100%',
+            }}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            variants={secondaryVariants}
+            transition={transition}
+          >
+            <SecondaryScreenLayout screen={activeScreen} />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="primary"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              width: '100%',
+              height: '100%',
+            }}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            variants={primaryVariants}
+            transition={transition}
+          >
+            <BoardLayout
+              board={board}
+              announcementBar={announcementBar}
+              ignoreStockLevels={ignoreStockLevels}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }
 
