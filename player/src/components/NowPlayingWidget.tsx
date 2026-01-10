@@ -21,8 +21,8 @@ export function NowPlayingWidget({ visible }: NowPlayingWidgetProps) {
     <div
       style={{
         position: 'fixed',
-        bottom: '2vw',
-        left: '2vw',
+        bottom: '60px',
+        left: 0,
         display: 'flex',
         alignItems: 'center',
         gap: '1vw',
