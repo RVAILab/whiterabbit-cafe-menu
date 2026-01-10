@@ -1,29 +1,8 @@
+import { Routes, Route } from 'react-router-dom'
 import { useMenuData } from './hooks/useMenuData'
-import { BoardLayout } from './components/BoardLayout'
-import { SecondaryScreenLayout } from './components/SecondaryScreenLayout'
-import { ScreenProvider, useScreenContext } from './context/ScreenContext'
-import { useKeyboardControls } from './hooks/useKeyboardControls'
-import { AnimatePresence, motion } from 'framer-motion'
-import type { MenuBoard } from './types'
-
-// Transition variants for screen switching - sliding/bumping effect
-const primaryVariants = {
-  initial: { x: '-100%' },
-  animate: { x: 0 },
-  exit: { x: '-100%' },
-}
-
-const secondaryVariants = {
-  initial: { x: '100%' },
-  animate: { x: 0 },
-  exit: { x: '100%' },
-}
-
-const transition = {
-  type: 'spring' as const,
-  stiffness: 300,
-  damping: 22,
-}
+import { ScreenProvider } from './context/ScreenContext'
+import { ProjectorLayout } from './layouts/ProjectorLayout'
+import { CustomerLayout } from './layouts/CustomerLayout'
 
 function App() {
   const { kioskSettings, secondaryScreens, isLoading, error } = useMenuData()
@@ -106,89 +85,38 @@ function App() {
   }
 
   // Wrap in ScreenProvider for secondary screen support
+  // Routes determine which layout to render
   return (
     <ScreenProvider
       secondaryScreens={secondaryScreens}
       defaultTimeoutSeconds={kioskSettings.defaultTimeoutSeconds ?? 30}
       initialActiveScreen={kioskSettings.activeSecondaryScreen ?? null}
     >
-      <ScreenRenderer
-        board={kioskSettings.activeBoard}
-        announcementBar={kioskSettings.announcementBar}
-        ignoreStockLevels={kioskSettings.ignoreStockLevels}
-      />
-    </ScreenProvider>
-  )
-}
-
-/**
- * Inner component that handles screen mode switching with smooth transitions.
- * Must be inside ScreenProvider to access context.
- */
-function ScreenRenderer({
-  board,
-  announcementBar,
-  ignoreStockLevels,
-}: {
-  board: MenuBoard
-  announcementBar?: string
-  ignoreStockLevels?: boolean
-}) {
-  const { mode, activeScreen } = useScreenContext()
-
-  // Set up keyboard controls
-  useKeyboardControls()
-
-  return (
-    <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
-      <AnimatePresence initial={false}>
-        {mode === 'secondary' && activeScreen ? (
-          <motion.div
-            key="secondary"
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              width: '100%',
-              height: '100%',
-            }}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            variants={secondaryVariants}
-            transition={transition}
-          >
-            <SecondaryScreenLayout screen={activeScreen} />
-          </motion.div>
-        ) : (
-          <motion.div
-            key="primary"
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              width: '100%',
-              height: '100%',
-            }}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            variants={primaryVariants}
-            transition={transition}
-          >
-            <BoardLayout
-              board={board}
-              announcementBar={announcementBar}
-              ignoreStockLevels={ignoreStockLevels}
+      <Routes>
+        {/* Customer view - default route */}
+        <Route
+          path="/"
+          element={
+            <CustomerLayout
+              board={kioskSettings.activeBoard}
+              announcementBar={kioskSettings.announcementBar}
+              ignoreStockLevels={kioskSettings.ignoreStockLevels}
             />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+          }
+        />
+        {/* Projector view - keyboard controlled */}
+        <Route
+          path="/projection"
+          element={
+            <ProjectorLayout
+              board={kioskSettings.activeBoard}
+              announcementBar={kioskSettings.announcementBar}
+              ignoreStockLevels={kioskSettings.ignoreStockLevels}
+            />
+          }
+        />
+      </Routes>
+    </ScreenProvider>
   )
 }
 

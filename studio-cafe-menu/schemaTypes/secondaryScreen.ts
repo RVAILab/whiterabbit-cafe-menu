@@ -51,8 +51,15 @@ export default defineType({
       title: 'Linked Item',
       type: 'reference',
       to: [{ type: 'menuItem' }],
-      description: 'For item-linked screens: the item to display in detail',
+      description: 'For item-linked screens: the item to display in detail. Also makes this item tappable in customer view.',
       hidden: ({ parent }) => parent?.screenType !== 'item-linked',
+    }),
+    defineField({
+      name: 'linkedSectionHeading',
+      title: 'Linked Section Heading',
+      type: 'string',
+      description: 'For section-linked screens: the exact section heading to link (e.g., "Coffee Drinks"). Makes that section tappable in customer view.',
+      hidden: ({ parent }) => parent?.screenType !== 'section-linked',
     }),
     defineField({
       name: 'layout',

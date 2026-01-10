@@ -60,7 +60,7 @@
   --font-light: 'PP Pangram Sans Rounded', 'Helvetica Neue', 'Arial', system-ui, sans-serif;
 }
 
-/* Global Styles for Kiosk/Projector Mode */
+/* Global Base Styles */
 * {
   margin: 0;
   padding: 0;
@@ -69,10 +69,8 @@
 
 html,
 body {
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden; /* Prevent scrolling */
-  cursor: none !important; /* Hide mouse cursor */
+  width: 100%;
+  min-height: 100vh;
   background-color: #0a0a0a;
   color: #ffffff;
   font-family: 'PP Pangram Sans Rounded', 'Helvetica Neue', 'Arial', system-ui, sans-serif;
@@ -84,27 +82,213 @@ body {
 
 #root {
   width: 100%;
-  height: 100%;
+  min-height: 100vh;
 }
 
-/* Ensure all interactive elements also hide cursor */
-*,
-*:hover,
-*:active,
-*:focus {
+/* ========================================
+   PROJECTOR LAYOUT - Kiosk Mode Styles
+   ======================================== */
+.projector-layout {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
   cursor: none !important;
-}
-
-/* Remove default focus outlines for kiosk display */
-*:focus {
-  outline: none;
-}
-
-/* Prevent text selection in kiosk mode */
-* {
   -webkit-user-select: none;
   -moz-user-select: none;
   user-select: none;
+}
+
+.projector-layout *,
+.projector-layout *:hover,
+.projector-layout *:active,
+.projector-layout *:focus {
+  cursor: none !important;
+  outline: none;
+}
+
+/* ========================================
+   CUSTOMER LAYOUT - Mobile/Desktop Friendly
+   ======================================== */
+.customer-layout {
+  width: 100%;
+  min-height: 100vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2rem;
+}
+
+.customer-layout * {
+  cursor: auto;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  user-select: text;
+}
+
+/* Customer Header */
+.customer-header {
+  padding: 1.5rem 1rem;
+  text-align: center;
+  border-bottom: 1px solid #333;
+}
+
+.customer-header h1 {
+  font-size: clamp(1.5rem, 5vw, 2.5rem);
+  font-weight: 700;
+  color: #ff4d9f;
+}
+
+/* Customer Announcement */
+.customer-announcement {
+  padding: 0.75rem 1rem;
+  background-color: #fbbf24;
+  color: #000;
+  text-align: center;
+  font-size: clamp(0.875rem, 3vw, 1rem);
+  font-weight: 500;
+}
+
+/* Customer Menu Container */
+.customer-menu {
+  padding: 1rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Customer Section */
+.customer-section {
+  margin-bottom: 2rem;
+}
+
+.customer-section-header {
+  font-size: clamp(1.25rem, 4vw, 1.75rem);
+  font-weight: 600;
+  color: #ff4d9f;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.customer-section-header.tappable {
+  cursor: pointer;
+}
+
+.customer-section-header.tappable:hover {
+  color: #ff7ab8;
+}
+
+.customer-section-header.tappable:active {
+  transform: scale(0.98);
+}
+
+/* Customer Items List */
+.customer-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Customer Item */
+.customer-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1rem 0;
+  border-bottom: 1px solid #222;
+  gap: 1rem;
+}
+
+.customer-item.tappable {
+  cursor: pointer;
+}
+
+.customer-item.tappable:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.customer-item.tappable:active {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.customer-item.unavailable {
+  opacity: 0.5;
+}
+
+.customer-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.customer-item-name {
+  font-size: clamp(1rem, 3.5vw, 1.125rem);
+  font-weight: 500;
+  color: #fff;
+}
+
+.customer-item-desc {
+  font-size: clamp(0.75rem, 2.5vw, 0.875rem);
+  color: #888;
+  line-height: 1.4;
+}
+
+.customer-item-tags {
+  font-size: clamp(0.625rem, 2vw, 0.75rem);
+  color: #fbbf24;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.customer-item-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.customer-item-price {
+  font-size: clamp(1rem, 3.5vw, 1.125rem);
+  font-weight: 600;
+  color: #7ed957;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tap Indicator (chevron) */
+.tap-indicator {
+  font-size: 1.25rem;
+  color: #666;
+  font-weight: 300;
+}
+
+.tappable:hover .tap-indicator {
+  color: #999;
+}
+
+/* Sold Out Badge */
+.sold-out-badge {
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.15);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Customer Footer */
+.customer-footer {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #666;
+  font-size: clamp(0.75rem, 2.5vw, 0.875rem);
+}
+
+/* Customer Secondary Screen */
+.customer-secondary {
+  min-height: 100vh;
 }
 
 /* Screen Transition Animations */

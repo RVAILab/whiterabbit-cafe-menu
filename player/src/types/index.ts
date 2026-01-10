@@ -58,6 +58,7 @@ export interface SecondaryScreen {
   content?: ContentBlock[]
   bulletPoints?: string[]
   linkedItem?: MenuItem
+  linkedSectionHeading?: string
 }
 
 export interface ModifierOption {

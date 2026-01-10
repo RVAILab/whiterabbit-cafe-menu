@@ -126,6 +126,7 @@ export const SECONDARY_SCREENS_QUERY = `
           url
         }
       }
-    }
+    },
+    linkedSectionHeading
   }
 `

@@ -19,6 +19,12 @@ const ACTIVE_BOARD_QUERY = `
       sections[] {
         heading,
         metaCategory,
+        linkedSecondaryScreen-> {
+          _id,
+          title,
+          slug,
+          triggerKey
+        },
         items[]-> {
           _id,
           title,
@@ -27,6 +33,12 @@ const ACTIVE_BOARD_QUERY = `
           availabilityOverride,
           marketingDescription,
           dietaryTags,
+          linkedSecondaryScreen-> {
+            _id,
+            title,
+            slug,
+            triggerKey
+          },
           image {
             asset-> {
               url
@@ -48,6 +60,14 @@ const ACTIVE_BOARD_QUERY = `
   }
 `
 
+const SECONDARY_SCREENS_QUERY = `
+  *[_type == "secondaryScreen"] {
+    _id,
+    title,
+    triggerKey
+  }
+`
+
 console.log('Fetching data from Sanity...')
 console.log('Project ID:', client.config().projectId)
 console.log('Dataset:', client.config().dataset)
@@ -56,31 +76,48 @@ console.log('Perspective:', client.config().perspective)
 console.log('CDN Disabled:', !client.config().useCdn)
 console.log('\n' + '='.repeat(50) + '\n')
 
-client.fetch(ACTIVE_BOARD_QUERY)
-  .then(result => {
+Promise.all([
+  client.fetch(ACTIVE_BOARD_QUERY),
+  client.fetch(SECONDARY_SCREENS_QUERY)
+])
+  .then(([settingsResult, screensResult]) => {
     console.log('✅ Query successful!')
-    console.log('Result type:', typeof result)
-    console.log('Result is array:', Array.isArray(result))
-    console.log('Result length:', result?.length)
-    console.log('\n' + '='.repeat(50) + '\n')
-    console.log('Full result:')
-    console.log(JSON.stringify(result, null, 2))
 
-    if (result && result.length > 0) {
-      const kioskSettings = result[0]
-      console.log('\n' + '='.repeat(50) + '\n')
-      console.log('Kiosk Settings Summary:')
+    console.log('\n' + '='.repeat(50))
+    console.log('SECONDARY SCREENS')
+    console.log('='.repeat(50))
+    console.log(`Found ${screensResult?.length || 0} secondary screens:`)
+    screensResult?.forEach(screen => {
+      console.log(`  - "${screen.title}" [key: ${screen.triggerKey}] (ID: ${screen._id})`)
+    })
+
+    console.log('\n' + '='.repeat(50))
+    console.log('KIOSK SETTINGS')
+    console.log('='.repeat(50))
+
+    if (settingsResult && settingsResult.length > 0) {
+      const kioskSettings = settingsResult[0]
       console.log('- Announcement Bar:', kioskSettings.announcementBar)
       console.log('- Ignore Stock Levels:', kioskSettings.ignoreStockLevels)
       console.log('- Active Board:', kioskSettings.activeBoard?.title)
       console.log('- Sections count:', kioskSettings.activeBoard?.sections?.length)
 
       if (kioskSettings.activeBoard?.sections) {
-        console.log('\nSections:')
+        console.log('\n' + '='.repeat(50))
+        console.log('SECTIONS ANALYSIS')
+        console.log('='.repeat(50))
         kioskSettings.activeBoard.sections.forEach((section, idx) => {
-          console.log(`  ${idx + 1}. ${section.heading} (${section.metaCategory})`)
-          console.log(`     - Items: ${section.items?.length || 0}`)
-          console.log(`     - Modifiers: ${section.modifiers?.length || 0}`)
+          console.log(`\n${idx + 1}. "${section.heading}"`)
+          console.log(`   metaCategory: ${section.metaCategory || 'NOT SET ⚠️'}`)
+          console.log(`   linkedSecondaryScreen: ${section.linkedSecondaryScreen ? `"${section.linkedSecondaryScreen.title}" [${section.linkedSecondaryScreen.triggerKey}]` : 'NOT SET'}`)
+          console.log(`   Items: ${section.items?.length || 0}`)
+
+          // Check items for linked screens
+          section.items?.forEach(item => {
+            if (item.linkedSecondaryScreen) {
+              console.log(`     -> "${item.title}" links to "${item.linkedSecondaryScreen.title}" [${item.linkedSecondaryScreen.triggerKey}]`)
+            }
+          })
         })
       }
     } else {
