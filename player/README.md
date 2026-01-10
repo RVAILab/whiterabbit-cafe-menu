@@ -10,6 +10,7 @@ A real-time digital menu display optimized for projectors and kiosk mode, powere
 - **Sold-out handling**: Items automatically gray out or show "SOLD OUT" badge
 - **Multiple modes**: Switch between cafe/bar menus via Sanity Studio
 - **Kiosk-ready**: Hidden cursor, no scrolling, full-screen display
+- **Now Playing widget**: Displays current Sonos track with album art (projector layout only)
 
 ## Tech Stack
 
@@ -105,17 +106,81 @@ src/
 ├── components/
 │   ├── BoardLayout.tsx      # Main grid container
 │   ├── CategoryColumn.tsx   # Section with items
-│   └── MenuItem.tsx          # Individual menu item
+│   ├── MenuItem.tsx         # Individual menu item
+│   └── NowPlayingWidget.tsx # Sonos now playing display
 ├── hooks/
-│   └── useMenuData.ts        # Real-time Sanity listener
+│   ├── useMenuData.ts       # Real-time Sanity listener
+│   └── useNowPlaying.ts     # Sonos playback polling
 ├── lib/
-│   └── sanity.ts             # Sanity client config
+│   └── sanity.ts            # Sanity client config
 ├── types/
-│   └── index.ts              # TypeScript interfaces
-├── App.tsx                   # Main app component
-├── main.tsx                  # Entry point
-└── index.css                 # Global styles + Tailwind
+│   └── index.ts             # TypeScript interfaces
+├── App.tsx                  # Main app component
+├── main.tsx                 # Entry point
+└── index.css                # Global styles + Tailwind
 ```
+
+## Now Playing Widget (Sonos Integration)
+
+The projector layout includes a "Now Playing" widget that displays the currently playing track from your Sonos system.
+
+### Setup
+
+1. **Configure environment variables** in `.env.local`:
+
+```env
+VITE_SONOS_SERVER_URL=https://your-sonos-server.com
+VITE_SONOS_ZONE_ID=your-zone-id
+VITE_SONOS_POLL_INTERVAL=3000  # Optional, defaults to 3000ms
+```
+
+2. **Find your Zone ID** by calling your Sonos server's zones endpoint:
+
+```bash
+curl https://your-sonos-server.com/api/zones/public
+```
+
+This returns available zones with their IDs:
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "0d64473e-922f-4a31-aad4-965d2e6e0c79",
+      "name": "Full Clubhouse"
+    }
+  ]
+}
+```
+
+### How It Works
+
+- **Polling**: The widget polls the Sonos server every 3 seconds for current playback status
+- **Smart visibility**: Only appears when music is actively playing (hidden when paused/idle)
+- **Secondary screen aware**: Automatically hides when secondary screens are displayed
+- **Resource efficient**: Stops polling when hidden to reduce API calls
+
+### Widget Display
+
+The widget shows:
+- Album artwork thumbnail
+- "NOW PLAYING" label (green)
+- Track name (white)
+- Artist name (pink)
+
+### Files
+
+- `src/components/NowPlayingWidget.tsx` - Widget UI component
+- `src/hooks/useNowPlaying.ts` - Polling hook for Sonos API
+- `src/types/index.ts` - TypeScript types for playback data
+
+### Sonos Server Requirement
+
+This feature requires a Sonos server (like [Earwicket](https://github.com/RVAILab/earwicket)) that provides:
+- `GET /api/now-playing?zone_id={id}` - Returns current playback state and track metadata
+- `GET /api/zones/public` - Returns available zones
+
+The server must have CORS enabled for cross-origin requests from the menu app.
 
 ## Styling Architecture
 
