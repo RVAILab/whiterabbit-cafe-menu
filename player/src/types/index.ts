@@ -124,3 +124,41 @@ export interface MenuData {
 
 // Key map for keyboard-triggered screens
 export type SecondaryScreenKeyMap = Record<string, SecondaryScreen>
+
+// Now Playing Types (Sonos API)
+export type PlaybackState =
+  | 'PLAYBACK_STATE_PLAYING'
+  | 'PLAYBACK_STATE_PAUSED'
+  | 'PLAYBACK_STATE_IDLE'
+  | 'PLAYBACK_STATE_BUFFERING'
+
+export interface NowPlayingTrack {
+  name: string
+  artist: {
+    name: string
+  }
+  imageUrl: string
+}
+
+export interface NowPlayingData {
+  playbackState: PlaybackState
+  track: NowPlayingTrack | null
+}
+
+export interface NowPlayingApiResponse {
+  success: boolean
+  data: {
+    playbackStatus: {
+      playbackState: PlaybackState
+    }
+    metadata: {
+      currentItem: {
+        track: {
+          name: string
+          artist: { name: string }
+          imageUrl: string
+        }
+      } | null
+    }
+  }
+}

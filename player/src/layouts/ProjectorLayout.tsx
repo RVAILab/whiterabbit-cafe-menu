@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { BoardLayout } from '../components/BoardLayout'
 import { SecondaryScreenLayout } from '../components/SecondaryScreenLayout'
+import { NowPlayingWidget } from '../components/NowPlayingWidget'
 import { useScreenContext } from '../context/ScreenContext'
 import { useKeyboardControls } from '../hooks/useKeyboardControls'
 import type { MenuBoard, SecondaryScreen } from '../types'
@@ -52,6 +53,7 @@ export function ProjectorLayout({
   }, [mode, activeScreen])
 
   const showSecondary = mode === 'secondary' || displayedScreen !== null
+  const showNowPlaying = mode === 'primary' && !showSecondary
 
   return (
     <div className="projector-layout" style={{ position: 'relative', overflow: 'hidden' }}>
@@ -88,6 +90,8 @@ export function ProjectorLayout({
           <SecondaryScreenLayout screen={displayedScreen} />
         </div>
       )}
+
+      <NowPlayingWidget visible={showNowPlaying} />
     </div>
   )
 }

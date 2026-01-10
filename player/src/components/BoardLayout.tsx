@@ -69,22 +69,6 @@ export function BoardLayout({ board, announcementBar, ignoreStockLevels }: Board
           />
         </div>
       </main>
-
-      {/* Footer - Currently Active Menu */}
-      <footer className="px-16 pb-4">
-        <p
-          style={{
-            fontFamily: 'PP Pangram Sans Rounded',
-            fontSize: '1.2vw',
-            fontWeight: '100',
-            letterSpacing: '0.1em',
-            color: '#a8ff70',
-            textAlign: 'right'
-          }}
-        >
-          Currently in {title} mode
-        </p>
-      </footer>
     </div>
   )
 }
