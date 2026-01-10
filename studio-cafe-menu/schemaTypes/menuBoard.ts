@@ -67,6 +67,13 @@ export default defineType({
               of: [{ type: 'reference', to: { type: 'menuModifier' } }],
               description: 'Optional modifiers displayed at the bottom of this section (e.g., "Alternative Milks")',
             }),
+            defineField({
+              name: 'linkedSecondaryScreen',
+              title: 'Linked Secondary Screen',
+              type: 'reference',
+              to: [{ type: 'secondaryScreen' }],
+              description: 'Optional: A secondary screen that provides detailed info about this section.',
+            }),
           ],
           preview: {
             select: {

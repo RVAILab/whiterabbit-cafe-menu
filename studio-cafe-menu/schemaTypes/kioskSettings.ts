@@ -28,6 +28,22 @@ export default defineType({
         'When enabled, ALL items will show as available regardless of inventory status. Useful during setup or when inventory sync is being fixed.',
       initialValue: false,
     }),
+    defineField({
+      name: 'activeSecondaryScreen',
+      title: 'Active Secondary Screen',
+      type: 'reference',
+      to: [{ type: 'secondaryScreen' }],
+      description:
+        'Optional: Set a secondary screen to display instead of the menu board. Usually controlled via keyboard on player device.',
+    }),
+    defineField({
+      name: 'defaultTimeoutSeconds',
+      title: 'Default Secondary Screen Timeout',
+      type: 'number',
+      description: 'Default seconds before secondary screens auto-return to the menu (default: 30)',
+      initialValue: 30,
+      validation: (Rule) => Rule.min(5).max(300),
+    }),
   ],
   preview: {
     prepare() {

@@ -28,9 +28,17 @@ export default defineConfig({
                 .documentId('kioskSettings')
             ),
 
+          S.divider(),
+
           // Regular Documents
           S.documentTypeListItem('menuBoard').title('Menu Boards'),
           S.documentTypeListItem('menuItem').title('Menu Items'),
+          S.documentTypeListItem('menuModifier').title('Modifiers'),
+
+          S.divider(),
+
+          // Secondary Screens
+          S.documentTypeListItem('secondaryScreen').title('Secondary Screens'),
         ]),
   }),
   visionTool()],

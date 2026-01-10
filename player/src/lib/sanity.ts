@@ -16,12 +16,19 @@ export const ACTIVE_BOARD_QUERY = `
   *[_type == "kioskSettings"] {
     announcementBar,
     ignoreStockLevels,
+    defaultTimeoutSeconds,
     activeBoard-> {
       title,
       slug,
       sections[] {
         heading,
         metaCategory,
+        linkedSecondaryScreen-> {
+          _id,
+          title,
+          slug,
+          triggerKey
+        },
         items[]-> {
           _id,
           title,
@@ -34,6 +41,12 @@ export const ACTIVE_BOARD_QUERY = `
             asset-> {
               url
             }
+          },
+          linkedSecondaryScreen-> {
+            _id,
+            title,
+            slug,
+            triggerKey
           }
         },
         modifiers[]-> {
@@ -45,6 +58,72 @@ export const ACTIVE_BOARD_QUERY = `
             name,
             price
           }
+        }
+      }
+    },
+    activeSecondaryScreen-> {
+      _id,
+      title,
+      slug,
+      triggerKey,
+      screenType,
+      layout,
+      timeoutSeconds,
+      heroImage {
+        asset-> {
+          url
+        }
+      },
+      backgroundColor,
+      heading,
+      subheading,
+      content,
+      bulletPoints,
+      linkedItem-> {
+        _id,
+        title,
+        price,
+        marketingDescription,
+        dietaryTags,
+        image {
+          asset-> {
+            url
+          }
+        }
+      }
+    }
+  }
+`
+
+// GROQ Query to fetch all secondary screens for building the key map
+export const SECONDARY_SCREENS_QUERY = `
+  *[_type == "secondaryScreen"] {
+    _id,
+    title,
+    slug,
+    triggerKey,
+    screenType,
+    layout,
+    timeoutSeconds,
+    heroImage {
+      asset-> {
+        url
+      }
+    },
+    backgroundColor,
+    heading,
+    subheading,
+    content,
+    bulletPoints,
+    linkedItem-> {
+      _id,
+      title,
+      price,
+      marketingDescription,
+      dietaryTags,
+      image {
+        asset-> {
+          url
         }
       }
     }

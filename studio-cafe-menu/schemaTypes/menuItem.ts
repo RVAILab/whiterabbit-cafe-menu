@@ -85,6 +85,13 @@ export default defineType({
         ],
       },
     }),
+    defineField({
+      name: 'linkedSecondaryScreen',
+      title: 'Linked Secondary Screen',
+      type: 'reference',
+      to: [{ type: 'secondaryScreen' }],
+      description: 'Optional: A secondary screen that provides detailed info about this item.',
+    }),
   ],
   preview: {
     select: {

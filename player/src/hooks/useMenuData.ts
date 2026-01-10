@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import { client, ACTIVE_BOARD_QUERY } from '../lib/sanity'
-import type { KioskSettings, MenuData } from '../types'
+import { client, ACTIVE_BOARD_QUERY, SECONDARY_SCREENS_QUERY } from '../lib/sanity'
+import type { KioskSettings, SecondaryScreen, MenuData } from '../types'
 
 /**
  * Custom hook for fetching and listening to real-time menu data from Sanity
@@ -13,11 +13,13 @@ import type { KioskSettings, MenuData } from '../types'
  */
 export function useMenuData(): MenuData {
   const [data, setData] = useState<KioskSettings | null>(null)
+  const [secondaryScreens, setSecondaryScreens] = useState<SecondaryScreen[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   // Store last successful data for offline mode
   const lastGoodDataRef = useRef<KioskSettings | null>(null)
+  const lastGoodScreensRef = useRef<SecondaryScreen[]>([])
 
   // Ref to track subscription and prevent double-mounting in StrictMode
   const subscriptionRef = useRef<{ unsubscribe: () => void } | null>(null)
@@ -30,14 +32,21 @@ export function useMenuData(): MenuData {
     const fetchInitialData = async () => {
       try {
         setIsLoading(true)
-        // Query returns an array, get the first element (singleton)
-        const result = await client.fetch<KioskSettings[]>(ACTIVE_BOARD_QUERY)
-        const kioskSettings = result[0]
+        // Fetch both kiosk settings and all secondary screens in parallel
+        const [settingsResult, screensResult] = await Promise.all([
+          client.fetch<KioskSettings[]>(ACTIVE_BOARD_QUERY),
+          client.fetch<SecondaryScreen[]>(SECONDARY_SCREENS_QUERY),
+        ])
+
+        const kioskSettings = settingsResult[0]
 
         if (kioskSettings && kioskSettings.activeBoard) {
           setData(kioskSettings)
           lastGoodDataRef.current = kioskSettings
+          setSecondaryScreens(screensResult || [])
+          lastGoodScreensRef.current = screensResult || []
           setError(null)
+          console.log('📺 Loaded', screensResult?.length || 0, 'secondary screens')
         } else {
           throw new Error('No active board configured in Sanity')
         }
@@ -48,6 +57,7 @@ export function useMenuData(): MenuData {
         // If we have cached data, continue showing it
         if (lastGoodDataRef.current) {
           setData(lastGoodDataRef.current)
+          setSecondaryScreens(lastGoodScreensRef.current)
         }
       } finally {
         setIsLoading(false)
@@ -57,17 +67,17 @@ export function useMenuData(): MenuData {
     fetchInitialData()
 
     // Set up real-time listener (guard against double-subscription in StrictMode)
-    // Listen to changes on kioskSettings, menuBoard, and menuItem document types
+    // Listen to changes on kioskSettings, menuBoard, menuItem, menuModifier, and secondaryScreen
     // since the query includes references to these documents
     if (!subscriptionRef.current) {
       console.log('🔧 Setting up Sanity listener')
-      console.log('  Watching document types: kioskSettings, menuBoard, menuItem, menuModifier')
+      console.log('  Watching document types: kioskSettings, menuBoard, menuItem, menuModifier, secondaryScreen')
       console.log('  Perspective:', client.config().perspective)
       console.log('  API Version:', client.config().apiVersion)
       console.log('  CDN Disabled:', !client.config().useCdn)
 
-      // Listen to all document types that can affect the menu
-      const listenerQuery = '*[_type in ["kioskSettings", "menuBoard", "menuItem", "menuModifier"]]'
+      // Listen to all document types that can affect the menu (including secondary screens)
+      const listenerQuery = '*[_type in ["kioskSettings", "menuBoard", "menuItem", "menuModifier", "secondaryScreen"]]'
 
       subscriptionRef.current = client
         .listen(listenerQuery, {}, { includeResult: false })
@@ -93,15 +103,20 @@ export function useMenuData(): MenuData {
             refetchTimerRef.current = setTimeout(() => {
               console.log('🔄 Re-fetching menu data...')
 
-              // When any relevant document changes, re-fetch the full menu data
-              client.fetch<KioskSettings[]>(ACTIVE_BOARD_QUERY)
-                .then(result => {
-                  const kioskSettings = result[0]
+              // When any relevant document changes, re-fetch all data
+              Promise.all([
+                client.fetch<KioskSettings[]>(ACTIVE_BOARD_QUERY),
+                client.fetch<SecondaryScreen[]>(SECONDARY_SCREENS_QUERY),
+              ])
+                .then(([settingsResult, screensResult]) => {
+                  const kioskSettings = settingsResult[0]
                   if (kioskSettings?.activeBoard) {
                     console.log('✅ Menu data updated successfully')
                     console.log('📦 New data:', JSON.stringify(kioskSettings, null, 2))
                     setData(kioskSettings)
                     lastGoodDataRef.current = kioskSettings
+                    setSecondaryScreens(screensResult || [])
+                    lastGoodScreensRef.current = screensResult || []
                     setError(null)
                     setIsLoading(false)
                   }
@@ -137,6 +152,7 @@ export function useMenuData(): MenuData {
 
   return {
     kioskSettings: data,
+    secondaryScreens,
     isLoading,
     error,
   }

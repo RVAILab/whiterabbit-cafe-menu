@@ -1,8 +1,12 @@
 import { useMenuData } from './hooks/useMenuData'
 import { BoardLayout } from './components/BoardLayout'
+import { SecondaryScreenLayout } from './components/SecondaryScreenLayout'
+import { ScreenProvider, useScreenContext } from './context/ScreenContext'
+import { useKeyboardControls } from './hooks/useKeyboardControls'
+import type { MenuBoard } from './types'
 
 function App() {
-  const { kioskSettings, isLoading, error } = useMenuData()
+  const { kioskSettings, secondaryScreens, isLoading, error } = useMenuData()
 
   // Debug logging
   console.log('🔍 App render:', {
@@ -10,6 +14,7 @@ function App() {
     hasKioskSettings: !!kioskSettings,
     hasActiveBoard: !!kioskSettings?.activeBoard,
     sectionsCount: kioskSettings?.activeBoard?.sections?.length,
+    secondaryScreensCount: secondaryScreens.length,
     error
   })
 
@@ -80,12 +85,51 @@ function App() {
     )
   }
 
-  // Display the menu board
+  // Wrap in ScreenProvider for secondary screen support
+  return (
+    <ScreenProvider
+      secondaryScreens={secondaryScreens}
+      defaultTimeoutSeconds={kioskSettings.defaultTimeoutSeconds ?? 30}
+      initialActiveScreen={kioskSettings.activeSecondaryScreen ?? null}
+    >
+      <ScreenRenderer
+        board={kioskSettings.activeBoard}
+        announcementBar={kioskSettings.announcementBar}
+        ignoreStockLevels={kioskSettings.ignoreStockLevels}
+      />
+    </ScreenProvider>
+  )
+}
+
+/**
+ * Inner component that handles screen mode switching.
+ * Must be inside ScreenProvider to access context.
+ */
+function ScreenRenderer({
+  board,
+  announcementBar,
+  ignoreStockLevels,
+}: {
+  board: MenuBoard
+  announcementBar?: string
+  ignoreStockLevels?: boolean
+}) {
+  const { mode, activeScreen } = useScreenContext()
+
+  // Set up keyboard controls
+  useKeyboardControls()
+
+  // Show secondary screen if active
+  if (mode === 'secondary' && activeScreen) {
+    return <SecondaryScreenLayout screen={activeScreen} />
+  }
+
+  // Default: show primary menu board
   return (
     <BoardLayout
-      board={kioskSettings.activeBoard}
-      announcementBar={kioskSettings.announcementBar}
-      ignoreStockLevels={kioskSettings.ignoreStockLevels}
+      board={board}
+      announcementBar={announcementBar}
+      ignoreStockLevels={ignoreStockLevels}
     />
   )
 }
