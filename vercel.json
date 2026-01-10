@@ -4,5 +4,11 @@
   "outputDirectory": "player/dist",
   "devCommand": "cd player && npm run dev",
   "installCommand": "cd player && npm install",
-  "framework": "vite"
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
