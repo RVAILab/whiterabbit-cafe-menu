@@ -22,14 +22,14 @@ export function NowPlayingWidget({ visible }: NowPlayingWidgetProps) {
       style={{
         position: 'fixed',
         bottom: '2vw',
-        right: '2vw',
+        left: '2vw',
         display: 'flex',
         alignItems: 'center',
         gap: '1vw',
         padding: '1vw',
         backgroundColor: 'rgba(10, 10, 10, 0.9)',
         borderRadius: '0.5vw',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
+        border: '2px solid rgba(255, 255, 255, 0.3)',
         zIndex: 100,
         maxWidth: '25vw',
         fontFamily: "'PP Pangram Sans Rounded', system-ui, sans-serif",
@@ -61,7 +61,7 @@ export function NowPlayingWidget({ visible }: NowPlayingWidgetProps) {
         <span
           style={{
             fontSize: '0.8vw',
-            fontWeight: 100,
+            fontWeight: 700,
             color: '#7ed957',
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
@@ -86,7 +86,7 @@ export function NowPlayingWidget({ visible }: NowPlayingWidgetProps) {
         <span
           style={{
             fontSize: '1vw',
-            fontWeight: 300,
+            fontWeight: 700,
             color: '#ff4d9f',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
