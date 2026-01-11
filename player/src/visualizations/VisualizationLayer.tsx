@@ -1,6 +1,7 @@
 import { useVisualization } from '../context/VisualizationContext'
 import { Bubbles } from './Bubbles'
 import { Geometric } from './Geometric'
+import { Waveforms } from './Waveforms'
 
 /**
  * Renders the active background visualization.
@@ -24,6 +25,7 @@ export function VisualizationLayer() {
     >
       {activeVisualization === 'bubbles' && <Bubbles />}
       {activeVisualization === 'geometric' && <Geometric />}
+      {activeVisualization === 'waveforms' && <Waveforms />}
     </div>
   )
 }

@@ -8,8 +8,7 @@ import { useVisualization, type VisualizationType } from '../context/Visualizati
 const VISUALIZATION_KEYS: Record<string, VisualizationType> = {
   '1': 'bubbles',
   '2': 'geometric',
-  // Add more visualizations here as they're created:
-  // '3': 'waves',
+  '3': 'waveforms',
 }
 
 /**
