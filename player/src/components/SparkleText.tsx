@@ -67,9 +67,9 @@ export function SparkleText({
     setSparkles(prev => [...prev, newSparkle])
 
     // Remove sparkle after animation completes
-    // setTimeout(() => {
-    //   setSparkles(prev => prev.filter(s => s.id !== newSparkle.id))
-    // }, 700)
+    setTimeout(() => {
+      setSparkles(prev => prev.filter(s => s.id !== newSparkle.id))
+    }, 700)
   }, [])
 
   useEffect(() => {
