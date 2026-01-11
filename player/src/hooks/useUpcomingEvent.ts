@@ -85,7 +85,6 @@ export function useUpcomingEvent({
         headers: {
           'x-api-key': rovaApiKey,
           'Accept': 'application/json',
-          'Cache-Control': 'no-cache',
         },
         signal: abortControllerRef.current.signal,
       })

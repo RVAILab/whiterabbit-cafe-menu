@@ -59,9 +59,6 @@ export function UpcomingWidget({ visible }: UpcomingWidgetProps) {
   return (
     <div
       style={{
-        position: 'fixed',
-        bottom: '60px',
-        right: 0,
         display: 'flex',
         alignItems: 'center',
         gap: '1vw',
@@ -69,7 +66,6 @@ export function UpcomingWidget({ visible }: UpcomingWidgetProps) {
         backgroundColor: 'rgba(10, 10, 10, 0.9)',
         borderRadius: '0.5vw',
         border: '2px solid rgba(255, 255, 255, 0.3)',
-        zIndex: 100,
         maxWidth: '25vw',
         fontFamily: "'PP Pangram Sans Rounded', system-ui, sans-serif",
       }}
@@ -106,7 +102,7 @@ export function UpcomingWidget({ visible }: UpcomingWidgetProps) {
             textTransform: 'uppercase',
           }}
         >
-          Upcoming at White Rabbit
+          Next at White Rabbit
         </span>
 
         <span

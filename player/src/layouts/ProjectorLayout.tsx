@@ -98,8 +98,21 @@ export function ProjectorLayout({
         </div>
       )}
 
-      <NowPlayingWidget visible={showNowPlaying} />
-      <UpcomingWidget visible={showNowPlaying} />
+      {/* Bottom widgets container */}
+      <div
+        style={{
+          position: 'fixed',
+          bottom: '60px',
+          left: 0,
+          display: 'flex',
+          alignItems: 'flex-end',
+          gap: '1vw',
+          zIndex: 100,
+        }}
+      >
+        <NowPlayingWidget visible={showNowPlaying} />
+        <UpcomingWidget visible={showNowPlaying} />
+      </div>
     </div>
   )
 }
