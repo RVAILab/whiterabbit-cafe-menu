@@ -1,4 +1,5 @@
 import { CategoryColumn } from './CategoryColumn'
+import { SparkleText } from './SparkleText'
 import type { MenuSection, MetaCategory } from '../types'
 
 interface MetaCategoryGroupProps {
@@ -47,7 +48,16 @@ export function MetaCategoryGroup({
             textAlign: 'left'
           }}
         >
-          {META_CATEGORY_LABELS[metaCategory]}
+          <SparkleText
+            style={{
+              fontFamily: 'PP Pangram Sans Rounded',
+              fontWeight: '100',
+              letterSpacing: '0.15em',
+              color: '#fbbf24'
+            }}
+          >
+            {META_CATEGORY_LABELS[metaCategory]}
+          </SparkleText>
         </h2>
         <div
           style={{
@@ -82,7 +92,16 @@ export function MetaCategoryGroup({
           textAlign: 'left'
         }}
       >
-        {META_CATEGORY_LABELS[metaCategory]}
+        <SparkleText
+          style={{
+            fontFamily: 'PP Pangram Sans Rounded',
+            fontWeight: '100',
+            letterSpacing: '0.15em',
+            color: '#fbbf24'
+          }}
+        >
+          {META_CATEGORY_LABELS[metaCategory]}
+        </SparkleText>
       </h2>
 
       {/* Multi-Column Layout for Sections */}

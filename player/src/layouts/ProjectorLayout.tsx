@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { BoardLayout } from '../components/BoardLayout'
 import { SecondaryScreenLayout } from '../components/SecondaryScreenLayout'
 import { NowPlayingWidget } from '../components/NowPlayingWidget'
+import { UpcomingWidget } from '../components/UpcomingWidget'
 import { VisualizationLayer } from '../visualizations'
 import { useScreenContext } from '../context/ScreenContext'
 import { useKeyboardControls } from '../hooks/useKeyboardControls'
@@ -98,6 +99,7 @@ export function ProjectorLayout({
       )}
 
       <NowPlayingWidget visible={showNowPlaying} />
+      <UpcomingWidget visible={showNowPlaying} />
     </div>
   )
 }
