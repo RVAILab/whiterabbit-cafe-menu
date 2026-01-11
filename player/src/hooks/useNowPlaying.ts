@@ -57,13 +57,14 @@ export function useNowPlaying({
 
       if (data.success) {
         const track = data.data.metadata?.currentItem?.track
+        const container = data.data.metadata?.container
         setNowPlaying({
           playbackState: data.data.playbackStatus.playbackState,
           track: track
             ? {
                 name: track.name,
                 artist: { name: track.artist.name },
-                imageUrl: track.imageUrl,
+                imageUrl: track.imageUrl || container?.imageUrl || '',
               }
             : null,
         })

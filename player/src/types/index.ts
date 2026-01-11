@@ -152,11 +152,15 @@ export interface NowPlayingApiResponse {
       playbackState: PlaybackState
     }
     metadata: {
+      container?: {
+        name: string
+        imageUrl: string
+      }
       currentItem: {
         track: {
           name: string
           artist: { name: string }
-          imageUrl: string
+          imageUrl: string | null
         }
       } | null
     }
