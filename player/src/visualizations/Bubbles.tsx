@@ -31,11 +31,11 @@ interface BubblesProps {
 }
 
 export function Bubbles({
-  bubbleCount = 30,
+  bubbleCount = 21,
   minRadius = 20,
   maxRadius = 150,
   riseSpeed = 0.5,
-  hues = [200, 220, 180, 260], // blues, teals, purples
+  hues = [330, 350, 140, 160, 0, 30, 60, 180, 210, 270, 300], // pink, green, rainbow spectrum
 }: BubblesProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const bubblesRef = useRef<Bubble[]>([])
@@ -108,9 +108,9 @@ export function Bubbles({
         y,
         currentRadius
       )
-      gradient.addColorStop(0, `hsla(${hue}, 60%, 90%, ${currentOpacity * 0.9})`)
-      gradient.addColorStop(0.5, `hsla(${hue}, 50%, 75%, ${currentOpacity * 0.5})`)
-      gradient.addColorStop(1, `hsla(${hue}, 40%, 55%, ${currentOpacity * 0.2})`)
+      gradient.addColorStop(0, `hsla(${hue}, 40%, 65%, ${currentOpacity * 0.7})`)
+      gradient.addColorStop(0.5, `hsla(${hue}, 35%, 50%, ${currentOpacity * 0.4})`)
+      gradient.addColorStop(1, `hsla(${hue}, 30%, 35%, ${currentOpacity * 0.15})`)
 
       ctx.beginPath()
       ctx.arc(x, y, currentRadius, 0, Math.PI * 2)
@@ -137,7 +137,7 @@ export function Bubbles({
       // Rim highlight
       ctx.beginPath()
       ctx.arc(x, y, currentRadius, 0, Math.PI * 2)
-      ctx.strokeStyle = `hsla(${hue}, 60%, 70%, ${currentOpacity * 0.3})`
+      ctx.strokeStyle = `hsla(${hue}, 35%, 55%, ${currentOpacity * 0.25})`
       ctx.lineWidth = 2
       ctx.stroke()
 
