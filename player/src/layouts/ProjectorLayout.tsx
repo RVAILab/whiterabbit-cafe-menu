@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { BoardLayout } from '../components/BoardLayout'
 import { SecondaryScreenLayout } from '../components/SecondaryScreenLayout'
 import { NowPlayingWidget } from '../components/NowPlayingWidget'
+import { VisualizationLayer } from '../visualizations'
 import { useScreenContext } from '../context/ScreenContext'
 import { useKeyboardControls } from '../hooks/useKeyboardControls'
+import { useVisualizationControls } from '../hooks/useVisualizationControls'
 import type { MenuBoard, SecondaryScreen } from '../types'
 
 interface ProjectorLayoutProps {
@@ -30,6 +32,7 @@ export function ProjectorLayout({
 
   // Keyboard controls only active in projector mode
   useKeyboardControls()
+  useVisualizationControls()
 
   // Handle screen transitions
   useEffect(() => {
@@ -57,6 +60,9 @@ export function ProjectorLayout({
 
   return (
     <div className="projector-layout" style={{ position: 'relative', overflow: 'hidden' }}>
+      {/* Background visualization layer */}
+      <VisualizationLayer />
+
       {/* Primary screen - always rendered, slides left when secondary is shown */}
       <div
         style={{

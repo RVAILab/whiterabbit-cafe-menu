@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import { useMenuData } from './hooks/useMenuData'
 import { ScreenProvider } from './context/ScreenContext'
+import { VisualizationProvider } from './context/VisualizationContext'
 import { ProjectorLayout } from './layouts/ProjectorLayout'
 import { CustomerLayout } from './layouts/CustomerLayout'
 
@@ -84,39 +85,41 @@ function App() {
     )
   }
 
-  // Wrap in ScreenProvider for secondary screen support
+  // Wrap in providers for secondary screen and visualization support
   // Routes determine which layout to render
   return (
-    <ScreenProvider
-      secondaryScreens={secondaryScreens}
-      defaultTimeoutSeconds={kioskSettings.defaultTimeoutSeconds ?? 30}
-      initialActiveScreen={kioskSettings.activeSecondaryScreen ?? null}
-    >
-      <Routes>
-        {/* Customer view - default route */}
-        <Route
-          path="/"
-          element={
-            <CustomerLayout
-              board={kioskSettings.activeBoard}
-              announcementBar={kioskSettings.announcementBar}
-              ignoreStockLevels={kioskSettings.ignoreStockLevels}
-            />
-          }
-        />
-        {/* Projector view - keyboard controlled */}
-        <Route
-          path="/projection"
-          element={
-            <ProjectorLayout
-              board={kioskSettings.activeBoard}
-              announcementBar={kioskSettings.announcementBar}
-              ignoreStockLevels={kioskSettings.ignoreStockLevels}
-            />
-          }
-        />
-      </Routes>
-    </ScreenProvider>
+    <VisualizationProvider>
+      <ScreenProvider
+        secondaryScreens={secondaryScreens}
+        defaultTimeoutSeconds={kioskSettings.defaultTimeoutSeconds ?? 30}
+        initialActiveScreen={kioskSettings.activeSecondaryScreen ?? null}
+      >
+        <Routes>
+          {/* Customer view - default route */}
+          <Route
+            path="/"
+            element={
+              <CustomerLayout
+                board={kioskSettings.activeBoard}
+                announcementBar={kioskSettings.announcementBar}
+                ignoreStockLevels={kioskSettings.ignoreStockLevels}
+              />
+            }
+          />
+          {/* Projector view - keyboard controlled */}
+          <Route
+            path="/projection"
+            element={
+              <ProjectorLayout
+                board={kioskSettings.activeBoard}
+                announcementBar={kioskSettings.announcementBar}
+                ignoreStockLevels={kioskSettings.ignoreStockLevels}
+              />
+            }
+          />
+        </Routes>
+      </ScreenProvider>
+    </VisualizationProvider>
   )
 }
 

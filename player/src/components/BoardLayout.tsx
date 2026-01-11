@@ -22,7 +22,7 @@ export function BoardLayout({ board, announcementBar, ignoreStockLevels }: Board
   })
 
   return (
-    <div className="w-full h-full flex flex-col" style={{ backgroundColor: '#0a0a0a', padding: '10px' }}>
+    <div className="w-full h-full flex flex-col" style={{ padding: '10px' }}>
       {/* Announcement Bar */}
       {announcementBar && (
         <div className="w-full py-3 px-8" style={{ backgroundColor: '#fbbf24' }}>
