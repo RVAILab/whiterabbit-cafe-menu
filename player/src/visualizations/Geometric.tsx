@@ -50,7 +50,7 @@ export function Geometric({
       sides,
       radius: 30 + Math.random() * 50,
       hue,
-      opacity: 0.15 + Math.random() * 0.2,
+      opacity: 0.3 + Math.random() * 0.3,
       vx: (Math.random() - 0.5) * 0.5,
       vy: (Math.random() - 0.5) * 0.5,
     }
@@ -104,18 +104,18 @@ export function Geometric({
       }
       ctx.closePath()
 
-      // Subtle fill
-      ctx.fillStyle = `hsla(${hue}, 60%, 50%, ${opacity * 0.3})`
+      // Bold fill - much more visible
+      ctx.fillStyle = `hsla(${hue}, 80%, 45%, ${opacity * 1.5})`
       ctx.fill()
 
-      // Glowing stroke
-      ctx.strokeStyle = `hsla(${hue}, 70%, 60%, ${opacity})`
-      ctx.lineWidth = 2
+      // Strong outer stroke
+      ctx.strokeStyle = `hsla(${hue}, 90%, 65%, ${opacity * 2})`
+      ctx.lineWidth = 3
       ctx.stroke()
 
-      // Inner glow effect
-      ctx.strokeStyle = `hsla(${hue}, 80%, 80%, ${opacity * 0.5})`
-      ctx.lineWidth = 1
+      // Bright inner glow
+      ctx.strokeStyle = `hsla(${hue}, 100%, 85%, ${opacity})`
+      ctx.lineWidth = 1.5
       ctx.stroke()
     }
 
@@ -129,14 +129,14 @@ export function Geometric({
           const distance = Math.sqrt(dx * dx + dy * dy)
 
           if (distance < connectionDistance) {
-            const opacity = (1 - distance / connectionDistance) * 0.15
+            const opacity = (1 - distance / connectionDistance) * 0.4
             const hue = (a.hue + b.hue) / 2
 
             ctx.beginPath()
             ctx.moveTo(a.x, a.y)
             ctx.lineTo(b.x, b.y)
-            ctx.strokeStyle = `hsla(${hue}, 50%, 60%, ${opacity})`
-            ctx.lineWidth = 1
+            ctx.strokeStyle = `hsla(${hue}, 70%, 65%, ${opacity})`
+            ctx.lineWidth = 2
             ctx.stroke()
           }
         }
