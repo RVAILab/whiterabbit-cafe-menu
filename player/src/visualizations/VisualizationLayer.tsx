@@ -1,5 +1,6 @@
 import { useVisualization } from '../context/VisualizationContext'
 import { Bubbles } from './Bubbles'
+import { Geometric } from './Geometric'
 
 /**
  * Renders the active background visualization.
@@ -22,6 +23,7 @@ export function VisualizationLayer() {
       }}
     >
       {activeVisualization === 'bubbles' && <Bubbles />}
+      {activeVisualization === 'geometric' && <Geometric />}
     </div>
   )
 }

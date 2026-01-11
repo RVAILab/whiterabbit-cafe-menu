@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
 
-export type VisualizationType = 'none' | 'bubbles'
+export type VisualizationType = 'none' | 'bubbles' | 'geometric'
 
 interface VisualizationContextValue {
   activeVisualization: VisualizationType
