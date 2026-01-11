@@ -33,7 +33,7 @@ interface BubblesProps {
 export function Bubbles({
   bubbleCount = 30,
   minRadius = 20,
-  maxRadius = 60,
+  maxRadius = 150,
   riseSpeed = 0.5,
   hues = [200, 220, 180, 260], // blues, teals, purples
 }: BubblesProps) {
@@ -53,7 +53,7 @@ export function Bubbles({
       radius,
       vx: (Math.random() - 0.5) * 0.3,
       vy: -(riseSpeed + Math.random() * riseSpeed * 0.5),
-      opacity: 0.15 + Math.random() * 0.25,
+      opacity: 0.35 + Math.random() * 0.35,
       hue,
       wobblePhase: Math.random() * Math.PI * 2,
       wobbleSpeed: 0.02 + Math.random() * 0.02,
@@ -108,9 +108,9 @@ export function Bubbles({
         y,
         currentRadius
       )
-      gradient.addColorStop(0, `hsla(${hue}, 70%, 80%, ${currentOpacity * 0.8})`)
-      gradient.addColorStop(0.5, `hsla(${hue}, 60%, 60%, ${currentOpacity * 0.4})`)
-      gradient.addColorStop(1, `hsla(${hue}, 50%, 40%, ${currentOpacity * 0.1})`)
+      gradient.addColorStop(0, `hsla(${hue}, 60%, 90%, ${currentOpacity * 0.9})`)
+      gradient.addColorStop(0.5, `hsla(${hue}, 50%, 75%, ${currentOpacity * 0.5})`)
+      gradient.addColorStop(1, `hsla(${hue}, 40%, 55%, ${currentOpacity * 0.2})`)
 
       ctx.beginPath()
       ctx.arc(x, y, currentRadius, 0, Math.PI * 2)
