@@ -22,7 +22,7 @@ export function BoardLayout({ board, announcementBar, ignoreStockLevels }: Board
   })
 
   return (
-    <div className="w-full h-full flex flex-col" style={{ padding: '10px' }}>
+    <div className="w-full h-full flex flex-col relative" style={{ padding: '10px' }}>
       {/* Announcement Bar */}
       {announcementBar && (
         <div className="w-full py-3 px-8" style={{ backgroundColor: '#fbbf24' }}>
@@ -69,6 +69,21 @@ export function BoardLayout({ board, announcementBar, ignoreStockLevels }: Board
           />
         </div>
       </main>
+
+      {/* Member Discount Note */}
+      <div
+        style={{
+          position: 'absolute',
+          right: '16px',
+          bottom: '60px',
+          fontSize: '1.1vw',
+          color: 'rgba(255, 255, 255, 0.7)',
+          fontWeight: '300',
+          letterSpacing: '0.08em',
+        }}
+      >
+        15% Member Discount
+      </div>
     </div>
   )
 }
