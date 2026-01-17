@@ -82,7 +82,7 @@ export function BoardLayout({ board, announcementBar, ignoreStockLevels }: Board
           letterSpacing: '0.08em',
         }}
       >
-        15% Member Discount
+        Members receive 15% discount
       </div>
     </div>
   )
