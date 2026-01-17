@@ -75,7 +75,7 @@ export function BoardLayout({ board, announcementBar, ignoreStockLevels }: Board
         style={{
           position: 'absolute',
           right: '16px',
-          bottom: '60px',
+          bottom: '160px',
           fontSize: '1.1vw',
           color: 'rgba(255, 255, 255, 0.7)',
           fontWeight: '300',
