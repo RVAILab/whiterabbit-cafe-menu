@@ -190,6 +190,48 @@ export function SecondaryScreenLayout({ screen }: SecondaryScreenLayoutProps) {
                   ))}
                 </div>
               )}
+              {/* Ingredients */}
+              {screen.linkedItem.ingredients && screen.linkedItem.ingredients.length > 0 && (
+                <div style={{ marginTop: '1.5vw' }}>
+                  <h4
+                    style={{
+                      fontSize: '1.3vw',
+                      fontWeight: 600,
+                      color: '#ff4d9f',
+                      marginBottom: '0.5vw',
+                    }}
+                  >
+                    Ingredients
+                  </h4>
+                  <ul
+                    style={{
+                      listStyle: 'none',
+                      padding: 0,
+                      margin: 0,
+                    }}
+                  >
+                    {screen.linkedItem.ingredients.map((ingredient) => (
+                      <li
+                        key={ingredient._id}
+                        style={{
+                          fontSize: '1.2vw',
+                          marginBottom: '0.3vw',
+                          display: 'flex',
+                          alignItems: 'baseline',
+                          gap: '0.5vw',
+                        }}
+                      >
+                        <span style={{ color: '#ffffff' }}>{ingredient.name}</span>
+                        {ingredient.benefit && (
+                          <span style={{ color: '#7ed957', fontSize: '1vw' }}>
+                            — {ingredient.benefit}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         )}

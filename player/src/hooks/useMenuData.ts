@@ -77,7 +77,7 @@ export function useMenuData(): MenuData {
       console.log('  CDN Disabled:', !client.config().useCdn)
 
       // Listen to all document types that can affect the menu (including secondary screens)
-      const listenerQuery = '*[_type in ["kioskSettings", "menuBoard", "menuItem", "menuModifier", "secondaryScreen"]]'
+      const listenerQuery = '*[_type in ["kioskSettings", "menuBoard", "menuItem", "menuModifier", "secondaryScreen", "ingredient"]]'
 
       subscriptionRef.current = client
         .listen(listenerQuery, {}, { includeResult: false })
