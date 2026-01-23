@@ -1,7 +1,7 @@
 import { SecondaryScreenLayout } from '../components/SecondaryScreenLayout'
 import { useScreenContext } from '../context/ScreenContext'
 import { AnimatePresence, motion } from 'framer-motion'
-import type { MenuBoard, MenuSection, MenuItem, SecondaryScreen } from '../types'
+import type { MenuBoard, MenuSection, MenuItem, MenuItemGroup, MenuSectionItem, SecondaryScreen } from '../types'
 
 // Transition variants for customer view
 const screenVariants = {
@@ -53,13 +53,17 @@ export function CustomerLayout({
   }
 
   // Combined lookup for items: try direct reference first, then reverse lookup
-  const findScreenForMenuItem = (item: MenuItem): SecondaryScreen | null => {
-    // First try direct reference (menuItem -> secondaryScreen)
+  const findScreenForMenuItem = (item: MenuSectionItem): SecondaryScreen | null => {
+    // First try direct reference (menuItem/menuItemGroup -> secondaryScreen)
     const directRef = findScreenByRef(item.linkedSecondaryScreen)
     if (directRef) return directRef
 
     // Then try reverse lookup (secondaryScreen -> menuItem via linkedItem)
-    return findScreenForItemById(item._id)
+    // Only applies to menuItem type since groups don't have reverse lookup
+    if (item._type === 'menuItem') {
+      return findScreenForItemById(item._id)
+    }
+    return null
   }
 
   // Combined lookup for sections: try direct reference first, then reverse lookup by heading
@@ -160,7 +164,7 @@ interface CustomerSectionProps {
   section: MenuSection
   ignoreStockLevels?: boolean
   sectionScreen: SecondaryScreen | null
-  findScreenForItem: (item: MenuItem) => SecondaryScreen | null
+  findScreenForItem: (item: MenuSectionItem) => SecondaryScreen | null
   showScreen: (screen: SecondaryScreen) => void
 }
 
@@ -191,15 +195,27 @@ function CustomerSection({
 
       {/* Items */}
       <ul className="customer-items">
-        {section.items?.map((item) => (
-          <CustomerItem
-            key={item._id}
-            item={item}
-            ignoreStockLevels={ignoreStockLevels}
-            linkedScreen={findScreenForItem(item)}
-            showScreen={showScreen}
-          />
-        ))}
+        {section.items?.map((item) => {
+          if (item._type === 'menuItemGroup') {
+            return (
+              <CustomerItemGroup
+                key={item._id}
+                item={item}
+                linkedScreen={findScreenForItem(item)}
+                showScreen={showScreen}
+              />
+            )
+          }
+          return (
+            <CustomerItem
+              key={item._id}
+              item={item}
+              ignoreStockLevels={ignoreStockLevels}
+              linkedScreen={findScreenForItem(item)}
+              showScreen={showScreen}
+            />
+          )
+        })}
       </ul>
     </section>
   )
@@ -212,7 +228,7 @@ interface CustomerItemProps {
   showScreen: (screen: SecondaryScreen) => void
 }
 
-function CustomerItem({ item, ignoreStockLevels, linkedScreen, showScreen }: CustomerItemProps) {
+function CustomerItem({ item, ignoreStockLevels, linkedScreen, showScreen }: CustomerItemProps): React.JSX.Element {
   const hasLinkedScreen = !!linkedScreen
 
   // Availability logic
@@ -253,6 +269,52 @@ function CustomerItem({ item, ignoreStockLevels, linkedScreen, showScreen }: Cus
         </span>
         {hasLinkedScreen && <span className="tap-indicator">›</span>}
         {!isAvailable && <span className="sold-out-badge">SOLD OUT</span>}
+      </div>
+    </li>
+  )
+}
+
+interface CustomerItemGroupProps {
+  item: MenuItemGroup
+  linkedScreen: SecondaryScreen | null
+  showScreen: (screen: SecondaryScreen) => void
+}
+
+function CustomerItemGroup({ item, linkedScreen, showScreen }: CustomerItemGroupProps): React.JSX.Element {
+  const hasLinkedScreen = !!linkedScreen
+
+  const handleClick = () => {
+    if (linkedScreen) showScreen(linkedScreen)
+  }
+
+  // Format price range - show single price if min === max
+  const priceDisplay = item.priceRange.minPrice === item.priceRange.maxPrice
+    ? `$${item.priceRange.minPrice.toFixed(2)}`
+    : `$${item.priceRange.minPrice.toFixed(2)}-$${item.priceRange.maxPrice.toFixed(2)}`
+
+  return (
+    <li
+      className={`customer-item ${hasLinkedScreen ? 'tappable' : ''}`}
+      onClick={hasLinkedScreen ? handleClick : undefined}
+      style={{ cursor: hasLinkedScreen ? 'pointer' : 'default' }}
+    >
+      <div className="customer-item-info">
+        <span className="customer-item-name">
+          {item.title}
+          {item.dietaryTags?.includes('ALC') && ' 🌶️'}
+        </span>
+        <span className="customer-item-desc">{item.itemNames}</span>
+        {item.dietaryTags && item.dietaryTags.length > 0 && (
+          <span className="customer-item-tags">
+            {item.dietaryTags.filter(t => t !== 'ALC').join(' · ')}
+          </span>
+        )}
+      </div>
+      <div className="customer-item-right">
+        <span className="customer-item-price">
+          {priceDisplay}
+        </span>
+        {hasLinkedScreen && <span className="tap-indicator">›</span>}
       </div>
     </li>
   )
