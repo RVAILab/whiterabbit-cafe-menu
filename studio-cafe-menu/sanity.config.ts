@@ -33,6 +33,7 @@ export default defineConfig({
           // Regular Documents
           S.documentTypeListItem('menuBoard').title('Menu Boards'),
           S.documentTypeListItem('menuItem').title('Menu Items'),
+          S.documentTypeListItem('menuItemGroup').title('Menu Item Groups'),
           S.documentTypeListItem('menuModifier').title('Modifiers'),
           S.documentTypeListItem('ingredient').title('Ingredients'),
 
