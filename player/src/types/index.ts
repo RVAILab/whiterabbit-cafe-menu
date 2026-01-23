@@ -61,6 +61,14 @@ export interface SecondaryScreen {
   linkedSectionHeading?: string
 }
 
+export interface Ingredient {
+  _id: string
+  name: string
+  provider?: string
+  description?: string
+  benefit?: string
+}
+
 export interface ModifierOption {
   name: string
   price: number
@@ -88,6 +96,8 @@ export interface MenuItem {
     }
   }
   linkedSecondaryScreen?: SecondaryScreenRef
+  ingredients?: Ingredient[]
+  preparationInstructions?: string
 }
 
 export interface MenuSection {

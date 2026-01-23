@@ -47,6 +47,13 @@ export const ACTIVE_BOARD_QUERY = `
             title,
             slug,
             triggerKey
+          },
+          ingredients[]-> {
+            _id,
+            name,
+            provider,
+            description,
+            benefit
           }
         },
         modifiers[]-> {
@@ -89,6 +96,13 @@ export const ACTIVE_BOARD_QUERY = `
           asset-> {
             url
           }
+        },
+        ingredients[]-> {
+          _id,
+          name,
+          provider,
+          description,
+          benefit
         }
       }
     }
@@ -125,6 +139,13 @@ export const SECONDARY_SCREENS_QUERY = `
         asset-> {
           url
         }
+      },
+      ingredients[]-> {
+        _id,
+        name,
+        provider,
+        description,
+        benefit
       }
     },
     linkedSectionHeading

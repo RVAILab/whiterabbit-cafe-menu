@@ -4,5 +4,6 @@ import menuBoard from './menuBoard'
 import kioskSettings from './kioskSettings'
 import menuModifier from './menuModifier'
 import secondaryScreen from './secondaryScreen'
+import ingredient from './ingredient'
 
-export const schemaTypes = [menuItem, menuBoard, kioskSettings, menuModifier, secondaryScreen]
+export const schemaTypes = [menuItem, menuBoard, kioskSettings, menuModifier, secondaryScreen, ingredient]

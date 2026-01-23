@@ -92,6 +92,25 @@ export default defineType({
       to: [{ type: 'secondaryScreen' }],
       description: 'Optional: A secondary screen that provides detailed info about this item.',
     }),
+    defineField({
+      name: 'ingredients',
+      title: 'Ingredients',
+      type: 'array',
+      of: [
+        {
+          type: 'reference',
+          to: [{ type: 'ingredient' }],
+        },
+      ],
+      description: 'Select ingredients used in this item. Drag to reorder by importance.',
+    }),
+    defineField({
+      name: 'preparationInstructions',
+      title: 'Preparation Instructions',
+      type: 'text',
+      rows: 5,
+      description: 'Internal preparation instructions for staff (not shown to customers)',
+    }),
   ],
   preview: {
     select: {

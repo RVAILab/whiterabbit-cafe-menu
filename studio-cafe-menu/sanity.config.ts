@@ -34,6 +34,7 @@ export default defineConfig({
           S.documentTypeListItem('menuBoard').title('Menu Boards'),
           S.documentTypeListItem('menuItem').title('Menu Items'),
           S.documentTypeListItem('menuModifier').title('Modifiers'),
+          S.documentTypeListItem('ingredient').title('Ingredients'),
 
           S.divider(),
 
