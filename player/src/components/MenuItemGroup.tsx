@@ -7,10 +7,7 @@ interface MenuItemGroupProps {
 export function MenuItemGroup({ item }: MenuItemGroupProps) {
   const { title, itemNames, priceRange, dietaryTags } = item
 
-  // Format price range - show single price if min === max
-  const priceDisplay = priceRange.minPrice === priceRange.maxPrice
-    ? `$${priceRange.minPrice.toFixed(2)}`
-    : `$${priceRange.minPrice.toFixed(2)}-$${priceRange.maxPrice.toFixed(2)}`
+  const isSinglePrice = priceRange.minPrice === priceRange.maxPrice
 
   return (
     <div
@@ -58,19 +55,26 @@ export function MenuItemGroup({ item }: MenuItemGroupProps) {
         </div>
       </div>
 
-      {/* Right side: Price range */}
-      <span
+      {/* Right side: Price range - stacked vertically if range, single line if same */}
+      <div
         className="tabular-nums"
         style={{
           fontSize: '1.5vw',
           color: '#7ed957',
           fontWeight: '700',
-          whiteSpace: 'nowrap',
+          textAlign: 'right',
           textTransform: 'uppercase'
         }}
       >
-        {priceDisplay}
-      </span>
+        {isSinglePrice ? (
+          <span>${priceRange.minPrice.toFixed(2)}</span>
+        ) : (
+          <>
+            <div>${priceRange.minPrice.toFixed(2)}</div>
+            <div>${priceRange.maxPrice.toFixed(2)}</div>
+          </>
+        )}
+      </div>
     </div>
   )
 }
