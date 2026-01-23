@@ -67,11 +67,11 @@ export function MenuItemGroup({ item }: MenuItemGroupProps) {
         }}
       >
         {isSinglePrice ? (
-          <span>${priceRange.minPrice.toFixed(2)}</span>
+          <span>{priceRange.minPrice.toFixed(2)}</span>
         ) : (
           <>
-            <div>${priceRange.minPrice.toFixed(2)}-</div>
-            <div>${priceRange.maxPrice.toFixed(2)}</div>
+            <div>{priceRange.minPrice.toFixed(2)}-</div>
+            <div>{priceRange.maxPrice.toFixed(2)}</div>
           </>
         )}
       </div>
