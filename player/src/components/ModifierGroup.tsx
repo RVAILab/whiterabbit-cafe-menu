@@ -61,7 +61,7 @@ export function ModifierGroup({ modifier }: ModifierGroupProps) {
                 letterSpacing: '0.05em',
               }}
             >
-              +{globalPrice.toFixed(2)}
+              {globalPrice === 0 ? 'Gratis' : `+${globalPrice.toFixed(2)}`}
             </span>
           )}
         </div>
@@ -97,7 +97,7 @@ export function ModifierGroup({ modifier }: ModifierGroupProps) {
               fontWeight: '300',
             }}
           >
-            +{globalPrice.toFixed(2)}
+            {globalPrice === 0 ? 'Gratis' : `+${globalPrice.toFixed(2)}`}
           </span>
         )}
       </h3>
@@ -142,7 +142,7 @@ export function ModifierGroup({ modifier }: ModifierGroupProps) {
                   fontWeight: '300',
                 }}
               >
-                +{option.price.toFixed(2)}
+                {option.price === 0 ? 'Gratis' : `+${option.price.toFixed(2)}`}
               </span>
             )}
           </div>

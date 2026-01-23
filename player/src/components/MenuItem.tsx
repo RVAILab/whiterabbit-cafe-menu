@@ -8,8 +8,8 @@ interface MenuItemProps {
 export function MenuItem({ item, ignoreStockLevels = false }: MenuItemProps) {
   const { title, price, isAvailable, availabilityOverride, dietaryTags, marketingDescription } = item
 
-  // Format price to always show 2 decimal places
-  const formattedPrice = price.toFixed(2)
+  // Format price - show "Gratis" for free items
+  const formattedPrice = price === 0 ? 'Gratis' : price.toFixed(2)
 
   // Calculate final availability using priority logic
   const calculateAvailability = (): boolean => {
