@@ -1,6 +1,7 @@
 import { MenuItem } from './MenuItem'
+import { MenuItemGroup } from './MenuItemGroup'
 import { ModifierGroup } from './ModifierGroup'
-import type { MenuSection } from '../types'
+import type { MenuSection, MenuSectionItem } from '../types'
 
 interface CategoryColumnProps {
   section: MenuSection
@@ -38,9 +39,18 @@ export function CategoryColumn({ section, ignoreStockLevels }: CategoryColumnPro
           gap: '0.15rem'
         }}
       >
-        {safeItems.map((item) => (
-          <MenuItem key={item._id} item={item} ignoreStockLevels={ignoreStockLevels} />
-        ))}
+        {safeItems.map((item: MenuSectionItem) => {
+          if (item._type === 'menuItemGroup') {
+            return <MenuItemGroup key={item._id} item={item} />
+          }
+          return (
+            <MenuItem
+              key={item._id}
+              item={item}
+              ignoreStockLevels={ignoreStockLevels}
+            />
+          )
+        })}
       </div>
 
       {/* Empty state */}

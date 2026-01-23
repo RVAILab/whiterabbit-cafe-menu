@@ -31,29 +31,45 @@ export const ACTIVE_BOARD_QUERY = `
         },
         items[]-> {
           _id,
+          _type,
           title,
-          price,
-          isAvailable,
-          availabilityOverride,
-          marketingDescription,
-          dietaryTags,
-          image {
-            asset-> {
-              url
+          // menuItem fields
+          _type == 'menuItem' => {
+            price,
+            isAvailable,
+            availabilityOverride,
+            marketingDescription,
+            dietaryTags,
+            image {
+              asset-> {
+                url
+              }
+            },
+            linkedSecondaryScreen-> {
+              _id,
+              title,
+              slug,
+              triggerKey
+            },
+            ingredients[]-> {
+              _id,
+              name,
+              provider,
+              description,
+              benefit
             }
           },
-          linkedSecondaryScreen-> {
-            _id,
-            title,
-            slug,
-            triggerKey
-          },
-          ingredients[]-> {
-            _id,
-            name,
-            provider,
-            description,
-            benefit
+          // menuItemGroup fields
+          _type == 'menuItemGroup' => {
+            itemNames,
+            priceRange,
+            dietaryTags,
+            linkedSecondaryScreen-> {
+              _id,
+              title,
+              slug,
+              triggerKey
+            }
           }
         },
         modifiers[]-> {

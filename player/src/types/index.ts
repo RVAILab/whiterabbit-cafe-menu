@@ -84,6 +84,7 @@ export interface MenuModifier {
 
 export interface MenuItem {
   _id: string
+  _type: 'menuItem'
   title: string
   price: number
   isAvailable: boolean
@@ -100,10 +101,25 @@ export interface MenuItem {
   preparationInstructions?: string
 }
 
+export interface MenuItemGroup {
+  _id: string
+  _type: 'menuItemGroup'
+  title: string
+  itemNames: string
+  priceRange: {
+    minPrice: number
+    maxPrice: number
+  }
+  dietaryTags?: DietaryTag[]
+  linkedSecondaryScreen?: SecondaryScreenRef
+}
+
+export type MenuSectionItem = MenuItem | MenuItemGroup
+
 export interface MenuSection {
   heading: string
   metaCategory?: MetaCategory | null
-  items?: MenuItem[] | null
+  items?: MenuSectionItem[] | null
   modifiers?: MenuModifier[] | null
   linkedSecondaryScreen?: SecondaryScreenRef
 }

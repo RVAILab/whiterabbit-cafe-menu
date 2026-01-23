@@ -57,8 +57,16 @@ export default defineType({
               name: 'items',
               title: 'Items',
               type: 'array',
-              of: [{ type: 'reference', to: { type: 'menuItem' } }],
-              description: '⬍ Drag items to reorder top-to-bottom. Add items by clicking below.',
+              of: [
+                {
+                  type: 'reference',
+                  to: [
+                    { type: 'menuItem' },
+                    { type: 'menuItemGroup' },
+                  ],
+                },
+              ],
+              description: '⬍ Drag items to reorder top-to-bottom. Add items or item groups by clicking below.',
             }),
             defineField({
               name: 'modifiers',
