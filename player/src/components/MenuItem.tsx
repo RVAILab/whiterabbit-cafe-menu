@@ -100,7 +100,7 @@ export function MenuItem({ item, ignoreStockLevels = false }: MenuItemProps) {
         style={{
           fontSize: '1.5vw',
           color: '#7ed957',
-          fontWeight: '700',
+          fontWeight: '400',
           whiteSpace: 'nowrap',
           textTransform: 'uppercase'
         }}

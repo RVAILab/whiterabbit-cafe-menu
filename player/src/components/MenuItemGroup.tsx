@@ -61,7 +61,7 @@ export function MenuItemGroup({ item }: MenuItemGroupProps) {
         style={{
           fontSize: '1.5vw',
           color: '#7ed957',
-          fontWeight: '700',
+          fontWeight: '400',
           textAlign: 'right',
           textTransform: 'uppercase'
         }}
@@ -70,7 +70,7 @@ export function MenuItemGroup({ item }: MenuItemGroupProps) {
           <span>${priceRange.minPrice.toFixed(2)}</span>
         ) : (
           <>
-            <div>${priceRange.minPrice.toFixed(2)}</div>
+            <div>${priceRange.minPrice.toFixed(2)}-</div>
             <div>${priceRange.maxPrice.toFixed(2)}</div>
           </>
         )}
