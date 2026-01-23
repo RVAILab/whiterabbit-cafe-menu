@@ -63,7 +63,8 @@ export function MenuItemGroup({ item }: MenuItemGroupProps) {
           color: '#7ed957',
           fontWeight: '400',
           textAlign: 'right',
-          textTransform: 'uppercase'
+          textTransform: 'uppercase',
+          lineHeight: '1.1'
         }}
       >
         {isSinglePrice ? (
@@ -71,7 +72,7 @@ export function MenuItemGroup({ item }: MenuItemGroupProps) {
         ) : (
           <>
             <div>{priceRange.minPrice === 0 ? 'Gratis' : priceRange.minPrice.toFixed(2)}-</div>
-            <div>{priceRange.maxPrice === 0 ? 'Gratis' : priceRange.maxPrice.toFixed(2)}</div>
+            <div>{priceRange.maxPrice === 0 ? 'Gratis' : priceRange.maxPrice.toFixed(2)}{'\u00A0'}</div>
           </>
         )}
       </div>
