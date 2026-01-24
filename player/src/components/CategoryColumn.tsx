@@ -21,7 +21,7 @@ export function CategoryColumn({ section, ignoreStockLevels }: CategoryColumnPro
       <h2
         className="mb-4"
         style={{
-          fontSize: '2vw',
+          fontSize: '1.3vw',
           color: '#ff4d9f',
           fontWeight: '700',
           letterSpacing: '0.12em',

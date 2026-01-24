@@ -82,7 +82,7 @@ export function MenuItem({ item, ignoreStockLevels = false }: MenuItemProps) {
           <div
             className="mt-0.5"
             style={{
-              fontSize: '1.3vw',
+              fontSize: '1.04vw',
               color: '#ffffff',
               fontWeight: '300',
               letterSpacing: '0.05em',
