@@ -3,6 +3,7 @@ import { BoardLayout } from '../components/BoardLayout'
 import { SecondaryScreenLayout } from '../components/SecondaryScreenLayout'
 import { NowPlayingWidget } from '../components/NowPlayingWidget'
 import { UpcomingWidget } from '../components/UpcomingWidget'
+import { CurrentTimeWidget } from '../components/CurrentTimeWidget'
 import { VisualizationLayer } from '../visualizations'
 import { useScreenContext } from '../context/ScreenContext'
 import { useKeyboardControls } from '../hooks/useKeyboardControls'
@@ -112,6 +113,7 @@ export function ProjectorLayout({
       >
         <NowPlayingWidget visible={showNowPlaying} />
         <UpcomingWidget visible={showNowPlaying} />
+        <CurrentTimeWidget visible={showNowPlaying} />
       </div>
     </div>
   )
