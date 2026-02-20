@@ -28,14 +28,22 @@ interface BubblesProps {
   riseSpeed?: number
   /** Color palette - array of hue values (0-360) */
   hues?: number[]
+  /** Min lifetime in frames (default 300 = ~5s at 60fps) */
+  minLifetime?: number
+  /** Max additional lifetime in frames (default 400, so total range is minLifetime to minLifetime+maxLifetimeVariance) */
+  maxLifetimeVariance?: number
 }
+
+const DEFAULT_HUES = [330, 350, 140, 160, 0, 30, 60, 180, 210, 270, 300] // pink, green, rainbow spectrum
 
 export function Bubbles({
   bubbleCount = 21,
   minRadius = 20,
   maxRadius = 150,
   riseSpeed = 0.5,
-  hues = [330, 350, 140, 160, 0, 30, 60, 180, 210, 270, 300], // pink, green, rainbow spectrum
+  hues = DEFAULT_HUES,
+  minLifetime = 300,
+  maxLifetimeVariance = 400,
 }: BubblesProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const bubblesRef = useRef<Bubble[]>([])
@@ -58,11 +66,11 @@ export function Bubbles({
       wobblePhase: Math.random() * Math.PI * 2,
       wobbleSpeed: 0.02 + Math.random() * 0.02,
       lifetime: 0,
-      maxLifetime: 300 + Math.random() * 400, // 5-12 seconds at 60fps
+      maxLifetime: minLifetime + Math.random() * maxLifetimeVariance,
       popping: false,
       popProgress: 0,
     }
-  }, [minRadius, maxRadius, riseSpeed, hues])
+  }, [minRadius, maxRadius, riseSpeed, hues, minLifetime, maxLifetimeVariance])
 
   useEffect(() => {
     const canvas = canvasRef.current

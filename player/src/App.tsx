@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import { useMenuData } from './hooks/useMenuData'
 import { ScreenProvider } from './context/ScreenContext'
 import { VisualizationProvider } from './context/VisualizationContext'
+import { SleepModeProvider } from './context/SleepModeContext'
 import { ProjectorLayout } from './layouts/ProjectorLayout'
 import { CustomerLayout } from './layouts/CustomerLayout'
 
@@ -88,6 +89,7 @@ function App() {
   // Wrap in providers for secondary screen and visualization support
   // Routes determine which layout to render
   return (
+    <SleepModeProvider>
     <VisualizationProvider>
       <ScreenProvider
         secondaryScreens={secondaryScreens}
@@ -120,6 +122,7 @@ function App() {
         </Routes>
       </ScreenProvider>
     </VisualizationProvider>
+    </SleepModeProvider>
   )
 }
 

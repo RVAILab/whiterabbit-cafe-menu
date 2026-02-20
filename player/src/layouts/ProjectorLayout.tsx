@@ -4,10 +4,13 @@ import { SecondaryScreenLayout } from '../components/SecondaryScreenLayout'
 import { NowPlayingWidget } from '../components/NowPlayingWidget'
 import { UpcomingWidget } from '../components/UpcomingWidget'
 import { CurrentTimeWidget } from '../components/CurrentTimeWidget'
+import { SleepModeOverlay } from '../components/SleepModeOverlay'
 import { VisualizationLayer } from '../visualizations'
 import { useScreenContext } from '../context/ScreenContext'
+import { useSleepMode } from '../context/SleepModeContext'
 import { useKeyboardControls } from '../hooks/useKeyboardControls'
 import { useVisualizationControls } from '../hooks/useVisualizationControls'
+import { useSleepModeControls } from '../hooks/useSleepModeControls'
 import type { MenuBoard, SecondaryScreen } from '../types'
 
 interface ProjectorLayoutProps {
@@ -26,6 +29,7 @@ export function ProjectorLayout({
   ignoreStockLevels,
 }: ProjectorLayoutProps) {
   const { mode, activeScreen } = useScreenContext()
+  const { isSleepMode } = useSleepMode()
 
   // Track the current and previous screens for transitions
   const [displayedScreen, setDisplayedScreen] = useState<SecondaryScreen | null>(activeScreen)
@@ -35,6 +39,7 @@ export function ProjectorLayout({
   // Keyboard controls only active in projector mode
   useKeyboardControls()
   useVisualizationControls()
+  useSleepModeControls()
 
   // Handle screen transitions
   useEffect(() => {
@@ -115,6 +120,9 @@ export function ProjectorLayout({
         <UpcomingWidget visible={showNowPlaying} />
         <CurrentTimeWidget visible={showNowPlaying} />
       </div>
+
+      {/* Sleep mode overlay */}
+      {isSleepMode && <SleepModeOverlay />}
     </div>
   )
 }
