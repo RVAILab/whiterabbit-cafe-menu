@@ -48,3 +48,5 @@ lerna-debug.log*
 # Test scripts (may contain sensitive data)
 test-sanity.js
 **/test-sanity.js
+.vercel
+.env*.local
