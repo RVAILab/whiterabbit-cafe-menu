@@ -96,10 +96,21 @@ export function useUpcomingEvent({
       const data: RovaEventsResponse = await response.json()
 
       if (data.instances && data.instances.length > 0) {
-        // Sort instances by startsAt to get the next upcoming event
-        const sortedInstances = [...data.instances].sort(
-          (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()
-        )
+        const now = new Date()
+        // Filter to future instances only, then sort to get the next upcoming event
+        const sortedInstances = [...data.instances]
+          .filter((i) => new Date(i.startsAt) >= now)
+          .sort(
+            (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()
+          )
+
+        if (sortedInstances.length === 0) {
+          setUpcomingEvent(null)
+          setError(null)
+          setIsLoading(false)
+          return
+        }
+
         const instance = sortedInstances[0]
 
         // Find the matching event to get the hero image
