@@ -40,7 +40,7 @@ export function MetaCategoryGroup({
           className="mb-6"
           style={{
             fontFamily: 'PP Pangram Sans Rounded',
-            fontSize: '5vw',
+            fontSize: '4vw',
             fontWeight: '100',
             letterSpacing: '0.15em',
             color: '#fbbf24',
@@ -66,7 +66,7 @@ export function MetaCategoryGroup({
             justifyContent: 'center',
             flex: 1,
             color: '#666666',
-            fontSize: '1.8vw',
+            fontSize: '1.44vw',
             fontStyle: 'italic',
             textTransform: 'uppercase'
           }}
@@ -84,7 +84,7 @@ export function MetaCategoryGroup({
         className="mb-6"
         style={{
           fontFamily: 'PP Pangram Sans Rounded',
-          fontSize: '5vw',
+          fontSize: '4vw',
           fontWeight: '100',
           letterSpacing: '0.15em',
           color: '#fbbf24',

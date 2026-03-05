@@ -45,12 +45,12 @@ export function MenuItem({ item, ignoreStockLevels = false }: MenuItemProps) {
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', flexWrap: 'wrap' }}>
           {/* Spicy indicator */}
           {dietaryTags?.includes('ALC') && (
-            <span style={{ fontSize: '1.5vw', flexShrink: 0 }}>🌶️</span>
+            <span style={{ fontSize: '0.96vw', flexShrink: 0 }}>🌶️</span>
           )}
 
           <span
             style={{
-              fontSize: '1.3vw',
+              fontSize: '1.04vw',
               fontWeight: '700',
               letterSpacing: '0.08em',
               color: '#ffffff',
@@ -64,7 +64,7 @@ export function MenuItem({ item, ignoreStockLevels = false }: MenuItemProps) {
           {!finalIsAvailable && (
             <span
               style={{
-                fontSize: '1.2vw',
+                fontSize: '0.96vw',
                 color: '#fbbf24',
                 fontWeight: '400',
                 letterSpacing: '0.05em',
@@ -82,7 +82,7 @@ export function MenuItem({ item, ignoreStockLevels = false }: MenuItemProps) {
           <div
             className="mt-0.5"
             style={{
-              fontSize: '1.04vw',
+              fontSize: '0.83vw',
               color: '#ffffff',
               fontWeight: '300',
               letterSpacing: '0.05em',
@@ -98,7 +98,7 @@ export function MenuItem({ item, ignoreStockLevels = false }: MenuItemProps) {
       <span
         className="tabular-nums"
         style={{
-          fontSize: '1.5vw',
+          fontSize: '1.2vw',
           color: '#7ed957',
           fontWeight: '400',
           whiteSpace: 'nowrap',

@@ -29,7 +29,7 @@ export function BoardLayout({ board, announcementBar, ignoreStockLevels }: Board
           <div className="text-center">
             <span
               style={{
-                fontSize: '1.5vw',
+                fontSize: '1.2vw',
                 color: '#0a0a0a',
                 fontWeight: '300',
                 letterSpacing: '0.12em',
@@ -76,7 +76,7 @@ export function BoardLayout({ board, announcementBar, ignoreStockLevels }: Board
           position: 'absolute',
           right: '16px',
           bottom: '160px',
-          fontSize: '1.1vw',
+          fontSize: '0.88vw',
           color: 'rgba(255, 255, 255, 0.7)',
           fontWeight: '300',
           letterSpacing: '0.08em',

@@ -18,7 +18,7 @@ export function ModifierGroup({ modifier }: ModifierGroupProps) {
         {/* Modifier Title - Same style as section headers */}
         <h3
           style={{
-            fontSize: '1.3vw',
+            fontSize: '1.04vw',
             color: '#ff4d9f',
             fontWeight: '700',
             letterSpacing: '0.12em',
@@ -40,7 +40,7 @@ export function ModifierGroup({ modifier }: ModifierGroupProps) {
         >
           <span
             style={{
-              fontSize: '1.3vw',
+              fontSize: '1.04vw',
               color: '#a8ff70',
               fontWeight: '300',
               letterSpacing: '0.05em',
@@ -55,7 +55,7 @@ export function ModifierGroup({ modifier }: ModifierGroupProps) {
             <span
               className="tabular-nums"
               style={{
-                fontSize: '1.3vw',
+                fontSize: '1.04vw',
                 color: '#a8ff70',
                 fontWeight: '300',
                 letterSpacing: '0.05em',
@@ -79,7 +79,7 @@ export function ModifierGroup({ modifier }: ModifierGroupProps) {
       {/* Modifier Title - Same style as section headers */}
       <h3
         style={{
-          fontSize: '1.3vw',
+          fontSize: '1.04vw',
           color: '#ff4d9f',
           fontWeight: '700',
           letterSpacing: '0.12em',
@@ -122,7 +122,7 @@ export function ModifierGroup({ modifier }: ModifierGroupProps) {
           >
             <span
               style={{
-                fontSize: '1.3vw',
+                fontSize: '1.04vw',
                 color: '#a8ff70',
                 fontWeight: '300',
                 letterSpacing: '0.05em',
@@ -137,7 +137,7 @@ export function ModifierGroup({ modifier }: ModifierGroupProps) {
               <span
                 className="tabular-nums"
                 style={{
-                  fontSize: '1.3vw',
+                  fontSize: '1.04vw',
                   color: '#a8ff70',
                   fontWeight: '300',
                 }}

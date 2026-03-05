@@ -24,12 +24,12 @@ export function MenuItemGroup({ item }: MenuItemGroupProps) {
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', flexWrap: 'wrap' }}>
           {/* Spicy indicator for alcoholic items */}
           {dietaryTags?.includes('ALC') && (
-            <span style={{ fontSize: '1.5vw', flexShrink: 0 }}>🌶️</span>
+            <span style={{ fontSize: '1.2vw', flexShrink: 0 }}>🌶️</span>
           )}
 
           <span
             style={{
-              fontSize: '1.3vw',
+              fontSize: '1.04vw',
               fontWeight: '700',
               letterSpacing: '0.08em',
               color: '#ffffff',
@@ -44,7 +44,7 @@ export function MenuItemGroup({ item }: MenuItemGroupProps) {
         <div
           className="mt-0.5"
           style={{
-            fontSize: '1.04vw',
+            fontSize: '0.83vw',
             color: '#ffffff',
             fontWeight: '300',
             letterSpacing: '0.05em',
@@ -59,7 +59,7 @@ export function MenuItemGroup({ item }: MenuItemGroupProps) {
       <div
         className="tabular-nums"
         style={{
-          fontSize: '1.5vw',
+          fontSize: '1.2vw',
           color: '#7ed957',
           fontWeight: '400',
           textAlign: 'right',
