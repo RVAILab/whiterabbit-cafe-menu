@@ -47,7 +47,7 @@ export function BoardLayout({ board, announcementBar, ignoreStockLevels }: Board
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '3fr 1fr',
+            gridTemplateColumns: '1fr 1fr',
             gap: '4rem',
             height: '100%'
           }}
@@ -57,7 +57,7 @@ export function BoardLayout({ board, announcementBar, ignoreStockLevels }: Board
             metaCategory="drink-me"
             sections={safeSections}
             ignoreStockLevels={ignoreStockLevels}
-            columnCount={3}
+            columnCount={2}
           />
 
           {/* Right Side: EAT ME */}
@@ -65,7 +65,7 @@ export function BoardLayout({ board, announcementBar, ignoreStockLevels }: Board
             metaCategory="eat-me"
             sections={safeSections}
             ignoreStockLevels={ignoreStockLevels}
-            columnCount={1}
+            columnCount={2}
           />
         </div>
       </main>
