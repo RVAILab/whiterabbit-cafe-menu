@@ -71,7 +71,7 @@ export function CategoryColumn({ section, ignoreStockLevels }: CategoryColumnPro
       {safeModifiers.length > 0 && (
         <div
           style={{
-            marginTop: '2rem',
+            marginTop: '1rem',
             breakInside: 'auto',
             breakBefore: 'auto',
           }}

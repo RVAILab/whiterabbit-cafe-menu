@@ -7,147 +7,59 @@ interface ModifierGroupProps {
 export function ModifierGroup({ modifier }: ModifierGroupProps) {
   const { title, displayStyle, globalPrice, options } = modifier
 
-  // Inline Display Mode: "Vanilla, Caramel, Hazelnut"
-  if (displayStyle === 'inline') {
-    return (
-      <div
-        style={{
-          marginTop: '1.5rem',
-        }}
-      >
-        {/* Modifier Title - Same style as section headers */}
-        <h3
-          style={{
-            fontSize: '1.04vw',
-            color: '#ff4d9f',
-            fontWeight: '700',
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
-            marginBottom: '0.5rem',
-          }}
-        >
-          {title}
-        </h3>
+  // Format price helper
+  const fmtPrice = (p: number) => (p === 0 ? 'Gratis' : `+${p.toFixed(2)}`)
 
-        {/* Inline Options and Price */}
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'baseline',
-            gap: '0.5rem',
-          }}
-        >
-          <span
-            style={{
-              fontSize: '1.04vw',
-              color: '#a8ff70',
-              fontWeight: '300',
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-            }}
-          >
-            {options.map((opt) => opt.name).join(', ')}
-          </span>
+  // Build the options string with prices
+  const optionParts = options.map((opt) => {
+    if (displayStyle === 'list' && opt.price != null) {
+      return `${opt.name} ${fmtPrice(opt.price)}`
+    }
+    return opt.name
+  })
 
-          {/* Global Price Display */}
-          {globalPrice != null && (
-            <span
-              className="tabular-nums"
-              style={{
-                fontSize: '1.04vw',
-                color: '#a8ff70',
-                fontWeight: '300',
-                letterSpacing: '0.05em',
-              }}
-            >
-              {globalPrice === 0 ? 'Gratis' : `+${globalPrice.toFixed(2)}`}
-            </span>
-          )}
-        </div>
-      </div>
-    )
-  }
+  // Global price suffix (for inline mode or list with global price)
+  const priceSuffix =
+    globalPrice != null && displayStyle === 'inline'
+      ? ` · ${fmtPrice(globalPrice)}`
+      : globalPrice != null && displayStyle === 'list'
+        ? ` ${fmtPrice(globalPrice)}`
+        : ''
 
-  // List Display Mode: Vertical stack with individual prices
   return (
     <div
       style={{
-        marginTop: '1.5rem',
+        marginTop: '0.5rem',
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'baseline',
+        gap: '0.3rem',
       }}
     >
-      {/* Modifier Title - Same style as section headers */}
-      <h3
+      <span
         style={{
-          fontSize: '1.04vw',
+          fontSize: '0.88vw',
           color: '#ff4d9f',
           fontWeight: '700',
-          letterSpacing: '0.12em',
+          letterSpacing: '0.1em',
           textTransform: 'uppercase',
-          marginBottom: '0.5rem',
+          whiteSpace: 'nowrap',
         }}
       >
-        {title}
-        {globalPrice != null && (
-          <span
-            className="tabular-nums"
-            style={{
-              marginLeft: '1rem',
-              color: '#a8ff70',
-              fontWeight: '300',
-            }}
-          >
-            {globalPrice === 0 ? 'Gratis' : `+${globalPrice.toFixed(2)}`}
-          </span>
-        )}
-      </h3>
-
-      {/* List Options */}
-      <div
+        {title}:
+      </span>
+      <span
         style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.3rem',
+          fontSize: '0.88vw',
+          color: '#a8ff70',
+          fontWeight: '300',
+          letterSpacing: '0.04em',
+          textTransform: 'uppercase',
         }}
       >
-        {options.map((option, index) => (
-          <div
-            key={`${option.name}-${index}`}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr auto',
-              gap: '1rem',
-              alignItems: 'baseline',
-            }}
-          >
-            <span
-              style={{
-                fontSize: '1.04vw',
-                color: '#a8ff70',
-                fontWeight: '300',
-                letterSpacing: '0.05em',
-                textTransform: 'uppercase',
-              }}
-            >
-              {option.name}
-            </span>
-
-            {/* Show individual prices when they exist */}
-            {option.price != null && (
-              <span
-                className="tabular-nums"
-                style={{
-                  fontSize: '1.04vw',
-                  color: '#a8ff70',
-                  fontWeight: '300',
-                }}
-              >
-                {option.price === 0 ? 'Gratis' : `+${option.price.toFixed(2)}`}
-              </span>
-            )}
-          </div>
-        ))}
-      </div>
+        {optionParts.join(' · ')}
+        {priceSuffix}
+      </span>
     </div>
   )
 }
