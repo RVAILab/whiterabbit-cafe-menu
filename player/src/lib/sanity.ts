@@ -20,6 +20,7 @@ export const ACTIVE_BOARD_QUERY = `
     activeBoard-> {
       title,
       slug,
+      drinkMeColumns,
       sections[] {
         heading,
         metaCategory,

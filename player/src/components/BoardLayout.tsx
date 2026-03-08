@@ -9,6 +9,8 @@ interface BoardLayoutProps {
 
 export function BoardLayout({ board, announcementBar, ignoreStockLevels }: BoardLayoutProps) {
   const { title, sections } = board
+  const drinkMeColumns = board.drinkMeColumns ?? 2
+  const eatMeColumns = 4 - drinkMeColumns
 
   // Safety check: ensure sections is an array
   const safeSections = sections || []
@@ -47,7 +49,7 @@ export function BoardLayout({ board, announcementBar, ignoreStockLevels }: Board
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
+            gridTemplateColumns: `${drinkMeColumns}fr ${eatMeColumns}fr`,
             gap: '4rem',
             height: '100%'
           }}
@@ -57,7 +59,7 @@ export function BoardLayout({ board, announcementBar, ignoreStockLevels }: Board
             metaCategory="drink-me"
             sections={safeSections}
             ignoreStockLevels={ignoreStockLevels}
-            columnCount={2}
+            columnCount={drinkMeColumns}
           />
 
           {/* Right Side: EAT ME */}
@@ -65,7 +67,7 @@ export function BoardLayout({ board, announcementBar, ignoreStockLevels }: Board
             metaCategory="eat-me"
             sections={safeSections}
             ignoreStockLevels={ignoreStockLevels}
-            columnCount={2}
+            columnCount={eatMeColumns}
           />
         </div>
       </main>

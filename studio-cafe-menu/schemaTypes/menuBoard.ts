@@ -23,6 +23,14 @@ export default defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: 'drinkMeColumns',
+      title: 'Drink Me Columns',
+      type: 'number',
+      description: 'Number of columns for Drink Me (1–3). Eat Me gets the remainder of 4.',
+      validation: (Rule) => Rule.min(1).max(3),
+      initialValue: 2,
+    }),
+    defineField({
       name: 'sections',
       title: 'Menu Sections',
       description: '⬍ Drag sections to reorder how they appear left-to-right on the display',

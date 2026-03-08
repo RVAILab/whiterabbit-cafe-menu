@@ -129,6 +129,7 @@ export interface MenuBoard {
   slug: {
     current: string
   }
+  drinkMeColumns?: number
   sections?: MenuSection[] | null
 }
 
