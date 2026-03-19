@@ -2,13 +2,14 @@ import { useEffect, useCallback } from 'react'
 import { useSleepMode } from '../context/SleepModeContext'
 
 /**
- * Hook to handle keyboard controls for sleep mode.
+ * Hook to handle keyboard controls for overlay modes.
  *
  * Key bindings:
- * - 0: Toggle sleep mode
+ * - 0: Toggle sleep mode (barista away)
+ * - 9: Toggle closed mode (cafe closed for the day)
  */
 export function useSleepModeControls() {
-  const { isSleepMode, toggleSleepMode } = useSleepMode()
+  const { isSleepMode, isClosedMode, toggleSleepMode, toggleClosedMode } = useSleepMode()
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     // Ignore if user is typing in an input
@@ -20,7 +21,12 @@ export function useSleepModeControls() {
       event.preventDefault()
       toggleSleepMode()
     }
-  }, [toggleSleepMode])
+
+    if (event.key === '9') {
+      event.preventDefault()
+      toggleClosedMode()
+    }
+  }, [toggleSleepMode, toggleClosedMode])
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
@@ -29,5 +35,5 @@ export function useSleepModeControls() {
     }
   }, [handleKeyDown])
 
-  return { isSleepMode }
+  return { isSleepMode, isClosedMode }
 }
