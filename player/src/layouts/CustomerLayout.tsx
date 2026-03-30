@@ -1,3 +1,4 @@
+import { SiteNav } from '../components/SiteNav'
 import { SecondaryScreenLayout } from '../components/SecondaryScreenLayout'
 import { useScreenContext } from '../context/ScreenContext'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -99,15 +100,17 @@ export function CustomerLayout({
                 left: '1rem',
                 zIndex: 100,
                 padding: '0.75rem 1.25rem',
-                backgroundColor: 'rgba(0,0,0,0.7)',
-                color: '#fff',
-                border: 'none',
+                backgroundColor: 'rgba(255,255,255,0.95)',
+                color: '#3d6928',
+                border: '1px solid #e5e5dc',
                 borderRadius: '0.5rem',
                 fontSize: '1rem',
+                fontWeight: 500,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
               }}
             >
               ← Back to Menu
@@ -123,10 +126,8 @@ export function CustomerLayout({
             variants={screenVariants}
             transition={transition}
           >
-            {/* Header */}
-            <header className="customer-header">
-              <h1>{board.title || 'Menu'}</h1>
-            </header>
+            {/* Site Navigation */}
+            <SiteNav />
 
             {/* Announcement Bar */}
             {announcementBar && (
@@ -151,7 +152,7 @@ export function CustomerLayout({
 
             {/* Footer */}
             <footer className="customer-footer">
-              <p>Tap items for more details</p>
+              <p>5 N. Main St #2, Ashland, OR 97520</p>
             </footer>
           </motion.div>
         )}
