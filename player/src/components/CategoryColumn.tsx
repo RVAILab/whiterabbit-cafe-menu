@@ -1,12 +1,16 @@
 import { MenuItem } from './MenuItem'
 import { MenuItemGroup } from './MenuItemGroup'
 import { ModifierGroup } from './ModifierGroup'
-import type { MenuSection, MenuSectionItem } from '../types'
+import { ToastieCallout } from './ToastieCallout'
+import type { MenuSection, MenuSectionItem, MenuItem as MenuItemType } from '../types'
 
 interface CategoryColumnProps {
   section: MenuSection
   ignoreStockLevels?: boolean
 }
+
+const TOASTIE_MODIFIER_TITLE = 'Trick Out Your Toastie'
+const TOASTIE_ITEM_ID = 'product-odoo-516'
 
 export function CategoryColumn({ section, ignoreStockLevels }: CategoryColumnProps) {
   const { heading, items, modifiers } = section
@@ -14,6 +18,22 @@ export function CategoryColumn({ section, ignoreStockLevels }: CategoryColumnPro
   // Safety check: ensure items is an array
   const safeItems = items || []
   const safeModifiers = modifiers || []
+
+  // Check for toastie callout: a modifier matching the toastie title
+  const toastieModifier = safeModifiers.find(m => m.title === TOASTIE_MODIFIER_TITLE)
+  const toastieItem = toastieModifier
+    ? safeItems.find(item => item._id === TOASTIE_ITEM_ID && item._type === 'menuItem') as MenuItemType | undefined
+    : undefined
+
+  // Filter out the toastie from regular items if we're rendering it as a callout
+  const regularItems = toastieItem
+    ? safeItems.filter(item => item._id !== TOASTIE_ITEM_ID)
+    : safeItems
+
+  // Regular modifiers (exclude the toastie one if it's rendered as callout)
+  const regularModifiers = toastieModifier
+    ? safeModifiers.filter(m => m.title !== TOASTIE_MODIFIER_TITLE)
+    : safeModifiers
 
   return (
     <div className="flex flex-col">
@@ -39,7 +59,7 @@ export function CategoryColumn({ section, ignoreStockLevels }: CategoryColumnPro
           gap: '0.15rem'
         }}
       >
-        {safeItems.map((item: MenuSectionItem) => {
+        {regularItems.map((item: MenuSectionItem) => {
           if (item._type === 'menuItemGroup') {
             return <MenuItemGroup key={item._id} item={item} />
           }
@@ -67,8 +87,8 @@ export function CategoryColumn({ section, ignoreStockLevels }: CategoryColumnPro
         </p>
       )}
 
-      {/* Modifiers Section */}
-      {safeModifiers.length > 0 && (
+      {/* Regular Modifiers */}
+      {regularModifiers.length > 0 && (
         <div
           style={{
             marginTop: '1rem',
@@ -76,10 +96,15 @@ export function CategoryColumn({ section, ignoreStockLevels }: CategoryColumnPro
             breakBefore: 'auto',
           }}
         >
-          {safeModifiers.map((modifier) => (
+          {regularModifiers.map((modifier) => (
             <ModifierGroup key={modifier._id} modifier={modifier} />
           ))}
         </div>
+      )}
+
+      {/* Toastie Callout */}
+      {toastieItem && toastieModifier && (
+        <ToastieCallout item={toastieItem} modifier={toastieModifier} />
       )}
     </div>
   )

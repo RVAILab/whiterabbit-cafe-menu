@@ -5,6 +5,7 @@ import { VisualizationProvider } from './context/VisualizationContext'
 import { SleepModeProvider } from './context/SleepModeContext'
 import { ProjectorLayout } from './layouts/ProjectorLayout'
 import { CustomerLayout } from './layouts/CustomerLayout'
+import { PrintLayout } from './layouts/PrintLayout'
 
 function App() {
   const { kioskSettings, secondaryScreens, isLoading, error } = useMenuData()
@@ -113,6 +114,17 @@ function App() {
             path="/projection"
             element={
               <ProjectorLayout
+                board={kioskSettings.activeBoard}
+                announcementBar={kioskSettings.announcementBar}
+                ignoreStockLevels={kioskSettings.ignoreStockLevels}
+              />
+            }
+          />
+          {/* Print view - 11x17 tabloid layout */}
+          <Route
+            path="/print"
+            element={
+              <PrintLayout
                 board={kioskSettings.activeBoard}
                 announcementBar={kioskSettings.announcementBar}
                 ignoreStockLevels={kioskSettings.ignoreStockLevels}
