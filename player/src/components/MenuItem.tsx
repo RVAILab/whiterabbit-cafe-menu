@@ -1,23 +1,4 @@
-import type { MenuItem as MenuItemType, DietaryTag } from '../types'
-
-// Fallback dietary tags until Sanity schema supports writing them
-const DIETARY_TAG_OVERRIDES: Record<string, DietaryTag[]> = {
-  'product-odoo-669': ['GF'],          // Pistachio Brownie
-  'product-odoo-670': ['GF'],          // Cinnamon Roll
-  'product-odoo-672': ['GF'],          // Caramel Coffee Muffin
-  'product-odoo-671': ['GF'],          // Lime Coconut Muffin
-  'product-odoo-506': ['V'],           // Farmhouse Miso Soup
-  'product-odoo-574': ['VE', 'GF'],    // Silken Carrot Soup
-  'product-odoo-552': ['GF'],          // Bone Broth
-  'product-odoo-451': ['GF'],          // Blueberry Tarragon Chicken Salad
-  'product-odoo-595': ['V', 'GF'],     // Emerald Nest
-  'product-odoo-584': ['V', 'GF'],     // Floral Beet Salad
-  'product-odoo-440': ['V', 'GF'],     // Kale Salad
-  'product-odoo-624': ['V'],           // Morningstar Egg Sandwich
-  'product-odoo-591': ['V', 'N'],      // Toasted Organic PB&J
-  'product-odoo-516': ['V'],           // Sourdough Toastie
-  'product-odoo-548': ['V', 'N'],      // Organic PB&J
-}
+import type { MenuItem as MenuItemType } from '../types'
 
 interface MenuItemProps {
   item: MenuItemType
@@ -25,12 +6,7 @@ interface MenuItemProps {
 }
 
 export function MenuItem({ item, ignoreStockLevels = false }: MenuItemProps) {
-  const { title, price, isAvailable, availabilityOverride, dietaryTags: rawDietaryTags, marketingDescription } = item
-
-  // Use Sanity tags if present, otherwise fall back to overrides
-  const dietaryTags = (rawDietaryTags && rawDietaryTags.length > 0)
-    ? rawDietaryTags
-    : DIETARY_TAG_OVERRIDES[item._id] || null
+  const { title, price, isAvailable, availabilityOverride, dietaryTags, marketingDescription } = item
 
   // Format price - show "Gratis" for free items
   const formattedPrice = price === 0 ? 'Gratis' : price.toFixed(2)

@@ -1,29 +1,8 @@
 import type { MenuBoard, MenuSection, MenuSectionItem, MenuModifier, MenuItem as MenuItemType, DietaryTag } from '../types'
 
-// Fallback dietary tags (mirrors MenuItem.tsx)
-const DIETARY_TAG_OVERRIDES: Record<string, DietaryTag[]> = {
-  'product-odoo-669': ['GF'],
-  'product-odoo-670': ['GF'],
-  'product-odoo-672': ['GF'],
-  'product-odoo-671': ['GF'],
-  'product-odoo-506': ['V'],
-  'product-odoo-574': ['VE', 'GF'],
-  'product-odoo-552': ['GF'],
-  'product-odoo-451': ['GF'],
-  'product-odoo-595': ['V', 'GF'],
-  'product-odoo-584': ['V', 'GF'],
-  'product-odoo-440': ['V', 'GF'],
-  'product-odoo-624': ['V'],
-  'product-odoo-591': ['V', 'N'],
-  'product-odoo-516': ['V'],
-  'product-odoo-548': ['V', 'N'],
-}
-
 function getDietaryTags(item: MenuSectionItem): DietaryTag[] {
   if (item._type !== 'menuItem') return []
-  const tags = item.dietaryTags
-  if (tags && tags.length > 0) return tags.filter(t => t !== 'ALC')
-  return (DIETARY_TAG_OVERRIDES[item._id] || []).filter(t => t !== 'ALC')
+  return (item.dietaryTags || []).filter(t => t !== 'ALC')
 }
 
 interface PrintLayoutProps {
