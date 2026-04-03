@@ -32,7 +32,7 @@ export function PrintLayout({
         <div className="print-column print-column-brand">
           <div className="print-brand-top">
             <img
-              src="/logo-white.png"
+              src={theme === 'light' ? '/logo-green.png' : '/logo-white.png'}
               alt="White Rabbit"
               className="print-logo"
             />

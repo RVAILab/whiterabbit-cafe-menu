@@ -779,6 +779,19 @@ body {
   opacity: 0.06;
 }
 
+.print-page-light .print-column-brand {
+  background-color: #ffffff;
+  color: #1e3a1e;
+}
+
+.print-page-light .print-tagline {
+  color: #1e5631;
+}
+
+.print-page-light .print-hours-line {
+  color: #1e3a1e;
+}
+
 .print-page-light .print-menu-area {
   background-color: #ffffff;
 }
