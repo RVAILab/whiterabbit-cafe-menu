@@ -673,11 +673,11 @@ body {
 }
 
 .print-toastie-desc {
-  font-size: 9pt;
-  font-weight: 400;
-  color: rgba(255, 255, 255, 0.8);
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  font-size: 11.5pt;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.04em;
+  text-transform: none;
   margin-bottom: 4pt;
 }
 
