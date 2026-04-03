@@ -469,9 +469,9 @@ body {
   overflow: hidden;
 }
 
-/* Dietary tags footer */
+/* Dietary tags footer (hidden for now) */
 .print-dietary-footer {
-  display: flex;
+  display: none;
   gap: 20pt;
   padding: 8pt 0.3in;
   font-size: 11.5pt;
