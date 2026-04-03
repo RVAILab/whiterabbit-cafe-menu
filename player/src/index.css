@@ -682,10 +682,10 @@ body {
 }
 
 .print-toastie-modifier-title {
-  font-size: 8pt;
+  font-size: 10pt;
   font-weight: 700;
-  color: #ffffff;
-  letter-spacing: 0.08em;
+  color: #ffef00;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   margin-bottom: 3pt;
 }
@@ -700,10 +700,10 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  font-size: 9pt;
-  font-weight: 400;
-  color: rgba(255, 255, 255, 0.8);
-  letter-spacing: 0.03em;
+  font-size: 11.5pt;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
