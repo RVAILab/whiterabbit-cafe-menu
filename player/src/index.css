@@ -785,11 +785,11 @@ body {
 }
 
 .print-page-light .print-tagline {
-  color: #1e5631;
+  color: #000000;
 }
 
 .print-page-light .print-hours-line {
-  color: #1e3a1e;
+  color: #000000;
 }
 
 .print-page-light .print-menu-area {
@@ -866,11 +866,11 @@ body {
 }
 
 .print-page-light .print-callout-text {
-  color: rgba(30, 58, 30, 0.75);
+  color: #000000;
 }
 
 .print-page-light .print-callout-tags {
-  color: rgba(30, 58, 30, 0.5);
+  color: #000000;
 }
 
 /* Print media query */
