@@ -419,7 +419,7 @@ body {
   width: 17in;
   height: 11in;
   font-family: 'PP Pangram Sans Rounded', 'Helvetica Neue', 'Arial', system-ui, sans-serif;
-  font-weight: 300;
+  font-weight: 400;
   letter-spacing: 0.06em;
   box-sizing: border-box;
   -webkit-font-smoothing: antialiased;
@@ -755,7 +755,7 @@ body {
 
 .print-callout-text {
   font-size: 11pt;
-  font-weight: 300;
+  font-weight: 400;
   color: rgba(255, 255, 255, 0.85);
   line-height: 1.5;
   letter-spacing: 0.03em;
@@ -763,7 +763,7 @@ body {
 
 .print-callout-tags {
   font-size: 8pt;
-  font-weight: 300;
+  font-weight: 400;
   color: rgba(255, 255, 255, 0.6);
   margin-top: 4pt;
   letter-spacing: 0.03em;
