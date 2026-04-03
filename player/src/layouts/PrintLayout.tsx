@@ -8,7 +8,7 @@ function getDietaryTags(item: MenuSectionItem): DietaryTag[] {
 interface PrintLayoutProps {
   board: MenuBoard
   announcementBar?: string
-  ignoreStockLevels?: boolean
+  theme?: 'dark' | 'light'
 }
 
 /**
@@ -17,7 +17,7 @@ interface PrintLayoutProps {
  */
 export function PrintLayout({
   board,
-  ignoreStockLevels,
+  theme = 'dark',
 }: PrintLayoutProps) {
   const { sections } = board
   const safeSections = sections || []
@@ -26,7 +26,7 @@ export function PrintLayout({
   const eatSections = safeSections.filter(s => s.metaCategory === 'eat-me')
 
   return (
-    <div className="print-page">
+    <div className={`print-page${theme === 'light' ? ' print-page-light' : ''}`}>
       <main className="print-body">
         {/* Column 1: Brand */}
         <div className="print-column print-column-brand">
@@ -55,7 +55,7 @@ export function PrintLayout({
               <h2 className="print-meta-header">Drink Me</h2>
               <div className="print-sections">
                 {drinkSections.map((section, i) => (
-                  <PrintSection key={`drink-${i}`} section={section} ignoreStockLevels={ignoreStockLevels} />
+                  <PrintSection key={`drink-${i}`} section={section} />
                 ))}
               </div>
             </div>
@@ -65,7 +65,7 @@ export function PrintLayout({
               <h2 className="print-meta-header">Eat Me</h2>
               <div className="print-sections">
                 {eatSections.map((section, i) => (
-                  <PrintSection key={`eat-${i}`} section={section} ignoreStockLevels={ignoreStockLevels} />
+                  <PrintSection key={`eat-${i}`} section={section} />
                 ))}
               </div>
             </div>
@@ -129,10 +129,8 @@ export function PrintLayout({
 
 function PrintSection({
   section,
-  ignoreStockLevels,
 }: {
   section: MenuSection
-  ignoreStockLevels?: boolean
 }) {
   const { heading, items, modifiers } = section
   const safeItems = items || []
@@ -155,7 +153,7 @@ function PrintSection({
       <h3 className="print-section-header">{heading}</h3>
       <div className="print-items">
         {regularItems.map((item) => (
-          <PrintItem key={item._id} item={item} ignoreStockLevels={ignoreStockLevels} />
+          <PrintItem key={item._id} item={item} />
         ))}
       </div>
       {regularModifiers.length > 0 && (
@@ -174,10 +172,8 @@ function PrintSection({
 
 function PrintItem({
   item,
-  ignoreStockLevels,
 }: {
   item: MenuSectionItem
-  ignoreStockLevels?: boolean
 }) {
   if (item._type === 'menuItemGroup') {
     const { title, priceRange } = item
@@ -194,20 +190,11 @@ function PrintItem({
     )
   }
 
-  const { title, price, isAvailable, availabilityOverride } = item
-
-  const finalAvailable = (() => {
-    if (availabilityOverride && availabilityOverride !== 'use-inventory') {
-      return availabilityOverride === 'always-available'
-    }
-    if (ignoreStockLevels) return true
-    return isAvailable
-  })()
-
+  const { title, price } = item
   const tags = getDietaryTags(item)
 
   return (
-    <div className={`print-item${!finalAvailable ? ' print-item-unavailable' : ''}`}>
+    <div className="print-item">
       <span className="print-item-name">
         {title}
         {tags.length > 0 && (

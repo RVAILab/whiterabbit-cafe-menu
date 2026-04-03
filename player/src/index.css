@@ -774,6 +774,92 @@ body {
   color: #fbbf24;
 }
 
+/* ---- Print Light Theme ---- */
+.print-page-light::after {
+  opacity: 0.06;
+}
+
+.print-page-light .print-menu-area {
+  background-color: #ffffff;
+}
+
+.print-page-light .print-column-drink,
+.print-page-light .print-column-eat,
+.print-page-light .print-column-other {
+  color: #1e3a1e;
+}
+
+.print-page-light .print-meta-header {
+  color: #1e5631;
+}
+
+.print-page-light .print-section-header {
+  color: #b8860b;
+}
+
+.print-page-light .print-item-name {
+  color: #1e3a1e;
+}
+
+.print-page-light .print-item-price {
+  color: #1e3a1e;
+}
+
+.print-page-light .print-item-desc {
+  color: rgba(30, 58, 30, 0.6);
+}
+
+.print-page-light .print-dietary-tag {
+  color: #2d7a10;
+}
+
+.print-page-light .print-dietary-footer {
+  color: rgba(30, 58, 30, 0.7);
+}
+
+.print-page-light .print-dietary-footer strong {
+  color: #b8860b;
+}
+
+.print-page-light .print-modifier-options,
+.print-page-light .print-modifier-option-name,
+.print-page-light .print-modifier-price {
+  color: rgba(30, 58, 30, 0.7);
+}
+
+.print-page-light .print-toastie-callout {
+  border-color: rgba(45, 122, 16, 0.3);
+  background-color: rgba(45, 122, 16, 0.04);
+}
+
+.print-page-light .print-toastie-name {
+  color: #1e3a1e;
+}
+
+.print-page-light .print-toastie-price {
+  color: #1e3a1e;
+}
+
+.print-page-light .print-toastie-desc {
+  color: rgba(30, 58, 30, 0.7);
+}
+
+.print-page-light .print-toastie-modifier-title {
+  color: #1e3a1e;
+}
+
+.print-page-light .print-toastie-option {
+  color: rgba(30, 58, 30, 0.7);
+}
+
+.print-page-light .print-callout-text {
+  color: rgba(30, 58, 30, 0.75);
+}
+
+.print-page-light .print-callout-tags {
+  color: rgba(30, 58, 30, 0.5);
+}
+
 /* Print media query */
 @media print {
   @page {

@@ -120,14 +120,24 @@ function App() {
               />
             }
           />
-          {/* Print view - 11x17 tabloid layout */}
+          {/* Print view - 11x17 tabloid layout (dark) */}
           <Route
             path="/print"
             element={
               <PrintLayout
                 board={kioskSettings.activeBoard}
                 announcementBar={kioskSettings.announcementBar}
-                ignoreStockLevels={kioskSettings.ignoreStockLevels}
+              />
+            }
+          />
+          {/* Print view - light theme */}
+          <Route
+            path="/print-light"
+            element={
+              <PrintLayout
+                board={kioskSettings.activeBoard}
+                announcementBar={kioskSettings.announcementBar}
+                theme="light"
               />
             }
           />

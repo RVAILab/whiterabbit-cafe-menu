@@ -52,7 +52,7 @@ export function ModifierGroup({ modifier }: ModifierGroupProps) {
         style={{
           fontSize: '0.88vw',
           color: '#a8ff70',
-          fontWeight: '300',
+          fontWeight: '400',
           letterSpacing: '0.04em',
           textTransform: 'uppercase',
         }}
