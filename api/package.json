@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "dependencies": {
+    "@sanity/client": "^7.1.0",
+    "@vercel/node": "^5.0.0"
+  }
+}

@@ -12,6 +12,7 @@ import { useSleepMode } from '../context/SleepModeContext'
 import { useKeyboardControls } from '../hooks/useKeyboardControls'
 import { useVisualizationControls } from '../hooks/useVisualizationControls'
 import { useSleepModeControls } from '../hooks/useSleepModeControls'
+import { useRemoteControl } from '../hooks/useRemoteControl'
 import type { MenuBoard, SecondaryScreen } from '../types'
 
 interface ProjectorLayoutProps {
@@ -41,6 +42,7 @@ export function ProjectorLayout({
   useKeyboardControls()
   useVisualizationControls()
   useSleepModeControls()
+  useRemoteControl()
 
   // Handle screen transitions
   useEffect(() => {

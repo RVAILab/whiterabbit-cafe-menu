@@ -11,6 +11,7 @@ A real-time digital menu display optimized for projectors and kiosk mode, powere
 - **Multiple modes**: Switch between cafe/bar menus via Sanity Studio
 - **Kiosk-ready**: Hidden cursor, no scrolling, full-screen display
 - **Now Playing widget**: Displays current Sonos track with album art (projector layout only)
+- **Remote control API**: POS can trigger display modes (overlays, visualizations, feature screens) over HTTP
 
 ## Tech Stack
 
@@ -102,6 +103,8 @@ Open [http://localhost:5173](http://localhost:5173) to view the menu.
 ## Project Structure
 
 ```
+api/
+└── display.ts               # Vercel serverless function for POS remote control
 src/
 ├── components/
 │   ├── BoardLayout.tsx      # Main grid container
@@ -110,7 +113,8 @@ src/
 │   └── NowPlayingWidget.tsx # Sonos now playing display
 ├── hooks/
 │   ├── useMenuData.ts       # Real-time Sanity listener
-│   └── useNowPlaying.ts     # Sonos playback polling
+│   ├── useNowPlaying.ts     # Sonos playback polling
+│   └── useRemoteControl.ts  # POS remote command listener
 ├── lib/
 │   └── sanity.ts            # Sanity client config
 ├── types/
@@ -181,6 +185,74 @@ This feature requires a Sonos server (like [Earwicket](https://github.com/RVAILa
 - `GET /api/zones/public` - Returns available zones
 
 The server must have CORS enabled for cross-origin requests from the menu app.
+
+## Display Remote Control API
+
+The projector display can be controlled remotely via HTTP, allowing the POS (or any network client) to trigger overlays, visualizations, and feature screens.
+
+### How It Works
+
+```
+POS → POST /api/display → Vercel Function → Sanity signal doc →
+  Sanity real-time listener → React context update → UI change
+```
+
+Commands propagate within ~1-2 seconds. Keyboard shortcuts continue to work independently on the projection machine.
+
+### Endpoint
+
+```
+POST /api/display
+Authorization: Bearer <DISPLAY_API_KEY>
+Content-Type: application/json
+```
+
+### Commands
+
+**Overlay modes** (sleep/closed/normal):
+
+```json
+{"action": "overlay", "value": "sleep"}
+{"action": "overlay", "value": "closed"}
+{"action": "overlay", "value": "none"}
+```
+
+**Background visualizations**:
+
+```json
+{"action": "visualization", "value": "bubbles"}
+{"action": "visualization", "value": "geometric"}
+{"action": "visualization", "value": "waveforms"}
+{"action": "visualization", "value": "none"}
+```
+
+**Feature screens** (by trigger key, case-insensitive):
+
+```json
+{"action": "screen", "value": "C"}
+{"action": "screen", "value": "primary"}
+```
+
+Available screens are defined in Sanity as `secondaryScreen` documents, each with a `triggerKey`. New screens are automatically available via their key.
+
+### Responses
+
+| Status | Meaning |
+|--------|---------|
+| 200 | `{"ok": true, "action": "...", "value": "..."}` |
+| 400 | Invalid action or value |
+| 401 | Missing or wrong API key |
+| 405 | Not POST |
+
+### Environment Variables
+
+- `SANITY_WRITE_TOKEN` — Sanity API token with write access (server-side only)
+- `DISPLAY_API_KEY` — Shared secret for POS authentication
+
+### Files
+
+- `api/display.ts` — Vercel serverless function
+- `src/hooks/useRemoteControl.ts` — Sanity listener that dispatches commands to React contexts
 
 ## Styling Architecture
 
