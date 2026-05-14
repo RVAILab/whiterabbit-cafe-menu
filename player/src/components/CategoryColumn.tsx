@@ -10,7 +10,7 @@ interface CategoryColumnProps {
 }
 
 const TOASTIE_MODIFIER_TITLE = 'Trick Out Your Toastie'
-const TOASTIE_ITEM_ID = 'product-odoo-516'
+const TOASTIE_ITEM_ID = 'product-odoo-222'
 
 export function CategoryColumn({ section, ignoreStockLevels }: CategoryColumnProps) {
   const { heading, items, modifiers } = section

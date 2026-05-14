@@ -138,11 +138,11 @@ function PrintSection({
 
   const toastieModifier = safeModifiers.find(m => m.title === 'Trick Out Your Toastie')
   const toastieItem = toastieModifier
-    ? safeItems.find(item => item._id === 'product-odoo-516' && item._type === 'menuItem')
+    ? safeItems.find(item => item._id === 'product-odoo-222' && item._type === 'menuItem')
     : undefined
 
   const regularItems = toastieItem
-    ? safeItems.filter(item => item._id !== 'product-odoo-516')
+    ? safeItems.filter(item => item._id !== 'product-odoo-222')
     : safeItems
   const regularModifiers = toastieModifier
     ? safeModifiers.filter(m => m.title !== 'Trick Out Your Toastie')
