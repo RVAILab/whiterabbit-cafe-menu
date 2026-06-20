@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { client, ACTIVE_BOARD_QUERY, SECONDARY_SCREENS_QUERY } from '../lib/sanity'
+import { resilientListen } from '../lib/resilientListen'
 import type { KioskSettings, SecondaryScreen, MenuData } from '../types'
 
 /**
@@ -21,8 +22,8 @@ export function useMenuData(): MenuData {
   const lastGoodDataRef = useRef<KioskSettings | null>(null)
   const lastGoodScreensRef = useRef<SecondaryScreen[]>([])
 
-  // Ref to track subscription and prevent double-mounting in StrictMode
-  const subscriptionRef = useRef<{ unsubscribe: () => void } | null>(null)
+  // Ref to track the resilient listener's stop fn and prevent double-mounting in StrictMode
+  const stopListenerRef = useRef<(() => void) | null>(null)
 
   // Ref to track debounce timer for re-fetching
   const refetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -69,7 +70,7 @@ export function useMenuData(): MenuData {
     // Set up real-time listener (guard against double-subscription in StrictMode)
     // Listen to changes on kioskSettings, menuBoard, menuItem, menuModifier, and secondaryScreen
     // since the query includes references to these documents
-    if (!subscriptionRef.current) {
+    if (!stopListenerRef.current) {
       console.log('🔧 Setting up Sanity listener')
       console.log('  Watching document types: kioskSettings, menuBoard, menuItem, menuModifier, secondaryScreen')
       console.log('  Perspective:', client.config().perspective)
@@ -79,69 +80,71 @@ export function useMenuData(): MenuData {
       // Listen to all document types that can affect the menu (including secondary screens)
       const listenerQuery = '*[_type in ["kioskSettings", "menuBoard", "menuItem", "menuModifier", "secondaryScreen", "ingredient"]]'
 
-      subscriptionRef.current = client
-        .listen(listenerQuery, {}, { includeResult: false })
-        .subscribe({
-          next: (update: any) => {
-            // Ignore draft document changes (we only care about published docs)
-            if (update.documentId?.startsWith('drafts.')) {
-              console.log('⏭️ Skipping draft update:', update.documentId)
-              return
-            }
+      // resilientListen auto-reconnects on error/disconnect and on tab
+      // visibility/online so the kiosk keeps receiving menu updates after a
+      // dropped connection instead of silently going stale until reload.
+      stopListenerRef.current = resilientListen({
+        label: 'Menu data',
+        query: listenerQuery,
+        listenOptions: { includeResult: false },
+        onEvent: (update: any) => {
+          // welcome/reconnect events carry no mutation — connection regained.
+          if (update.type !== 'mutation') {
+            if (update.type === 'welcome') setError(null)
+            return
+          }
 
-            console.log('📡 Received update from Sanity:', {
-              type: update.type,
-              documentId: update.documentId,
-              mutations: update.mutations,
-            })
+          // Ignore draft document changes (we only care about published docs)
+          if (update.documentId?.startsWith('drafts.')) {
+            console.log('⏭️ Skipping draft update:', update.documentId)
+            return
+          }
 
-            // Debounce re-fetch to avoid race conditions from rapid updates
-            if (refetchTimerRef.current) {
-              clearTimeout(refetchTimerRef.current)
-            }
+          console.log('📡 Received update from Sanity:', {
+            type: update.type,
+            documentId: update.documentId,
+            mutations: update.mutations,
+          })
 
-            refetchTimerRef.current = setTimeout(() => {
-              console.log('🔄 Re-fetching menu data...')
+          // Debounce re-fetch to avoid race conditions from rapid updates
+          if (refetchTimerRef.current) {
+            clearTimeout(refetchTimerRef.current)
+          }
 
-              // When any relevant document changes, re-fetch all data
-              Promise.all([
-                client.fetch<KioskSettings[]>(ACTIVE_BOARD_QUERY),
-                client.fetch<SecondaryScreen[]>(SECONDARY_SCREENS_QUERY),
-              ])
-                .then(([settingsResult, screensResult]) => {
-                  const kioskSettings = settingsResult[0]
-                  if (kioskSettings?.activeBoard) {
-                    console.log('✅ Menu data updated successfully')
-                    console.log('📦 New data:', JSON.stringify(kioskSettings, null, 2))
-                    setData(kioskSettings)
-                    lastGoodDataRef.current = kioskSettings
-                    setSecondaryScreens(screensResult || [])
-                    lastGoodScreensRef.current = screensResult || []
-                    setError(null)
-                    setIsLoading(false)
-                  }
-                })
-                .catch(err => {
-                  console.error('❌ Failed to re-fetch menu data:', err)
-                })
-            }, 500) // 500ms debounce
-          },
-          error: (err) => {
-            console.error('❌ Listener error:', err)
-            console.error('  Error type:', err?.constructor?.name)
-            console.error('  Error message:', err?.message)
-            // Don't clear data on listener error - maintain last known state
-            // This is important for offline resilience
-            setError('Connection lost - showing last known menu')
-          },
-        })
+          refetchTimerRef.current = setTimeout(() => {
+            console.log('🔄 Re-fetching menu data...')
+
+            // When any relevant document changes, re-fetch all data
+            Promise.all([
+              client.fetch<KioskSettings[]>(ACTIVE_BOARD_QUERY),
+              client.fetch<SecondaryScreen[]>(SECONDARY_SCREENS_QUERY),
+            ])
+              .then(([settingsResult, screensResult]) => {
+                const kioskSettings = settingsResult[0]
+                if (kioskSettings?.activeBoard) {
+                  console.log('✅ Menu data updated successfully')
+                  console.log('📦 New data:', JSON.stringify(kioskSettings, null, 2))
+                  setData(kioskSettings)
+                  lastGoodDataRef.current = kioskSettings
+                  setSecondaryScreens(screensResult || [])
+                  lastGoodScreensRef.current = screensResult || []
+                  setError(null)
+                  setIsLoading(false)
+                }
+              })
+              .catch(err => {
+                console.error('❌ Failed to re-fetch menu data:', err)
+              })
+          }, 500) // 500ms debounce
+        },
+      })
     }
 
-    // Cleanup subscription and timer on unmount
+    // Cleanup listener and timer on unmount
     return () => {
-      if (subscriptionRef.current) {
-        subscriptionRef.current.unsubscribe()
-        subscriptionRef.current = null
+      if (stopListenerRef.current) {
+        stopListenerRef.current()
+        stopListenerRef.current = null
       }
       if (refetchTimerRef.current) {
         clearTimeout(refetchTimerRef.current)

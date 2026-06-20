@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { client } from '../lib/sanity'
+import { resilientListen } from '../lib/resilientListen'
 import { useSleepMode } from '../context/SleepModeContext'
 import { useVisualization, type VisualizationType } from '../context/VisualizationContext'
 import { useScreenContext } from '../context/ScreenContext'
@@ -40,67 +40,64 @@ export function useRemoteControl() {
   useEffect(() => {
     console.log('📡 Remote control: listening for display commands')
 
-    const subscription = client
-      .listen(
-        '*[_type == "displayCommand" && _id == "displayCommand"]',
-        {},
-        { includeResult: true },
-      )
-      .subscribe({
-        next: (event: any) => {
-          // Only process actual mutations, not welcome/reconnect events
-          if (event.type !== 'mutation') return
+    // resilientListen auto-reconnects on error/disconnect and on tab
+    // visibility/online, so a dropped listener no longer leaves the projector
+    // permanently unresponsive to display commands.
+    const stop = resilientListen({
+      label: 'Remote control',
+      query: '*[_type == "displayCommand" && _id == "displayCommand"]',
+      listenOptions: { includeResult: true },
+      onEvent: (event: any) => {
+        // Only process actual mutations, not welcome/reconnect events
+        if (event.type !== 'mutation') return
 
-          const doc = event.result
-          if (!doc) return
+        const doc = event.result
+        if (!doc) return
 
-          const { action, value } = doc
-          const h = handlersRef.current
+        const { action, value } = doc
+        const h = handlersRef.current
 
-          console.log(`📡 Remote command: ${action} → ${value}`)
+        console.log(`📡 Remote command: ${action} → ${value}`)
 
-          switch (action) {
-            case 'overlay':
-              if (value === 'sleep') {
-                h.setSleepMode(true)
-              } else if (value === 'closed') {
-                h.setClosedMode(true)
+        switch (action) {
+          case 'overlay':
+            if (value === 'sleep') {
+              h.setSleepMode(true)
+            } else if (value === 'closed') {
+              h.setClosedMode(true)
+            } else {
+              h.setSleepMode(false)
+            }
+            break
+
+          case 'visualization':
+            if (VALID_VISUALIZATIONS.includes(value)) {
+              h.setVisualization((value ?? 'none') as VisualizationType)
+            }
+            break
+
+          case 'screen':
+            if (value === 'primary' || !value) {
+              h.returnToPrimary()
+            } else {
+              const screen = h.keyMap[value.toUpperCase()]
+              if (screen) {
+                h.showScreen(screen)
               } else {
-                h.setSleepMode(false)
+                console.warn(`📡 Remote control: no screen found for key "${value}"`)
               }
-              break
+            }
+            break
 
-            case 'visualization':
-              if (VALID_VISUALIZATIONS.includes(value)) {
-                h.setVisualization((value ?? 'none') as VisualizationType)
-              }
-              break
-
-            case 'screen':
-              if (value === 'primary' || !value) {
-                h.returnToPrimary()
-              } else {
-                const screen = h.keyMap[value.toUpperCase()]
-                if (screen) {
-                  h.showScreen(screen)
-                } else {
-                  console.warn(`📡 Remote control: no screen found for key "${value}"`)
-                }
-              }
-              break
-
-            default:
-              console.warn(`📡 Remote control: unknown action "${action}"`)
-          }
-        },
-        error: (err: any) => {
-          console.error('📡 Remote control listener error:', err)
-        },
-      })
+          default:
+            console.warn(`📡 Remote control: unknown action "${action}"`)
+        }
+      },
+    })
 
     return () => {
       console.log('📡 Remote control: disconnected')
-      subscription.unsubscribe()
+      stop()
     }
   }, []) // Empty deps — handlers accessed via ref
 }
