@@ -16,7 +16,7 @@ const VALID_VISUALIZATIONS = ['none', 'bubbles', 'geometric', 'waveforms']
  */
 export function useRemoteControl() {
   const { setSleepMode, setClosedMode } = useSleepMode()
-  const { setVisualization } = useVisualization()
+  const { setVisualization, setFullscreen } = useVisualization()
   const { showScreen, returnToPrimary, keyMap } = useScreenContext()
 
   // Stable refs for context methods to avoid re-subscribing
@@ -24,6 +24,7 @@ export function useRemoteControl() {
     setSleepMode,
     setClosedMode,
     setVisualization,
+    setFullscreen,
     showScreen,
     returnToPrimary,
     keyMap,
@@ -32,6 +33,7 @@ export function useRemoteControl() {
     setSleepMode,
     setClosedMode,
     setVisualization,
+    setFullscreen,
     showScreen,
     returnToPrimary,
     keyMap,
@@ -74,6 +76,12 @@ export function useRemoteControl() {
             if (VALID_VISUALIZATIONS.includes(value)) {
               h.setVisualization((value ?? 'none') as VisualizationType)
             }
+            break
+
+          case 'visualizationMode':
+            // 'fullscreen' takes the visualization over the whole screen
+            // (hiding the menu); anything else returns it to the background.
+            h.setFullscreen(value === 'fullscreen')
             break
 
           case 'screen':

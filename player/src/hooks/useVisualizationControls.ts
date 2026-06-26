@@ -12,18 +12,35 @@ const VISUALIZATION_KEYS: Record<string, VisualizationType> = {
 }
 
 /**
+ * Key that toggles fullscreen takeover for the active visualization.
+ * Note: digit keys 0 (sleep) and 9 (closed) are owned by useSleepModeControls,
+ * so fullscreen uses a letter to avoid colliding with the overlay shortcuts.
+ */
+const FULLSCREEN_KEY = 'f'
+
+/**
  * Hook to handle keyboard controls for visualizations.
  *
  * Key bindings:
  * - 1: Toggle bubbles visualization
- * - (Future: 2-9 for other visualizations)
+ * - 2: Toggle geometric visualization
+ * - 3: Toggle waveforms visualization
+ * - f: Toggle fullscreen takeover (hides the menu; defaults to bubbles if
+ *      no visualization is active)
  */
 export function useVisualizationControls() {
-  const { toggleVisualization, activeVisualization } = useVisualization()
+  const { toggleVisualization, toggleFullscreen, activeVisualization, isFullscreen } =
+    useVisualization()
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     // Ignore if user is typing in an input
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+      return
+    }
+
+    if (event.key === FULLSCREEN_KEY) {
+      event.preventDefault()
+      toggleFullscreen()
       return
     }
 
@@ -32,7 +49,7 @@ export function useVisualizationControls() {
       event.preventDefault()
       toggleVisualization(vizType)
     }
-  }, [toggleVisualization])
+  }, [toggleVisualization, toggleFullscreen])
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
@@ -43,6 +60,8 @@ export function useVisualizationControls() {
 
   return {
     activeVisualization,
+    isFullscreen,
     visualizationKeys: Object.keys(VISUALIZATION_KEYS),
+    fullscreenKey: FULLSCREEN_KEY,
   }
 }

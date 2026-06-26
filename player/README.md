@@ -226,6 +226,18 @@ Content-Type: application/json
 {"action": "visualization", "value": "none"}
 ```
 
+**Visualization display mode** (background vs. fullscreen takeover):
+
+```json
+{"action": "visualizationMode", "value": "fullscreen"}
+{"action": "visualizationMode", "value": "background"}
+```
+
+In `fullscreen` the active visualization covers the entire screen and the menu
+is hidden; `background` returns it behind the menu. Entering `fullscreen` with
+no visualization active defaults to bubbles. On the projection machine the `f`
+key toggles fullscreen takeover.
+
 **Feature screens** (by trigger key, case-insensitive):
 
 ```json
