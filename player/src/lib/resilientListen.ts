@@ -14,8 +14,12 @@ import { client } from './sanity'
  *
  * This helper keeps the listener alive by:
  *  - re-subscribing on `error`/`complete` with exponential backoff (capped),
- *  - reconnecting immediately when the tab becomes visible again, and
- *  - reconnecting immediately when the network comes back online.
+ *  - reconnecting immediately when the tab becomes visible again,
+ *  - reconnecting immediately when the network comes back online, and
+ *  - a staleness watchdog that forces a reconnect when no event has arrived
+ *    for a while, covering the "half-open" case where the EventSource is
+ *    silently dead (proxy reaped it, server stopped pushing) yet never emits
+ *    `error`/`complete`, so `connected` would otherwise stay `true` forever.
  *
  * Returns a cleanup function that permanently stops the listener.
  */
@@ -41,6 +45,12 @@ export interface ResilientListenOptions {
 }
 
 const MAX_BACKOFF_MS = 30_000
+// Sanity's listen stream emits periodic keep-alive events, so a healthy
+// connection is never silent for long. If we go this long with no event of any
+// kind, assume the connection is half-open and force a fresh one.
+const STALE_TIMEOUT_MS = 75_000
+// How often the watchdog checks for staleness.
+const WATCHDOG_INTERVAL_MS = 30_000
 
 export function resilientListen({
   query,
@@ -51,6 +61,8 @@ export function resilientListen({
 }: ResilientListenOptions): () => void {
   let subscription: { unsubscribe: () => void } | null = null
   let reconnectTimer: ReturnType<typeof setTimeout> | null = null
+  let watchdogTimer: ReturnType<typeof setInterval> | null = null
+  let lastEventAt = 0
   let attempt = 0
   let connected = false
   let stopped = false
@@ -82,8 +94,14 @@ export function resilientListen({
       subscription = null
     }
 
+    // Reset the staleness clock so a brand-new connection that never delivers
+    // a welcome is still retried by the watchdog rather than waiting forever.
+    lastEventAt = Date.now()
+
     subscription = client.listen(query, params, listenOptions).subscribe({
       next: (event: SanityListenEvent) => {
+        // Any event (welcome, mutation, keep-alive, …) proves the stream is live.
+        lastEventAt = Date.now()
         // A welcome event means the channel is (re)established and healthy.
         if (event?.type === 'welcome') {
           connected = true
@@ -115,11 +133,27 @@ export function resilientListen({
     connect()
   }
 
+  // Force a reconnect even when we believe we're `connected` — used by the
+  // watchdog to recover a half-open stream that stopped delivering silently.
+  const forceReconnect = () => {
+    if (stopped) return
+    console.warn(`📡 ${label}: stream stale, forcing reconnect`)
+    connected = false
+    attempt = 0
+    connect()
+  }
+
+  const checkStaleness = () => {
+    if (stopped || reconnectTimer) return
+    if (Date.now() - lastEventAt > STALE_TIMEOUT_MS) forceReconnect()
+  }
+
   const handleVisibility = () => {
     if (document.visibilityState === 'visible') reconnectIfDropped()
   }
 
   connect()
+  watchdogTimer = setInterval(checkStaleness, WATCHDOG_INTERVAL_MS)
 
   if (typeof document !== 'undefined') {
     document.addEventListener('visibilitychange', handleVisibility)
@@ -131,6 +165,10 @@ export function resilientListen({
   return () => {
     stopped = true
     clearReconnectTimer()
+    if (watchdogTimer) {
+      clearInterval(watchdogTimer)
+      watchdogTimer = null
+    }
     if (subscription) {
       subscription.unsubscribe()
       subscription = null
