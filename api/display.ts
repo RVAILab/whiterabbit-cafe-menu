@@ -1,9 +1,10 @@
 import { createClient } from '@sanity/client'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
-const VALID_ACTIONS = ['overlay', 'visualization', 'screen'] as const
+const VALID_ACTIONS = ['overlay', 'visualization', 'visualizationMode', 'screen'] as const
 const VALID_OVERLAYS = ['none', 'sleep', 'closed'] as const
 const VALID_VISUALIZATIONS = ['none', 'bubbles', 'geometric', 'waveforms'] as const
+const VALID_VISUALIZATION_MODES = ['background', 'fullscreen'] as const
 
 type Action = (typeof VALID_ACTIONS)[number]
 
@@ -56,6 +57,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (action === 'visualization' && !VALID_VISUALIZATIONS.includes(value)) {
     return res.status(400).json({
       error: `Invalid visualization value. Valid: ${VALID_VISUALIZATIONS.join(', ')}`,
+    })
+  }
+
+  if (action === 'visualizationMode' && !VALID_VISUALIZATION_MODES.includes(value)) {
+    return res.status(400).json({
+      error: `Invalid visualizationMode value. Valid: ${VALID_VISUALIZATION_MODES.join(', ')}`,
     })
   }
 

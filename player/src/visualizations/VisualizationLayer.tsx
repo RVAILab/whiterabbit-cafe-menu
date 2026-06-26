@@ -8,7 +8,7 @@ import { Waveforms } from './Waveforms'
  * This component should be placed behind menu content.
  */
 export function VisualizationLayer() {
-  const { activeVisualization } = useVisualization()
+  const { activeVisualization, isFullscreen } = useVisualization()
 
   if (activeVisualization === 'none') {
     return null
@@ -19,7 +19,11 @@ export function VisualizationLayer() {
       style={{
         position: 'absolute',
         inset: 0,
-        zIndex: 0,
+        // In fullscreen takeover the layer sits above the menu and widgets
+        // (widgets are at zIndex 100) but below the sleep/closed overlays
+        // (zIndex 9999). A solid background hides the menu text entirely.
+        zIndex: isFullscreen ? 200 : 0,
+        background: isFullscreen ? '#0a0a0a' : 'transparent',
         pointerEvents: 'none',
       }}
     >
