@@ -1,5 +1,6 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import { useMenuData } from './hooks/useMenuData'
+import { useDisplayHeartbeat } from './hooks/useDisplayHeartbeat'
 import { ScreenProvider } from './context/ScreenContext'
 import { VisualizationProvider } from './context/VisualizationContext'
 import { SleepModeProvider } from './context/SleepModeContext'
@@ -7,8 +8,25 @@ import { ProjectorLayout } from './layouts/ProjectorLayout'
 import { CustomerLayout } from './layouts/CustomerLayout'
 import { PrintLayout } from './layouts/PrintLayout'
 
+// Routes that are ambient displays. The print layouts are a paper artifact,
+// not a screen sitting in the café, so they never report liveness.
+// Must match DISPLAY_ROUTES in api/_lib/displayLiveness.ts, which rejects
+// anything else.
+const DISPLAY_ROUTES = ['/', '/projection']
+
 function App() {
-  const { kioskSettings, secondaryScreens, isLoading, error } = useMenuData()
+  const { kioskSettings, secondaryScreens, isLoading, error, isDisplayLive } = useMenuData()
+  const { pathname } = useLocation()
+
+  // Ambient displays have no interaction to measure, so liveness is the usage
+  // signal: this board fetched its menu content and the staleness watchdog says
+  // its listener is healthy. Fire-and-forget — it cannot affect what renders
+  // below. See hooks/useDisplayHeartbeat.ts.
+  useDisplayHeartbeat({
+    isLive: isDisplayLive,
+    route: pathname,
+    enabled: DISPLAY_ROUTES.includes(pathname),
+  })
 
   // Debug logging
   console.log('🔍 App render:', {

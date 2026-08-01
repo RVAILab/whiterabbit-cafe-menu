@@ -147,6 +147,12 @@ export interface MenuData {
   secondaryScreens: SecondaryScreen[]
   isLoading: boolean
   error: string | null
+  /**
+   * Is this display alive — the Sanity staleness watchdog reports a healthy
+   * listener and menu content has loaded. A getter, not a value, so reading it
+   * never couples telemetry to the render cycle.
+   */
+  isDisplayLive: () => boolean
 }
 
 // Key map for keyboard-triggered screens

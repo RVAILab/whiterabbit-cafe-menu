@@ -1,5 +1,12 @@
 import { createClient } from '@sanity/client'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { isObservatoryConfigured } from './_lib/observatory'
+import {
+  HEARTBEAT_ACTION,
+  handleHeartbeat,
+  parseHeartbeat,
+  type LivenessClient,
+} from './_lib/displayLiveness'
 
 const VALID_ACTIONS = ['overlay', 'visualization', 'visualizationMode', 'screen'] as const
 const VALID_OVERLAYS = ['none', 'sleep', 'closed'] as const
@@ -28,6 +35,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+  // Display liveness heartbeat (issue #6). Handled before the command path so
+  // the remote-control surface below is untouched: `heartbeat` is not a valid
+  // action, it never writes a displayCommand, and it cannot change what is on
+  // screen.
+  //
+  // It is deliberately exempt from DISPLAY_API_KEY: the caller is the menu
+  // board's own browser, which cannot hold a secret. The key exists to protect
+  // commands that change the display; a heartbeat changes nothing. What it can
+  // write is bounded instead — a strictly-validated opaque display id, a known
+  // display route, and a hard cap on distinct displays per day.
+  if (req.body?.action === HEARTBEAT_ACTION) {
+    return handleHeartbeatRequest(req, res)
   }
 
   // Auth check
@@ -85,5 +106,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (err) {
     console.error('Sanity write failed:', err)
     return res.status(500).json({ error: 'Failed to send display command' })
+  }
+}
+
+/**
+ * Record one menu board's liveness heartbeat and, when due, emit the day's
+ * roll-up to the Agent Observatory.
+ *
+ * Nothing in here can reach the display: it writes a `displayLiveness`
+ * document, which is not a type the players listen to, and it never touches
+ * `displayCommand`. Every failure below is swallowed and answered with 200 —
+ * the board must never see telemetry as something to react to.
+ */
+async function handleHeartbeatRequest(req: VercelRequest, res: VercelResponse) {
+  // Until OBSERVATORY_URL / OBSERVATORY_INGEST_TOKEN are provisioned this is a
+  // complete no-op: no Sanity writes, no state accumulating for someone to
+  // clean up later.
+  if (!isObservatoryConfigured()) {
+    return res.status(200).json({ ok: true, tracked: false, reason: 'observatory not configured' })
+  }
+
+  const parsed = parseHeartbeat(req.body)
+  if (!parsed.value) {
+    return res.status(400).json({ error: parsed.error })
+  }
+
+  try {
+    const result = await handleHeartbeat({ client: sanityClient as LivenessClient }, parsed.value)
+    return res.status(200).json({ ok: true, tracked: true, ...result })
+  } catch (err) {
+    console.error('Display heartbeat failed:', err)
+    return res.status(200).json({ ok: true, tracked: false, reason: 'heartbeat error' })
   }
 }

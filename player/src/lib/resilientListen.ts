@@ -42,7 +42,24 @@ export interface ResilientListenOptions {
   onEvent: (event: SanityListenEvent) => void
   // Label used in console diagnostics so multiple listeners are distinguishable.
   label?: string
+  // Called (on change only) with the watchdog's own verdict on this listener:
+  // `true` while the channel is confirmed open and has produced an event inside
+  // the staleness window, `false` once it is disconnected, backing off, or
+  // stale. This is deliberately the *same* condition the watchdog acts on — a
+  // consumer that reports liveness elsewhere must agree with what this file
+  // already treats as a healthy, currently-rendering display rather than
+  // inventing a second definition. A subscriber that throws is isolated: it
+  // cannot break the listener it is observing.
+  onHealthChange?: (healthy: boolean) => void
 }
+
+// `client.listen()` filters the stream to `['mutation']` unless told otherwise
+// (see ListenOptions.events), so without this the watchdog never sees the
+// `welcome` it uses to decide a channel is established and `connected` stays
+// false for the life of the page. Both consumers already branch on
+// welcome/reconnect events; this makes them actually arrive. A caller can still
+// override `events` through `listenOptions`.
+const DEFAULT_LISTEN_EVENTS = ['welcome', 'mutation', 'reconnect'] as const
 
 const MAX_BACKOFF_MS = 30_000
 // Sanity's listen stream emits periodic keep-alive events, so a healthy
@@ -58,6 +75,7 @@ export function resilientListen({
   listenOptions = {},
   onEvent,
   label = 'listener',
+  onHealthChange,
 }: ResilientListenOptions): () => void {
   let subscription: { unsubscribe: () => void } | null = null
   let reconnectTimer: ReturnType<typeof setTimeout> | null = null
@@ -66,6 +84,25 @@ export function resilientListen({
   let attempt = 0
   let connected = false
   let stopped = false
+  let lastPublishedHealth: boolean | null = null
+
+  // The single definition of "this listener is healthy": the channel is
+  // confirmed open *and* the watchdog's staleness window has not elapsed.
+  // `checkStaleness` acts on exactly this condition.
+  const isHealthy = () => !stopped && connected && Date.now() - lastEventAt <= STALE_TIMEOUT_MS
+
+  const publishHealth = () => {
+    if (!onHealthChange) return
+    const healthy = isHealthy()
+    if (healthy === lastPublishedHealth) return
+    lastPublishedHealth = healthy
+    try {
+      onHealthChange(healthy)
+    } catch (err) {
+      // An observer must never be able to take down the listener it observes.
+      console.error(`📡 ${label}: health subscriber threw`, err)
+    }
+  }
 
   const clearReconnectTimer = () => {
     if (reconnectTimer) {
@@ -98,7 +135,9 @@ export function resilientListen({
     // a welcome is still retried by the watchdog rather than waiting forever.
     lastEventAt = Date.now()
 
-    subscription = client.listen(query, params, listenOptions).subscribe({
+    const resolvedOptions = { events: [...DEFAULT_LISTEN_EVENTS], ...listenOptions }
+
+    subscription = client.listen(query, params, resolvedOptions).subscribe({
       next: (event: SanityListenEvent) => {
         // Any event (welcome, mutation, keep-alive, …) proves the stream is live.
         lastEventAt = Date.now()
@@ -112,16 +151,19 @@ export function resilientListen({
         } else if (event?.type === 'mutation') {
           attempt = 0
         }
+        publishHealth()
         onEvent(event)
       },
       error: (err: unknown) => {
         connected = false
+        publishHealth()
         console.error(`📡 ${label} error:`, err)
         scheduleReconnect()
       },
       complete: () => {
         // The listener completed unexpectedly; treat it as a disconnect.
         connected = false
+        publishHealth()
         scheduleReconnect()
       },
     })
@@ -139,13 +181,17 @@ export function resilientListen({
     if (stopped) return
     console.warn(`📡 ${label}: stream stale, forcing reconnect`)
     connected = false
+    publishHealth()
     attempt = 0
     connect()
   }
 
   const checkStaleness = () => {
-    if (stopped || reconnectTimer) return
-    if (Date.now() - lastEventAt > STALE_TIMEOUT_MS) forceReconnect()
+    if (stopped) return
+    if (!reconnectTimer && Date.now() - lastEventAt > STALE_TIMEOUT_MS) forceReconnect()
+    // Publish on every tick as well as on transitions: a stream that goes
+    // silent without erroring only becomes unhealthy on the clock.
+    publishHealth()
   }
 
   const handleVisibility = () => {
@@ -164,6 +210,7 @@ export function resilientListen({
 
   return () => {
     stopped = true
+    publishHealth()
     clearReconnectTimer()
     if (watchdogTimer) {
       clearInterval(watchdogTimer)
