@@ -20,9 +20,13 @@ export const DISPLAY_ID_STORAGE_KEY = 'wr-cafe-menu-display-id'
 
 /**
  * How often a live board reports in. The first heartbeat fires one full
- * interval after load, never on mount — a display is something that sits
- * rendering the menu, so a passer-by opening the public menu URL for a minute
- * is never counted as one.
+ * interval after load, never on mount.
+ *
+ * Whether a beating browser is actually a *display* is decided server-side, by
+ * sustained presence across the day (see MIN_PRESENCE_MS in
+ * api/_lib/displayLiveness.ts) — a rule this interval feeds, since it is what
+ * MIN_PRESENCE_BEATS is derived from. Changing this interval changes how many
+ * beats two hours of presence implies; keep the two in step.
  */
 export const HEARTBEAT_INTERVAL_MS = 10 * 60 * 1000
 

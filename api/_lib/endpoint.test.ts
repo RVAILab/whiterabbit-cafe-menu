@@ -6,7 +6,13 @@
  */
 import { createServer, type Server } from 'node:http'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { livenessDocId, runIdForDay, utcDay } from './displayLiveness'
+import {
+  EXPECTED_HEARTBEAT_INTERVAL_MS,
+  MIN_PRESENCE_BEATS,
+  livenessDocId,
+  runIdForDay,
+  utcDay,
+} from './displayLiveness'
 
 const state = vi.hoisted(() => ({
   docs: new Map<string, Record<string, unknown>>(),
@@ -144,6 +150,12 @@ afterAll(async () => {
   await new Promise<void>((resolve) => server.close(() => resolve()))
 })
 
+// Only the clock is faked — real timers keep the stub server and the recorder's
+// abort timeout working — so a whole day of beats can be played in milliseconds.
+const OPEN = Date.parse('2026-08-01T14:00:00.000Z')
+const BEAT_MS = EXPECTED_HEARTBEAT_INTERVAL_MS
+let clock = OPEN
+
 beforeEach(() => {
   state.docs.clear()
   state.failWrites = false
@@ -153,9 +165,13 @@ beforeEach(() => {
   process.env.OBSERVATORY_URL = baseUrl
   process.env.OBSERVATORY_INGEST_TOKEN = 'test-ingest-token'
   delete process.env.DISPLAY_API_KEY
+  vi.useFakeTimers({ toFake: ['Date'] })
+  clock = OPEN
+  vi.setSystemTime(clock)
 })
 
 afterEach(() => {
+  vi.useRealTimers()
   delete process.env.OBSERVATORY_URL
   delete process.env.OBSERVATORY_INGEST_TOKEN
   delete process.env.DISPLAY_API_KEY
@@ -163,11 +179,24 @@ afterEach(() => {
 
 const today = () => utcDay(new Date())
 
-describe('POST /api/display — heartbeat', () => {
-  it('records a display and posts the day roll-up to the Observatory', async () => {
-    const res = mockRes()
+/** Beats enough times to clear the sustained-presence bar, as a board does. */
+const SUSTAINED_BEATS = MIN_PRESENCE_BEATS + 1
 
-    await handler(mockReq({ action: 'heartbeat', value: DISPLAY_A, route: '/' }), res as never)
+/** Play `count` heartbeats from one display on the real interval. */
+async function beat(id: string, count: number, route = '/'): Promise<StubResponse> {
+  let res = mockRes()
+  for (let i = 0; i < count; i += 1) {
+    vi.setSystemTime(clock)
+    res = mockRes()
+    await handler(mockReq({ action: 'heartbeat', value: id, route }), res as never)
+    clock += BEAT_MS
+  }
+  return res
+}
+
+describe('POST /api/display — heartbeat', () => {
+  it('records a board and posts the day roll-up to the Observatory', async () => {
+    const res = await beat(DISPLAY_A, SUSTAINED_BEATS)
 
     expect(res.statusCode).toBe(200)
     expect(res.body).toMatchObject({ ok: true, tracked: true, displayCount: 1, emitted: true })
@@ -178,21 +207,42 @@ describe('POST /api/display — heartbeat', () => {
       runId: runIdForDay(today()),
       agent: 'cafe-menu-displays',
       status: 'ok',
-      meta: { displayCount: 1, app: 'whiterabbit-cafe-menu' },
+      meta: { displayCount: 1, pending: 0, app: 'whiterabbit-cafe-menu' },
     })
   })
 
-  it('aggregates displays into one run record — same runId, growing count', async () => {
-    await handler(mockReq({ action: 'heartbeat', value: DISPLAY_A, route: '/' }), mockRes() as never)
-    await handler(
-      mockReq({ action: 'heartbeat', value: DISPLAY_B, route: '/projection' }),
-      mockRes() as never
-    )
+  // The number must mean "boards are up", so a browser that merely visited the
+  // public menu URL must never reach it.
+  it('never reports a browser that was open briefly', async () => {
+    const res = await beat(DISPLAY_B, 3)
 
-    expect(received.map((r) => r.body.runId)).toEqual([runIdForDay(today()), runIdForDay(today())])
-    expect(received.map((r) => (r.body.meta as { displayCount: number }).displayCount)).toEqual([
-      1, 2,
-    ])
+    expect(res.statusCode).toBe(200)
+    expect(res.body).toMatchObject({ ok: true, tracked: true, displayCount: 0, pending: 1 })
+    expect(received).toHaveLength(0)
+    expect(state.docs.get(livenessDocId(today()))?.displays).toHaveLength(1)
+  })
+
+  it('reports the board and not the browser sitting next to it', async () => {
+    await beat(DISPLAY_B, 3, '/projection') // a customer's laptop
+    const res = await beat(DISPLAY_A, SUSTAINED_BEATS) // the board
+
+    expect(res.body).toMatchObject({ displayCount: 1, pending: 1 })
+    expect(received).toHaveLength(1)
+    expect(received[0].body.meta).toMatchObject({ displayCount: 1, pending: 1 })
+    expect(
+      ((received[0].body.meta as { displays: { id: string }[] }).displays ?? []).map((d) => d.id)
+    ).toEqual([DISPLAY_A])
+  })
+
+  it('aggregates boards into one run record — same runId, growing count', async () => {
+    await beat(DISPLAY_A, SUSTAINED_BEATS)
+    await beat(DISPLAY_B, SUSTAINED_BEATS, '/projection')
+
+    // Every emit that day upserts the one record, so the count grows in place.
+    expect(new Set(received.map((r) => r.body.runId))).toEqual(new Set([runIdForDay(today())]))
+    const counts = received.map((r) => (r.body.meta as { displayCount: number }).displayCount)
+    expect(counts[0]).toBe(1)
+    expect(counts.at(-1)).toBe(2)
     expect(state.docs.get(livenessDocId(today()))?.displays).toHaveLength(2)
   })
 
@@ -240,9 +290,8 @@ describe('POST /api/display — heartbeat', () => {
   // The invariant: whatever breaks, the board is told nothing is wrong.
   it('answers 200 when the Observatory is unreachable', async () => {
     process.env.OBSERVATORY_URL = 'http://127.0.0.1:1'
-    const res = mockRes()
 
-    await handler(mockReq({ action: 'heartbeat', value: DISPLAY_A, route: '/' }), res as never)
+    const res = await beat(DISPLAY_A, SUSTAINED_BEATS)
 
     expect(res.statusCode).toBe(200)
     expect(res.body).toMatchObject({ ok: true, displayCount: 1, emitted: false })
@@ -250,9 +299,8 @@ describe('POST /api/display — heartbeat', () => {
 
   it('answers 200 when the Observatory rejects the post', async () => {
     ingestStatus = 500
-    const res = mockRes()
 
-    await handler(mockReq({ action: 'heartbeat', value: DISPLAY_A, route: '/' }), res as never)
+    const res = await beat(DISPLAY_A, SUSTAINED_BEATS)
 
     expect(res.statusCode).toBe(200)
     expect(res.body).toMatchObject({ emitted: false })
@@ -270,11 +318,11 @@ describe('POST /api/display — heartbeat', () => {
 
   it('retries the same runId after a failed post, then succeeds', async () => {
     ingestStatus = 500
-    await handler(mockReq({ action: 'heartbeat', value: DISPLAY_A, route: '/' }), mockRes() as never)
+    await beat(DISPLAY_A, SUSTAINED_BEATS)
+    expect(received).toHaveLength(1)
 
     ingestStatus = 200
-    const res = mockRes()
-    await handler(mockReq({ action: 'heartbeat', value: DISPLAY_A, route: '/' }), res as never)
+    const res = await beat(DISPLAY_A, 1)
 
     expect(received).toHaveLength(2)
     expect(received[1].body.runId).toBe(received[0].body.runId)

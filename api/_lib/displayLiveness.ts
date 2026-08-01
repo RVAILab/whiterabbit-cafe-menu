@@ -10,6 +10,14 @@
  *
  * Design notes
  * ------------
+ * **A display is something that stays up, not something that loads the page.**
+ * The menu URL is public, so a heartbeat alone proves only that a browser had
+ * the page open. A tracked id counts only after sustained presence during the
+ * day — {@link MIN_PRESENCE_BEATS} beats spanning {@link MIN_PRESENCE_MS} — which
+ * a board clears on any day it runs and a passer-by essentially never does.
+ * Everything else is tracked but reported as `pending`, so a lingering tab can
+ * never make the grid claim a board is up when it is dark.
+ *
  * **One record per day, by construction.** The `runId` is derived from the UTC
  * day (`cafe-menu-displays-YYYY-MM-DD`). The Observatory upserts on `runId`, so
  * every emit during a day refreshes the same record rather than appending a new
@@ -50,11 +58,41 @@ export const DISPLAY_ID_RE = /^[a-z0-9][a-z0-9-]{7,63}$/
 /** Routes that are actually ambient displays. `/print*` is a paper artifact. */
 export const DISPLAY_ROUTES = ['/', '/projection'] as const
 /**
- * Hard cap on distinct displays counted in a day. The heartbeat is
- * unauthenticated (a browser cannot hold the display API key), so this bounds
- * both the document size and how far a stray caller could inflate the number.
+ * Hard cap on distinct display ids *tracked* in a day. Bounds the document
+ * size; it is not the count. When the cap is reached, an arriving display
+ * evicts the least-present entry that has not yet qualified (see
+ * {@link isSustainedDisplay}) rather than being turned away, so a run of
+ * passing browsers can never crowd out a real board.
  */
-export const MAX_DISPLAYS_PER_DAY = 24
+export const MAX_DISPLAYS_PER_DAY = 64
+/**
+ * How long a display id must have been present during the day before it counts.
+ *
+ * The number answers "are the menu boards up", so it must not be satisfiable by
+ * anything other than a board. The menu URL is public: a phone or laptop left on
+ * it would otherwise count, and report boards alive when they could be dark.
+ *
+ * A real board runs a whole session continuously; a passer-by does not. Two
+ * hours is far above any casual visit and far below any operating session — a
+ * board clears it on any day it runs, including a short one, because a UTC day's
+ * window (17:00 local to 17:00 local) contains a full local session.
+ */
+export const MIN_PRESENCE_MS = 2 * 60 * 60 * 1000
+/**
+ * The player's heartbeat interval. Mirrors HEARTBEAT_INTERVAL_MS in
+ * player/src/lib/displayHeartbeat.ts — used only to derive how many beats two
+ * hours of continuous presence implies.
+ */
+export const EXPECTED_HEARTBEAT_INTERVAL_MS = 10 * 60 * 1000
+/**
+ * Beats a display must have sent as well as spanning {@link MIN_PRESENCE_MS}.
+ *
+ * Span alone would accept a browser opened twice hours apart — two beats, a wide
+ * span, not a board. Beats alone would accept a client that ignored the interval
+ * and posted in a burst. Together they mean what they say: present, continuously,
+ * for hours.
+ */
+export const MIN_PRESENCE_BEATS = Math.ceil(MIN_PRESENCE_MS / EXPECTED_HEARTBEAT_INTERVAL_MS)
 /** Don't re-post to the Observatory more often than this unless the count moved. */
 export const EMIT_MIN_INTERVAL_MS = 30 * 60 * 1000
 /** How long day documents are kept before being pruned. */
@@ -63,7 +101,9 @@ export const RETENTION_DAYS = 14
 export interface DisplayEntry {
   _key: string
   route: string
+  firstSeenAt: string
   lastSeenAt: string
+  beats: number
 }
 
 export interface LivenessDoc {
@@ -120,6 +160,29 @@ export function isDisplayRoute(route: string): boolean {
   return (DISPLAY_ROUTES as readonly string[]).includes(route)
 }
 
+/**
+ * Has this display id shown sustained presence — enough beats, spanning enough
+ * of the day — to be a board rather than a browser that happened to be open?
+ *
+ * Span is measured first beat → last beat, never to "now": a board that ran all
+ * morning and was switched off at noon was present for the morning.
+ */
+export function isSustainedDisplay(entry: DisplayEntry | undefined | null): boolean {
+  if (!entry) return false
+  if ((entry.beats ?? 0) < MIN_PRESENCE_BEATS) return false
+
+  const first = Date.parse(entry.firstSeenAt ?? '')
+  const last = Date.parse(entry.lastSeenAt ?? '')
+  if (Number.isNaN(first) || Number.isNaN(last)) return false
+
+  return last - first >= MIN_PRESENCE_MS
+}
+
+/** The tracked ids that have qualified as displays. */
+export function sustainedDisplays(displays: DisplayEntry[] | undefined): DisplayEntry[] {
+  return (displays ?? []).filter(isSustainedDisplay)
+}
+
 export interface HeartbeatInput {
   displayId: string
   route: string
@@ -155,12 +218,33 @@ export function parseHeartbeat(body: unknown): ParsedHeartbeat {
 }
 
 /**
+ * The entry to drop when a new display arrives at a full document: the
+ * least-present id that has not yet qualified. A qualified display is never
+ * evicted, so passing browsers cannot crowd out a board. Returns null when
+ * every tracked id has qualified — 64 real boards is not a thing that happens.
+ */
+export function evictionCandidate(displays: DisplayEntry[]): DisplayEntry | null {
+  const unqualified = displays.filter((entry) => !isSustainedDisplay(entry))
+  if (unqualified.length === 0) return null
+
+  return unqualified.reduce((weakest, entry) => {
+    const beats = entry.beats ?? 0
+    const weakestBeats = weakest.beats ?? 0
+    if (beats !== weakestBeats) return beats < weakestBeats ? entry : weakest
+    return (entry.lastSeenAt ?? '') < (weakest.lastSeenAt ?? '') ? entry : weakest
+  })
+}
+
+/**
  * Record one display's heartbeat into the day's roll-up and return the updated
  * document.
  *
- * The upsert of the display entry is a single server-side patch
- * (`unset` the existing key, then append), so two boards heartbeating at the
- * same moment cannot clobber each other the way a read-modify-write would.
+ * The entry upsert is a single server-side patch (`unset` the existing key, then
+ * append), so two *different* boards heartbeating at the same moment cannot
+ * clobber each other the way a read-modify-write would. `firstSeenAt` and
+ * `beats` do carry over from the read, which is only racy against two concurrent
+ * beats from the *same* id — one browser on a ten-minute timer — and the worst
+ * case is a delayed qualification, never an inflated one.
  */
 export async function trackHeartbeat(
   client: LivenessClient,
@@ -179,8 +263,14 @@ export async function trackHeartbeat(
   const existing = (await client.getDocument(_id)) as LivenessDoc | undefined | null
   const known = existing?.displays ?? []
   const isNewDay = !existing
-  const isKnownDisplay = known.some((entry) => entry?._key === input.displayId)
-  const capped = !isKnownDisplay && known.length >= MAX_DISPLAYS_PER_DAY
+  const previous = known.find((entry) => entry?._key === input.displayId)
+
+  // Full document and an unknown display: make room by dropping the weakest
+  // entry that has not qualified, rather than refusing to track a possible board.
+  const evicted = !previous && known.length >= MAX_DISPLAYS_PER_DAY
+    ? evictionCandidate(known)
+    : null
+  const capped = !previous && known.length >= MAX_DISPLAYS_PER_DAY && !evicted
 
   await client.createIfNotExists({
     _id,
@@ -197,11 +287,18 @@ export async function trackHeartbeat(
     .set({ lastSeenAt: nowIso })
 
   if (!capped) {
-    patch = patch
-      .unset([`displays[_key=="${input.displayId}"]`])
-      .insert('after', 'displays[-1]', [
-        { _key: input.displayId, route: input.route, lastSeenAt: nowIso },
-      ])
+    const stale = [`displays[_key=="${input.displayId}"]`]
+    if (evicted) stale.push(`displays[_key=="${evicted._key}"]`)
+
+    patch = patch.unset(stale).insert('after', 'displays[-1]', [
+      {
+        _key: input.displayId,
+        route: input.route,
+        firstSeenAt: previous?.firstSeenAt ?? nowIso,
+        lastSeenAt: nowIso,
+        beats: (previous?.beats ?? 0) + 1,
+      },
+    ])
   }
 
   const doc = (await patch.commit()) as LivenessDoc
@@ -221,7 +318,9 @@ export function shouldEmit(
   now: Date,
   minIntervalMs = EMIT_MIN_INTERVAL_MS
 ): boolean {
-  const displayCount = doc.displays?.length ?? 0
+  // Only qualified displays count, so a day with nothing but passing browsers
+  // never posts a record at all rather than posting a misleading one.
+  const displayCount = sustainedDisplays(doc.displays).length
   if (displayCount === 0) return false
   if (doc.emittedCount !== displayCount) return true
   if (!doc.emittedAt) return true
@@ -232,10 +331,25 @@ export function shouldEmit(
   return now.getTime() - emittedAt >= minIntervalMs
 }
 
-/** Build the single-shot run record for a day's roll-up. */
+/**
+ * Build the single-shot run record for a day's roll-up.
+ *
+ * Only displays that showed sustained presence are counted or listed; the rest
+ * are reported as a `pending` tally so a low count is explainable without
+ * changing what `displayCount` means.
+ */
 export function buildRunRecord(doc: LivenessDoc, capped = false): RunRecord {
-  const displays = doc.displays ?? []
+  const tracked = doc.displays ?? []
+  const displays = sustainedDisplays(tracked)
   const count = displays.length
+
+  // Start from the first qualified display's arrival where there is one, so the
+  // record describes the boards rather than whatever else touched the URL first.
+  // Every entry timestamp is inside the day, so the record still buckets to it.
+  const startedAt = displays.reduce(
+    (earliest, entry) => (entry.firstSeenAt < earliest ? entry.firstSeenAt : earliest),
+    displays[0]?.firstSeenAt ?? doc.startedAt
+  )
 
   return {
     runId: runIdForDay(doc.day),
@@ -243,7 +357,7 @@ export function buildRunRecord(doc: LivenessDoc, capped = false): RunRecord {
     status: 'ok',
     // Both timestamps sit inside the run's own UTC day, so the record buckets
     // to `doc.day` whichever end the collector reads.
-    startedAt: doc.startedAt,
+    startedAt,
     finishedAt: doc.lastSeenAt,
     exitCode: 0,
     summary: `${count} display${count === 1 ? '' : 's'} reporting on ${doc.day}`,
@@ -256,8 +370,13 @@ export function buildRunRecord(doc: LivenessDoc, capped = false): RunRecord {
       displays: displays.map((entry) => ({
         id: entry._key,
         route: entry.route,
+        firstSeenAt: entry.firstSeenAt,
         lastSeenAt: entry.lastSeenAt,
+        beats: entry.beats,
       })),
+      // Tracked ids that have not shown sustained presence — passing browsers,
+      // or a board that has not been up long enough yet.
+      pending: tracked.length - count,
       ...(capped ? { capped: true } : {}),
     },
   }
@@ -273,7 +392,10 @@ export interface HandleHeartbeatDeps {
 
 export interface HeartbeatResult {
   day: string
+  /** Displays that have shown sustained presence — the number that is reported. */
   displayCount: number
+  /** Tracked ids not yet qualified as displays. */
+  pending: number
   emitted: boolean
   outcome?: RecordRunOutcome
 }
@@ -296,7 +418,9 @@ export async function handleHeartbeat(
 
   const { doc, isNewDay, capped } = await trackHeartbeat(deps.client, input, now)
   const day = doc.day ?? utcDay(now)
-  const displayCount = doc.displays?.length ?? 0
+  const tracked = doc.displays ?? []
+  const displayCount = sustainedDisplays(tracked).length
+  const pending = tracked.length - displayCount
 
   if (isNewDay) {
     // First heartbeat of a new UTC day — a good moment to prune old roll-ups.
@@ -314,7 +438,7 @@ export async function handleHeartbeat(
   }
 
   if (!shouldEmit(doc, now)) {
-    return { day, displayCount, emitted: false }
+    return { day, displayCount, pending, emitted: false }
   }
 
   // `recordRun` already swallows everything; the try is for an injected poster
@@ -342,5 +466,5 @@ export async function handleHeartbeat(
     }
   }
 
-  return { day, displayCount, emitted: outcome === 'posted', outcome }
+  return { day, displayCount, pending, emitted: outcome === 'posted', outcome }
 }
