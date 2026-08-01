@@ -1,7 +1,13 @@
 {
   "private": true,
+  "scripts": {
+    "test": "vitest run"
+  },
   "dependencies": {
     "@sanity/client": "^7.1.0",
     "@vercel/node": "^5.0.0"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.10"
   }
 }

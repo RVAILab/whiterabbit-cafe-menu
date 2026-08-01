@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { client, ACTIVE_BOARD_QUERY, SECONDARY_SCREENS_QUERY } from '../lib/sanity'
 import { resilientListen } from '../lib/resilientListen'
 import type { KioskSettings, SecondaryScreen, MenuData } from '../types'
@@ -11,6 +11,7 @@ import type { KioskSettings, SecondaryScreen, MenuData } from '../types'
  * - Real-time updates via Sanity listener
  * - Offline resilience (maintains last known good state)
  * - Automatic reconnection
+ * - Exposes `isDisplayLive()`, the board's liveness verdict (see below)
  */
 export function useMenuData(): MenuData {
   const [data, setData] = useState<KioskSettings | null>(null)
@@ -28,6 +29,23 @@ export function useMenuData(): MenuData {
   // Ref to track debounce timer for re-fetching
   const refetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Liveness, for telemetry only. Two refs rather than state on purpose: an
+  // observer of the display must not be able to trigger a re-render of it.
+  //
+  // `listenerHealthyRef` is written by resilientListen's own watchdog, so
+  // "healthy" here means exactly what the watchdog already means by it — a
+  // confirmed-open channel that has produced an event inside the staleness
+  // window. `hasContentRef` adds the other half of the question the heartbeat
+  // answers: did this display actually fetch its menu content. It stays true
+  // once content has loaded, because a board showing its last good menu during
+  // a blip is still a board rendering the menu.
+  const listenerHealthyRef = useRef(false)
+  const hasContentRef = useRef(false)
+  const isDisplayLive = useCallback(
+    () => listenerHealthyRef.current && hasContentRef.current,
+    []
+  )
+
   useEffect(() => {
     // Initial fetch
     const fetchInitialData = async () => {
@@ -44,6 +62,7 @@ export function useMenuData(): MenuData {
         if (kioskSettings && kioskSettings.activeBoard) {
           setData(kioskSettings)
           lastGoodDataRef.current = kioskSettings
+          hasContentRef.current = true
           setSecondaryScreens(screensResult || [])
           lastGoodScreensRef.current = screensResult || []
           setError(null)
@@ -87,6 +106,10 @@ export function useMenuData(): MenuData {
         label: 'Menu data',
         query: listenerQuery,
         listenOptions: { includeResult: false },
+        // Liveness comes straight from the watchdog — no second opinion.
+        onHealthChange: (healthy) => {
+          listenerHealthyRef.current = healthy
+        },
         onEvent: (update: any) => {
           // welcome/reconnect events carry no mutation — connection regained.
           if (update.type !== 'mutation') {
@@ -126,6 +149,7 @@ export function useMenuData(): MenuData {
                   console.log('📦 New data:', JSON.stringify(kioskSettings, null, 2))
                   setData(kioskSettings)
                   lastGoodDataRef.current = kioskSettings
+                  hasContentRef.current = true
                   setSecondaryScreens(screensResult || [])
                   lastGoodScreensRef.current = screensResult || []
                   setError(null)
@@ -158,5 +182,6 @@ export function useMenuData(): MenuData {
     secondaryScreens,
     isLoading,
     error,
+    isDisplayLive,
   }
 }
