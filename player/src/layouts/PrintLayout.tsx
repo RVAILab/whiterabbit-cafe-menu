@@ -176,7 +176,7 @@ function PrintItem({
   item: MenuSectionItem
 }) {
   if (item._type === 'menuItemGroup') {
-    const { title, priceRange } = item
+    const { title, priceRange, variants, stockStatus } = item
     const isSinglePrice = priceRange.minPrice === priceRange.maxPrice
     const priceStr = isSinglePrice
       ? formatPrice(priceRange.minPrice)
@@ -184,19 +184,26 @@ function PrintItem({
 
     return (
       <div className="print-item">
-        <span className="print-item-name">{title}</span>
-        <span className="print-item-price">{priceStr}</span>
+        <span className="print-item-name">
+          {title}{stockStatus === 'sold-out' ? ' — SOLD OUT' : ''}
+          {variants && (
+            <span className="print-dietary-tag">
+              {' '}{variants.map((variant) => `${variant.label} ${formatPrice(variant.price)}${variant.stockStatus === 'sold-out' ? ' SOLD OUT' : ''}`).join(' · ')}
+            </span>
+          )}
+        </span>
+        {!variants && <span className="print-item-price">{priceStr}</span>}
       </div>
     )
   }
 
-  const { title, price } = item
+  const { title, price, stockStatus } = item
   const tags = getDietaryTags(item)
 
   return (
     <div className="print-item">
       <span className="print-item-name">
-        {title}
+        {title}{stockStatus === 'sold-out' ? ' — SOLD OUT' : ''}
         {tags.length > 0 && (
           <span className="print-dietary-tag"> {tags.join(' · ')}</span>
         )}

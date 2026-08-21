@@ -30,7 +30,7 @@ interface ScreenProviderProps {
   children: ReactNode
   secondaryScreens: SecondaryScreen[]
   defaultTimeoutSeconds?: number
-  // If there's an active secondary screen from Sanity, use it
+  // Optional startup screen for future projected secondary-screen support.
   initialActiveScreen?: SecondaryScreen | null
 }
 

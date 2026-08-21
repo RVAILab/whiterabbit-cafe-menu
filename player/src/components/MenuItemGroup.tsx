@@ -5,12 +5,14 @@ interface MenuItemGroupProps {
 }
 
 export function MenuItemGroup({ item }: MenuItemGroupProps) {
-  const { title, itemNames, priceRange, dietaryTags } = item
+  const { title, itemNames, priceRange, dietaryTags, stockStatus, variants } = item
 
   const isSinglePrice = priceRange.minPrice === priceRange.maxPrice
+  const isSoldOut = stockStatus === 'sold-out'
 
   return (
     <div
+      className={isSoldOut ? 'opacity-40' : ''}
       style={{
         display: 'grid',
         gridTemplateColumns: '1fr auto',
@@ -38,6 +40,20 @@ export function MenuItemGroup({ item }: MenuItemGroupProps) {
           >
             {title}
           </span>
+          {isSoldOut && (
+            <span
+              style={{
+                fontSize: '0.96vw',
+                color: '#fbbf24',
+                fontWeight: '400',
+                letterSpacing: '0.05em',
+                flexShrink: 0,
+                textTransform: 'uppercase',
+              }}
+            >
+              SOLD OUT
+            </span>
+          )}
         </div>
 
         {/* Item names displayed where description would be */}
@@ -51,12 +67,24 @@ export function MenuItemGroup({ item }: MenuItemGroupProps) {
             textTransform: 'uppercase'
           }}
         >
-          {itemNames}
+          {variants
+            ? variants.map((variant, index) => (
+                <span
+                  key={variant.id}
+                  className={variant.stockStatus === 'sold-out' ? 'opacity-40' : ''}
+                  style={variant.stockStatus === 'sold-out' ? { textDecoration: 'line-through' } : undefined}
+                >
+                  {index > 0 && ' · '}
+                  {variant.label} {variant.price === 0 ? 'Gratis' : variant.price.toFixed(2)}
+                  {variant.stockStatus === 'sold-out' && ' SOLD OUT'}
+                </span>
+              ))
+            : itemNames}
         </div>
       </div>
 
       {/* Right side: Price range - stacked vertically if range, single line if same */}
-      <div
+      {!variants && <div
         className="tabular-nums"
         style={{
           fontSize: '1.2vw',
@@ -75,7 +103,7 @@ export function MenuItemGroup({ item }: MenuItemGroupProps) {
             <div>{priceRange.maxPrice === 0 ? 'Gratis' : priceRange.maxPrice.toFixed(2)}{'\u00A0'}</div>
           </>
         )}
-      </div>
+      </div>}
     </div>
   )
 }

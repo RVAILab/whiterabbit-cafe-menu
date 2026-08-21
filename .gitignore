@@ -50,3 +50,7 @@ test-sanity.js
 **/test-sanity.js
 .vercel
 .env*.local
+
+# Agent session artifacts
+.remade/
+.thread
