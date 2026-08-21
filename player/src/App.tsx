@@ -1,45 +1,31 @@
-import { Routes, Route, useLocation } from 'react-router-dom'
-import { useMenuData } from './hooks/useMenuData'
-import { useDisplayHeartbeat } from './hooks/useDisplayHeartbeat'
+import { Routes, Route } from 'react-router-dom'
+import { useProjectedMenu } from './hooks/useProjectedMenu'
 import { ScreenProvider } from './context/ScreenContext'
 import { VisualizationProvider } from './context/VisualizationContext'
 import { SleepModeProvider } from './context/SleepModeContext'
 import { ProjectorLayout } from './layouts/ProjectorLayout'
 import { CustomerLayout } from './layouts/CustomerLayout'
 import { PrintLayout } from './layouts/PrintLayout'
+import { toProjectedMenuSections } from './lib/projectedMenu'
+import type { MenuBoard } from './types'
 
-// Routes that are ambient displays. The print layouts are a paper artifact,
-// not a screen sitting in the café, so they never report liveness.
-// Must match DISPLAY_ROUTES in api/_lib/displayLiveness.ts, which rejects
-// anything else.
-const DISPLAY_ROUTES = ['/', '/projection']
+const SECONDARY_SCREENS: [] = []
+const DEFAULT_SECONDARY_SCREEN_TIMEOUT_SECONDS = 30
+
+function toMenuBoard(document: NonNullable<ReturnType<typeof useProjectedMenu>['document']>): MenuBoard {
+  return {
+    title: 'White Rabbit Cafe Menu',
+    slug: { current: 'white-rabbit-cafe-menu' },
+    sections: toProjectedMenuSections(document),
+  }
+}
 
 function App() {
-  const { kioskSettings, secondaryScreens, isLoading, error, isDisplayLive } = useMenuData()
-  const { pathname } = useLocation()
-
-  // Ambient displays have no interaction to measure, so liveness is the usage
-  // signal: this board fetched its menu content and the staleness watchdog says
-  // its listener is healthy. Fire-and-forget — it cannot affect what renders
-  // below. See hooks/useDisplayHeartbeat.ts.
-  useDisplayHeartbeat({
-    isLive: isDisplayLive,
-    route: pathname,
-    enabled: DISPLAY_ROUTES.includes(pathname),
-  })
-
-  // Debug logging
-  console.log('🔍 App render:', {
-    isLoading,
-    hasKioskSettings: !!kioskSettings,
-    hasActiveBoard: !!kioskSettings?.activeBoard,
-    sectionsCount: kioskSettings?.activeBoard?.sections?.length,
-    secondaryScreensCount: secondaryScreens.length,
-    error
-  })
+  const projectedMenu = useProjectedMenu()
+  const board = projectedMenu.document ? toMenuBoard(projectedMenu.document) : null
 
   // Loading state
-  if (isLoading && !kioskSettings) {
+  if (projectedMenu.isLoading && !board) {
     return (
       <div className="w-full h-full flex items-center justify-center">
         <div className="text-center">
@@ -56,7 +42,7 @@ function App() {
   }
 
   // Error state (but still show data if available from cache)
-  if (error && !kioskSettings) {
+  if (projectedMenu.error && !board) {
     return (
       <div className="w-full h-full flex items-center justify-center">
         <div className="text-center max-w-2xl px-8">
@@ -70,21 +56,21 @@ function App() {
             className="text-slate-400"
             style={{ fontSize: 'var(--font-size-base)' }}
           >
-            {error}
+            {projectedMenu.error}
           </p>
           <p
             className="text-slate-500 mt-4"
             style={{ fontSize: 'var(--font-size-sm)' }}
           >
-            Please check your internet connection and Sanity configuration.
+            Check the menu service and this display's network connection. The
+            player will retry automatically.
           </p>
         </div>
       </div>
     )
   }
 
-  // No active board configured
-  if (!kioskSettings?.activeBoard) {
+  if (!board) {
     return (
       <div className="w-full h-full flex items-center justify-center">
         <div className="text-center max-w-2xl px-8">
@@ -92,13 +78,14 @@ function App() {
             className="text-amber-400 font-bold mb-4"
             style={{ fontSize: 'var(--font-size-2xl)' }}
           >
-            No Active Menu
+            Menu Unavailable
           </h1>
           <p
             className="text-slate-400"
             style={{ fontSize: 'var(--font-size-base)' }}
           >
-            Please configure an active menu board in Sanity Studio.
+            No valid menu document is available yet. Check the menu service and
+            this display's network connection.
           </p>
         </div>
       </div>
@@ -111,9 +98,8 @@ function App() {
     <SleepModeProvider>
     <VisualizationProvider>
       <ScreenProvider
-        secondaryScreens={secondaryScreens}
-        defaultTimeoutSeconds={kioskSettings.defaultTimeoutSeconds ?? 30}
-        initialActiveScreen={kioskSettings.activeSecondaryScreen ?? null}
+        secondaryScreens={SECONDARY_SCREENS}
+        defaultTimeoutSeconds={DEFAULT_SECONDARY_SCREEN_TIMEOUT_SECONDS}
       >
         <Routes>
           {/* Customer view - default route */}
@@ -121,9 +107,7 @@ function App() {
             path="/"
             element={
               <CustomerLayout
-                board={kioskSettings.activeBoard}
-                announcementBar={kioskSettings.announcementBar}
-                ignoreStockLevels={kioskSettings.ignoreStockLevels}
+                board={board}
               />
             }
           />
@@ -132,9 +116,7 @@ function App() {
             path="/projection"
             element={
               <ProjectorLayout
-                board={kioskSettings.activeBoard}
-                announcementBar={kioskSettings.announcementBar}
-                ignoreStockLevels={kioskSettings.ignoreStockLevels}
+                board={board}
               />
             }
           />
@@ -143,8 +125,7 @@ function App() {
             path="/print"
             element={
               <PrintLayout
-                board={kioskSettings.activeBoard}
-                announcementBar={kioskSettings.announcementBar}
+                board={board}
               />
             }
           />
@@ -153,8 +134,7 @@ function App() {
             path="/print-light"
             element={
               <PrintLayout
-                board={kioskSettings.activeBoard}
-                announcementBar={kioskSettings.announcementBar}
+                board={board}
                 theme="light"
               />
             }

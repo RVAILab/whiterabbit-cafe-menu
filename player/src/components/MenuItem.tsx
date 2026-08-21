@@ -6,13 +6,16 @@ interface MenuItemProps {
 }
 
 export function MenuItem({ item, ignoreStockLevels = false }: MenuItemProps) {
-  const { title, price, isAvailable, availabilityOverride, dietaryTags, marketingDescription } = item
+  const { title, price, isAvailable, stockStatus, availabilityOverride, dietaryTags, marketingDescription } = item
 
   // Format price - show "Gratis" for free items
   const formattedPrice = price === 0 ? 'Gratis' : price.toFixed(2)
 
   // Calculate final availability using priority logic
   const calculateAvailability = (): boolean => {
+    // Projected stock is an explicit Odoo/POS verdict and must be reflected as-is.
+    if (stockStatus) return stockStatus !== 'sold-out'
+
     // Priority 1: Per-item override
     if (availabilityOverride && availabilityOverride !== 'use-inventory') {
       return availabilityOverride === 'always-available'

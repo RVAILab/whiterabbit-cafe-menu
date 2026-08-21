@@ -1,4 +1,4 @@
-// TypeScript interfaces matching Sanity schemas
+// Player view-model types.
 
 export type DietaryTag = 'VE' | 'V' | 'GF' | 'N' | 'ALC'
 
@@ -7,6 +7,8 @@ export type AvailabilityOverride = 'use-inventory' | 'always-available' | 'force
 export type MetaCategory = 'drink-me' | 'eat-me'
 
 export type DisplayStyle = 'inline' | 'list'
+
+export type StockStatus = 'available' | 'sold-out' | 'untracked'
 
 // Secondary Screen Types
 export type ScreenType = 'section-linked' | 'item-linked' | 'independent'
@@ -88,6 +90,7 @@ export interface MenuItem {
   title: string
   price: number
   isAvailable: boolean
+  stockStatus?: StockStatus
   availabilityOverride?: AvailabilityOverride
   marketingDescription?: string
   dietaryTags?: DietaryTag[]
@@ -110,6 +113,13 @@ export interface MenuItemGroup {
     minPrice: number
     maxPrice: number
   }
+  stockStatus?: StockStatus
+  variants?: Array<{
+    id: string
+    label: string
+    price: number
+    stockStatus: StockStatus
+  }>
   dietaryTags?: DietaryTag[]
   linkedSecondaryScreen?: SecondaryScreenRef
 }
@@ -148,9 +158,8 @@ export interface MenuData {
   isLoading: boolean
   error: string | null
   /**
-   * Is this display alive — the Sanity staleness watchdog reports a healthy
-   * listener and menu content has loaded. A getter, not a value, so reading it
-   * never couples telemetry to the render cycle.
+   * Is this display alive: validated projected content exists and its latest
+   * refresh was healthy. A getter keeps telemetry out of the render cycle.
    */
   isDisplayLive: () => boolean
 }
