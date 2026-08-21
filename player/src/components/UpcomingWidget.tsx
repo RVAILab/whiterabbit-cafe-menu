@@ -66,7 +66,9 @@ export function UpcomingWidget({ visible }: UpcomingWidgetProps) {
         backgroundColor: 'rgba(10, 10, 10, 0.9)',
         borderRadius: '0.5vw',
         border: '2px solid rgba(255, 255, 255, 0.3)',
-        maxWidth: '25vw',
+        // Two menu columns (the board is a 4-column grid), so long event
+        // titles stop truncating; ellipsis remains as the overflow fallback.
+        maxWidth: '50vw',
         fontFamily: "'PP Pangram Sans Rounded', system-ui, sans-serif",
       }}
     >
