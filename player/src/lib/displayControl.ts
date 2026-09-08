@@ -1,6 +1,6 @@
 import type { VisualizationType } from '../context/VisualizationContext'
 
-export type DisplayOverlay = 'none' | 'sleep' | 'closed'
+export type DisplayOverlay = 'none' | 'sleep' | 'closed' | 'massage'
 export type DisplayVisualizationMode = 'background' | 'fullscreen'
 
 export interface DisplayControlDesiredV1 {
@@ -42,7 +42,12 @@ const isIsoTimestamp = (value: unknown): value is string =>
 const isDesired = (value: unknown): value is DisplayControlDesiredV1 =>
   isRecord(value)
   && hasExactlyKeys(value, ['overlay', 'visualization', 'visualizationMode'])
-  && (value.overlay === 'none' || value.overlay === 'sleep' || value.overlay === 'closed')
+  && (
+    value.overlay === 'none'
+    || value.overlay === 'sleep'
+    || value.overlay === 'closed'
+    || value.overlay === 'massage'
+  )
   && (
     value.visualization === 'none'
     || value.visualization === 'bubbles'

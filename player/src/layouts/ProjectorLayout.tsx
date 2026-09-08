@@ -6,6 +6,7 @@ import { UpcomingWidget } from '../components/UpcomingWidget'
 import { CurrentTimeWidget } from '../components/CurrentTimeWidget'
 import { SleepModeOverlay } from '../components/SleepModeOverlay'
 import { ClosedOverlay } from '../components/ClosedOverlay'
+import { MassageOverlay } from '../components/MassageOverlay'
 import { VisualizationLayer } from '../visualizations'
 import { useScreenContext } from '../context/ScreenContext'
 import { useSleepMode } from '../context/SleepModeContext'
@@ -31,7 +32,7 @@ export function ProjectorLayout({
   ignoreStockLevels,
 }: ProjectorLayoutProps) {
   const { mode, activeScreen } = useScreenContext()
-  const { isSleepMode, isClosedMode } = useSleepMode()
+  const { isSleepMode, isClosedMode, isMassageMode } = useSleepMode()
 
   // Track the current and previous screens for transitions
   const [displayedScreen, setDisplayedScreen] = useState<SecondaryScreen | null>(activeScreen)
@@ -129,6 +130,9 @@ export function ProjectorLayout({
 
       {/* Closed mode overlay */}
       {isClosedMode && <ClosedOverlay />}
+
+      {/* Massage mode overlay — multi-day closure */}
+      {isMassageMode && <MassageOverlay />}
     </div>
   )
 }

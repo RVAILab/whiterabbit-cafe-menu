@@ -7,9 +7,13 @@ import { useSleepMode } from '../context/SleepModeContext'
  * Key bindings:
  * - 0: Toggle sleep mode (barista away)
  * - 9: Toggle closed mode (cafe closed for the day)
+ * - 8: Toggle massage mode (cafe closed for a few days)
  */
 export function useSleepModeControls() {
-  const { isSleepMode, isClosedMode, toggleSleepMode, toggleClosedMode } = useSleepMode()
+  const {
+    isSleepMode, isClosedMode, isMassageMode,
+    toggleSleepMode, toggleClosedMode, toggleMassageMode,
+  } = useSleepMode()
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     // Ignore if user is typing in an input
@@ -26,7 +30,12 @@ export function useSleepModeControls() {
       event.preventDefault()
       toggleClosedMode()
     }
-  }, [toggleSleepMode, toggleClosedMode])
+
+    if (event.key === '8') {
+      event.preventDefault()
+      toggleMassageMode()
+    }
+  }, [toggleSleepMode, toggleClosedMode, toggleMassageMode])
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
@@ -35,5 +44,5 @@ export function useSleepModeControls() {
     }
   }, [handleKeyDown])
 
-  return { isSleepMode, isClosedMode }
+  return { isSleepMode, isClosedMode, isMassageMode }
 }
