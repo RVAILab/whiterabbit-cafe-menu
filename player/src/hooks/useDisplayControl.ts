@@ -96,12 +96,13 @@ export function useDisplayControl(
   pollIntervalMs = DEFAULT_POLL_INTERVAL_MS,
 ) {
   const [initialCache] = useState(restoreDisplayControl)
-  const { setSleepMode, setClosedMode } = useSleepMode()
+  const { setSleepMode, setClosedMode, setMassageMode } = useSleepMode()
   const { setVisualization, setFullscreen } = useVisualization()
   const { showScreen, returnToPrimary, keyMap } = useScreenContext()
   const handlersRef = useRef({
     setSleepMode,
     setClosedMode,
+    setMassageMode,
     setVisualization,
     setFullscreen,
     showScreen,
@@ -115,6 +116,8 @@ export function useDisplayControl(
       handlers.setSleepMode(true)
     } else if (snapshot.desired.overlay === 'closed') {
       handlers.setClosedMode(true)
+    } else if (snapshot.desired.overlay === 'massage') {
+      handlers.setMassageMode(true)
     } else {
       handlers.setSleepMode(false)
     }
@@ -135,13 +138,14 @@ export function useDisplayControl(
     handlersRef.current = {
       setSleepMode,
       setClosedMode,
+      setMassageMode,
       setVisualization,
       setFullscreen,
       showScreen,
       returnToPrimary,
       keyMap,
     }
-  }, [keyMap, returnToPrimary, setClosedMode, setFullscreen, setSleepMode, setVisualization, showScreen])
+  }, [keyMap, returnToPrimary, setClosedMode, setFullscreen, setMassageMode, setSleepMode, setVisualization, showScreen])
 
   useEffect(() => {
     let disposed = false

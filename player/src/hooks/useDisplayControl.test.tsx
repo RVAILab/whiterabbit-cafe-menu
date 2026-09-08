@@ -10,6 +10,7 @@ import {
 const handlers = vi.hoisted(() => ({
   setSleepMode: vi.fn(),
   setClosedMode: vi.fn(),
+  setMassageMode: vi.fn(),
   setVisualization: vi.fn(),
   setFullscreen: vi.fn(),
   showScreen: vi.fn(),
@@ -21,6 +22,7 @@ vi.mock('../context/SleepModeContext', () => ({
   useSleepMode: () => ({
     setSleepMode: handlers.setSleepMode,
     setClosedMode: handlers.setClosedMode,
+    setMassageMode: handlers.setMassageMode,
   }),
 }))
 vi.mock('../context/VisualizationContext', () => ({
@@ -144,6 +146,20 @@ describe('useDisplayControl', () => {
     expect(handlers.setClosedMode).toHaveBeenCalledWith(true)
     expect(handlers.setVisualization).toHaveBeenLastCalledWith('waveforms')
     expect(handlers.setFullscreen).toHaveBeenLastCalledWith(false)
+  })
+
+  it('applies the massage overlay from a snapshot', async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(response(snapshot(3, {
+      desired: { overlay: 'massage', visualization: 'none', visualizationMode: 'background' },
+    })))
+    vi.stubGlobal('fetch', fetchMock)
+
+    render(<Harness interval={0} />)
+    await flushRequest()
+
+    expect(handlers.setMassageMode).toHaveBeenCalledWith(true)
+    expect(handlers.setSleepMode).not.toHaveBeenCalled()
+    expect(handlers.setClosedMode).not.toHaveBeenCalled()
   })
 
   it('ignores stale and equal revisions', async () => {

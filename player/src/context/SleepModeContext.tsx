@@ -1,15 +1,18 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
 
-type OverlayMode = 'none' | 'sleep' | 'closed'
+type OverlayMode = 'none' | 'sleep' | 'closed' | 'massage'
 
 interface SleepModeContextValue {
   isSleepMode: boolean
   isClosedMode: boolean
+  isMassageMode: boolean
   overlayMode: OverlayMode
   toggleSleepMode: () => void
   toggleClosedMode: () => void
+  toggleMassageMode: () => void
   setSleepMode: (active: boolean) => void
   setClosedMode: (active: boolean) => void
+  setMassageMode: (active: boolean) => void
 }
 
 const SleepModeContext = createContext<SleepModeContextValue | null>(null)
@@ -23,6 +26,7 @@ export function SleepModeProvider({ children }: SleepModeProviderProps) {
 
   const isSleepMode = overlayMode === 'sleep'
   const isClosedMode = overlayMode === 'closed'
+  const isMassageMode = overlayMode === 'massage'
 
   const toggleSleepMode = useCallback(() => {
     setOverlayMode(current => {
@@ -40,6 +44,14 @@ export function SleepModeProvider({ children }: SleepModeProviderProps) {
     })
   }, [])
 
+  const toggleMassageMode = useCallback(() => {
+    setOverlayMode(current => {
+      const newMode = current === 'massage' ? 'none' : 'massage'
+      console.log(`💆 Massage mode: ${newMode === 'massage' ? 'ON' : 'OFF'}`)
+      return newMode
+    })
+  }, [])
+
   const setSleepMode = useCallback((active: boolean) => {
     setOverlayMode(active ? 'sleep' : 'none')
     console.log(`😴 Sleep mode set to: ${active ? 'ON' : 'OFF'}`)
@@ -50,11 +62,16 @@ export function SleepModeProvider({ children }: SleepModeProviderProps) {
     console.log(`🔒 Closed mode set to: ${active ? 'ON' : 'OFF'}`)
   }, [])
 
+  const setMassageMode = useCallback((active: boolean) => {
+    setOverlayMode(active ? 'massage' : 'none')
+    console.log(`💆 Massage mode set to: ${active ? 'ON' : 'OFF'}`)
+  }, [])
+
   return (
     <SleepModeContext.Provider value={{
-      isSleepMode, isClosedMode, overlayMode,
-      toggleSleepMode, toggleClosedMode,
-      setSleepMode, setClosedMode,
+      isSleepMode, isClosedMode, isMassageMode, overlayMode,
+      toggleSleepMode, toggleClosedMode, toggleMassageMode,
+      setSleepMode, setClosedMode, setMassageMode,
     }}>
       {children}
     </SleepModeContext.Provider>
