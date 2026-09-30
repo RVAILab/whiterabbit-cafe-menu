@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   parseProjectedMenuDocument,
-  type ProjectedMenuDocumentV1,
+  type ProjectedMenuDocument,
 } from '../lib/projectedMenu'
 
 function configuredProjectedMenuUrl(): string {
@@ -18,12 +18,12 @@ const REQUEST_TIMEOUT_MS = 10_000
 export const PROJECTED_MENU_STORAGE_KEY = 'white-rabbit:projected-menu:v1'
 
 interface StoredProjectedMenu {
-  document: ProjectedMenuDocumentV1
+  document: ProjectedMenuDocument
   etag: string | null
 }
 
 export interface ProjectedMenuState {
-  document: ProjectedMenuDocumentV1 | null
+  document: ProjectedMenuDocument | null
   isLoading: boolean
   error: string | null
   /** True only while a validated document exists and the latest refresh succeeded. */
@@ -67,7 +67,7 @@ function restoreProjectedMenu(): StoredProjectedMenu | null {
   }
 }
 
-function persistProjectedMenu(document: ProjectedMenuDocumentV1, etag: string | null) {
+function persistProjectedMenu(document: ProjectedMenuDocument, etag: string | null) {
   try {
     getStorage()?.setItem(
       PROJECTED_MENU_STORAGE_KEY,

@@ -184,6 +184,109 @@ describe('projected menu v1', () => {
   })
 })
 
+const responseV2 = {
+  schemaVersion: 2,
+  generatedAt: '2026-09-29T18:00:00.000Z',
+  availabilityRevision: revision,
+  sections: [
+    {
+      id: 'noble-coffee',
+      name: 'Noble Coffee',
+      side: 'drink-me',
+      position: 0,
+      items: [item(42, 'Odoo Espresso'), item(7, 'Cortado'), item(43, 'Americano')],
+    },
+    {
+      id: 'autumn-specials',
+      name: 'Autumn Specials',
+      side: 'drink-me',
+      position: 1,
+      items: [item(8, 'Pumpkin Latte')],
+    },
+    { id: 'eat-me', name: 'Eat Me', side: 'eat-me', position: 0, items: [item(2, 'Toastie')] },
+  ],
+}
+
+describe('projected menu v2', () => {
+  it('validates a document whose sections the player has never seen', () => {
+    expect(parseProjectedMenuDocument(responseV2)).toEqual(responseV2)
+  })
+
+  it('renders sections under the heading and side given in the document', () => {
+    const sections = toProjectedMenuSections(parseProjectedMenuDocument(responseV2))
+
+    expect(sections.map(({ heading, metaCategory }) => [heading, metaCategory])).toEqual([
+      ['Noble Coffee', 'drink-me'],
+      ['Autumn Specials', 'drink-me'],
+      ['Eat Me', 'eat-me'],
+    ])
+  })
+
+  it('keeps items in server order without an alphabetical sort', () => {
+    const sections = toProjectedMenuSections(parseProjectedMenuDocument(responseV2))
+
+    expect(sections[0].items?.map(({ title }) => title)).toEqual([
+      'Odoo Espresso',
+      'Cortado',
+      'Americano',
+    ])
+  })
+
+  it('orders sections by position within each side, keeping array order on ties', () => {
+    const sections = toProjectedMenuSections(parseProjectedMenuDocument({
+      ...responseV2,
+      sections: [
+        { id: 'late', name: 'Late', side: 'eat-me', position: 0, items: [item(1, 'Soup')] },
+        { id: 'third', name: 'Third', side: 'drink-me', position: 5, items: [item(2, 'Tea')] },
+        { id: 'first', name: 'First', side: 'drink-me', position: 1, items: [item(3, 'Mocha')] },
+        { id: 'second', name: 'Second', side: 'drink-me', position: 1, items: [item(4, 'Chai')] },
+        { id: 'early', name: 'Early', side: 'eat-me', position: 0, items: [item(5, 'Bagel')] },
+      ],
+    }))
+
+    expect(sections.map(({ heading }) => heading)).toEqual([
+      'First',
+      'Second',
+      'Third',
+      'Late',
+      'Early',
+    ])
+  })
+
+  it('omits an empty section', () => {
+    const sections = toProjectedMenuSections(parseProjectedMenuDocument({
+      ...responseV2,
+      sections: [
+        ...responseV2.sections,
+        { id: 'empty', name: 'Empty', side: 'eat-me', position: 1, items: [] },
+      ],
+    }))
+
+    expect(sections.map(({ heading }) => heading)).not.toContain('Empty')
+  })
+
+  const section = responseV2.sections[1]
+
+  it.each([
+    ['a v1 section shape', { ...responseV2, sections: response.sections }],
+    ['a missing generatedAt', { ...responseV2, generatedAt: undefined }],
+    ['a bad availabilityRevision', { ...responseV2, availabilityRevision: 'short' }],
+    ['a non-slug id', { ...responseV2, sections: [{ ...section, id: 'Autumn Specials' }] }],
+    ['an over-long id', { ...responseV2, sections: [{ ...section, id: 'a'.repeat(65) }] }],
+    ['an empty name', { ...responseV2, sections: [{ ...section, name: '' }] }],
+    ['an unknown side', { ...responseV2, sections: [{ ...section, side: 'sip-me' }] }],
+    ['a fractional position', { ...responseV2, sections: [{ ...section, position: 1.5 }] }],
+    ['a negative position', { ...responseV2, sections: [{ ...section, position: -1 }] }],
+    ['a string position', { ...responseV2, sections: [{ ...section, position: '1' }] }],
+    ['an invalid item', { ...responseV2, sections: [{ ...section, items: [{ ...item(1, 'Soup'), templateId: 0 }] }] }],
+    ['duplicate section ids', { ...responseV2, sections: [section, { ...section, position: 2 }] }],
+    ['no menu items', { ...responseV2, sections: responseV2.sections.map((each) => ({ ...each, items: [] })) }],
+    ['no sections', { ...responseV2, sections: [] }],
+  ])('rejects %s', (_, invalid) => {
+    expect(() => parseProjectedMenuDocument(invalid)).toThrow('schema version 1 or 2')
+  })
+})
+
 function itemAsLegacy(title: string) {
   return {
     _id: title,
