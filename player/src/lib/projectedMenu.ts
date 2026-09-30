@@ -52,6 +52,26 @@ export interface ProjectedMenuDocumentV1 {
   sections: ProjectedMenuSectionV1[]
 }
 
+/** v2 sections are defined by WR-POS; items arrive already in wall order. */
+export interface ProjectedMenuSectionV2 {
+  id: string
+  name: string
+  side: MetaCategory
+  position: number
+  items: ProjectedMenuItemV1[]
+}
+
+export interface ProjectedMenuDocumentV2 {
+  schemaVersion: 2
+  generatedAt: string
+  availabilityRevision: string
+  sections: ProjectedMenuSectionV2[]
+}
+
+export type ProjectedMenuDocument = ProjectedMenuDocumentV1 | ProjectedMenuDocumentV2
+
+const SIDES: readonly MetaCategory[] = ['drink-me', 'eat-me']
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
 
@@ -66,6 +86,15 @@ const isOdooId = (value: unknown): value is number =>
 
 const isStockStatus = (value: unknown): value is StockStatus =>
   value === 'available' || value === 'sold-out' || value === 'untracked'
+
+const isSectionSlug = (value: unknown): value is string =>
+  typeof value === 'string' && value.length <= 64 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value)
+
+const isSide = (value: unknown): value is MetaCategory =>
+  SIDES.includes(value as MetaCategory)
+
+const isPosition = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isInteger(value) && value >= 0
 
 const isAvailabilityRevision = (value: unknown): value is string =>
   typeof value === 'string' && /^[A-Za-z0-9_-]{43}$/.test(value)
@@ -90,7 +119,7 @@ function isItem(value: unknown): value is ProjectedMenuItemV1 {
     && value.variants.every(isVariant)
 }
 
-function isSection(value: unknown): value is ProjectedMenuSectionV1 {
+function isSectionV1(value: unknown): value is ProjectedMenuSectionV1 {
   const configuredSection = isRecord(value)
     ? PROJECTED_MENU_SECTIONS.find(({ id }) => id === value.id)
     : undefined
@@ -102,7 +131,17 @@ function isSection(value: unknown): value is ProjectedMenuSectionV1 {
     && value.items.every(isItem)
 }
 
-function hasUniqueConfiguredSections(value: unknown[]): boolean {
+function isSectionV2(value: unknown): value is ProjectedMenuSectionV2 {
+  return isRecord(value)
+    && isSectionSlug(value.id)
+    && isNonEmptyString(value.name)
+    && isSide(value.side)
+    && isPosition(value.position)
+    && Array.isArray(value.items)
+    && value.items.every(isItem)
+}
+
+function hasUniqueSectionIds(value: unknown[]): boolean {
   // Empty sections are deliberately omitted by the compiler. Ordering is
   // normalized below, but duplicates are ambiguous and must be rejected.
   const ids = value.map((section) => isRecord(section) ? section.id : null)
@@ -117,22 +156,31 @@ function hasAtLeastOneMenuItem(value: unknown[]): boolean {
   ))
 }
 
-export function parseProjectedMenuDocument(value: unknown): ProjectedMenuDocumentV1 {
+const SECTION_VALIDATORS: Record<number, (value: unknown) => boolean> = {
+  1: isSectionV1,
+  2: isSectionV2,
+}
+
+export function parseProjectedMenuDocument(value: unknown): ProjectedMenuDocument {
+  const isVersionedSection = isRecord(value) && typeof value.schemaVersion === 'number'
+    ? SECTION_VALIDATORS[value.schemaVersion]
+    : undefined
+
   if (
     !isRecord(value)
-    || value.schemaVersion !== 1
+    || !isVersionedSection
     || !isNonEmptyString(value.generatedAt)
     || Number.isNaN(Date.parse(value.generatedAt))
     || !isAvailabilityRevision(value.availabilityRevision)
     || !Array.isArray(value.sections)
-    || !value.sections.every(isSection)
-    || !hasUniqueConfiguredSections(value.sections)
+    || !value.sections.every(isVersionedSection)
+    || !hasUniqueSectionIds(value.sections)
     || !hasAtLeastOneMenuItem(value.sections)
   ) {
-    throw new Error('Projected menu response does not match schema version 1')
+    throw new Error('Projected menu response does not match schema version 1 or 2')
   }
 
-  return value as unknown as ProjectedMenuDocumentV1
+  return value as unknown as ProjectedMenuDocument
 }
 
 function toMenuItem(item: ProjectedMenuItemV1): MenuItem | MenuItemGroup {
@@ -170,8 +218,10 @@ function toMenuItem(item: ProjectedMenuItemV1): MenuItem | MenuItemGroup {
 }
 
 export function toProjectedMenuSections(
-  document: ProjectedMenuDocumentV1,
+  document: ProjectedMenuDocument,
 ): MenuSection[] {
+  if (document.schemaVersion === 2) return toProjectedMenuSectionsV2(document)
+
   return PROJECTED_MENU_SECTIONS.flatMap((configuredSection) => {
     const section = document.sections.find(({ id }) => id === configuredSection.id)
     if (!section || section.items.length === 0) return []
@@ -184,6 +234,20 @@ export function toProjectedMenuSections(
         .map(toMenuItem),
     }]
   })
+}
+
+function toProjectedMenuSectionsV2(document: ProjectedMenuDocumentV2): MenuSection[] {
+  // The document owns the layout: sides in wall order, then position within a
+  // side (Array.prototype.sort is stable, so ties keep array order). Items are
+  // already in wall order and must not be re-sorted.
+  return SIDES.flatMap((side) => document.sections
+    .filter((section) => section.side === side && section.items.length > 0)
+    .sort((left, right) => left.position - right.position)
+    .map((section) => ({
+      heading: section.name,
+      metaCategory: section.side,
+      items: section.items.map(toMenuItem),
+    })))
 }
 
 const LEGACY_PROJECTED_SECTION_HEADINGS = new Set([

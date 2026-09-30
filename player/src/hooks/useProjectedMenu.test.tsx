@@ -34,6 +34,19 @@ const newerDocument = {
   generatedAt: '2026-08-12T18:01:00.000Z',
 }
 
+const documentV2 = {
+  schemaVersion: 2,
+  generatedAt: '2026-08-12T18:02:00.000Z',
+  availabilityRevision: 'b'.repeat(43),
+  sections: [{
+    id: 'autumn-specials',
+    name: 'Autumn Specials',
+    side: 'drink-me',
+    position: 0,
+    items: projectedDocument.sections[0].items,
+  }],
+}
+
 function response(
   body: unknown,
   { etag = null, status = 200 }: { etag?: string | null; status?: number } = {},
@@ -214,6 +227,50 @@ describe('useProjectedMenu', () => {
     expect(JSON.parse(localStorage.getItem(PROJECTED_MENU_STORAGE_KEY)!)).toEqual({
       document: projectedDocument,
       etag: '"menu-1"',
+    })
+  })
+
+  it('replaces a v1 menu with a valid v2 menu', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(response(projectedDocument, { etag: '"menu-1"' }))
+      .mockResolvedValueOnce(response(documentV2, { etag: '"menu-2"' }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    render(<Harness interval={1000} />)
+    await flushRequest()
+    await act(async () => vi.advanceTimersByTimeAsync(1000))
+
+    expect(latestState.document).toEqual(documentV2)
+    expect(latestState.error).toBeNull()
+    expect(JSON.parse(localStorage.getItem(PROJECTED_MENU_STORAGE_KEY)!)).toEqual({
+      document: documentV2,
+      etag: '"menu-2"',
+    })
+  })
+
+  it('keeps the last valid document and cache after a malformed v2 response', async () => {
+    const malformedV2 = {
+      ...documentV2,
+      generatedAt: '2026-08-12T18:03:00.000Z',
+      sections: [{ ...documentV2.sections[0], side: 'sip-me' }],
+    }
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(response(documentV2, { etag: '"menu-2"' }))
+      .mockResolvedValueOnce(response(malformedV2, { etag: '"bad"' }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    render(<Harness interval={1000} />)
+    await flushRequest()
+    await act(async () => vi.advanceTimersByTimeAsync(1000))
+
+    expect(screen.getByText(documentV2.generatedAt)).toBeTruthy()
+    expect(latestState.error).toMatch(/schema version 1 or 2/)
+    expect(latestState.isDisplayLive()).toBe(false)
+    expect(JSON.parse(localStorage.getItem(PROJECTED_MENU_STORAGE_KEY)!)).toEqual({
+      document: documentV2,
+      etag: '"menu-2"',
     })
   })
 
