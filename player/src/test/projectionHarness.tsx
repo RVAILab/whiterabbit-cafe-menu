@@ -11,6 +11,8 @@ import App from '../App'
 export interface ProjectionServer {
   projectedMenu: unknown
   displayControl: unknown
+  /** Rova public events response; absent means Rova answers 404 (no event). */
+  rovaEvents?: unknown
 }
 
 export function jsonResponse(body: unknown, status = 200): Response {
@@ -65,10 +67,19 @@ export function stubProjectionServer(server: ProjectionServer) {
     const url = String(input)
     if (url.includes('projected-menu')) return jsonResponse(server.projectedMenu)
     if (url.includes('display-control')) return jsonResponse(server.displayControl)
+    if (url.includes('rova.live') && server.rovaEvents !== undefined) return jsonResponse(server.rovaEvents)
     return jsonResponse(null, 404)
   })
   vi.stubGlobal('fetch', fetchMock)
   return fetchMock
+}
+
+/** A Rova `/api/public/events` response holding these instances. */
+export function rovaEvents(...instances: { title: string; startsAt: string }[]) {
+  return {
+    events: instances.map((_, i) => ({ id: `event-${i}` })),
+    instances: instances.map((instance, i) => ({ ...instance, eventId: `event-${i}` })),
+  }
 }
 
 export function stubLocalStorage() {
