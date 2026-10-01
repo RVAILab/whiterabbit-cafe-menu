@@ -25,6 +25,8 @@ import { useDevHoleVariantKeys } from '../rabbitHole/useDevHoleVariantKeys'
 import { useGulp } from '../rabbitHole/useGulp'
 import { GulpHic } from '../rabbitHole/GulpHic'
 import { useMenuChangeGulp } from '../rabbitHole/useMenuChangeGulp'
+import { useGulpSchedule } from '../rabbitHole/useGulpSchedule'
+import { useRemoteGulp } from '../rabbitHole/useRemoteGulp'
 import type { MenuBoard, SecondaryScreen } from '../types'
 
 interface ProjectorLayoutProps {
@@ -79,6 +81,13 @@ export function ProjectorLayout({
     enabled: layout === 'rabbit-hole' && displayControl.rabbitHole?.gulp.onMenuChange !== false,
     gulp,
   })
+  // #27: scheduled and remote (effectCommand) gulps.
+  useGulpSchedule({
+    gulp: gulp.gulp,
+    active: layout === 'rabbit-hole' && !!document && !rabbitHoleFit.fellBack,
+    settings: displayControl.rabbitHole?.gulp ?? null,
+  })
+  useRemoteGulp({ gulp: gulp.gulp, command: displayControl.effectCommand })
 
   // Handle screen transitions
   useEffect(() => {
