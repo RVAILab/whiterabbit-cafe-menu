@@ -117,6 +117,7 @@ function App() {
             element={
               <ProjectorLayout
                 board={board}
+                document={projectedMenu.document}
               />
             }
           />

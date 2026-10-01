@@ -183,7 +183,7 @@ export function parseProjectedMenuDocument(value: unknown): ProjectedMenuDocumen
   return value as unknown as ProjectedMenuDocument
 }
 
-function toMenuItem(item: ProjectedMenuItemV1): MenuItem | MenuItemGroup {
+export function toMenuItem(item: ProjectedMenuItemV1): MenuItem | MenuItemGroup {
   // Odoo emits the sole product variant even for a template with no meaningful
   // customer choice. Only multiple variants should become a grouped entry.
   if (item.variants.length > 1) {

@@ -4,20 +4,23 @@ import { SecondaryScreenLayout } from '../components/SecondaryScreenLayout'
 import { NowPlayingWidget } from '../components/NowPlayingWidget'
 import { UpcomingWidget } from '../components/UpcomingWidget'
 import { CurrentTimeWidget } from '../components/CurrentTimeWidget'
-import { SleepModeOverlay } from '../components/SleepModeOverlay'
-import { ClosedOverlay } from '../components/ClosedOverlay'
-import { MassageOverlay } from '../components/MassageOverlay'
+import { ProjectorOverlays } from '../components/ProjectorOverlays'
 import { VisualizationLayer } from '../visualizations'
+import { useLocation } from 'react-router-dom'
 import { useScreenContext } from '../context/ScreenContext'
-import { useSleepMode } from '../context/SleepModeContext'
 import { useKeyboardControls } from '../hooks/useKeyboardControls'
 import { useVisualizationControls } from '../hooks/useVisualizationControls'
 import { useSleepModeControls } from '../hooks/useSleepModeControls'
 import { useDisplayControl } from '../hooks/useDisplayControl'
+import { resolveEffectiveLayout } from '../lib/effectiveLayout'
+import type { ProjectedMenuDocument } from '../lib/projectedMenu'
+import { RabbitHoleLayout } from '../rabbitHole/RabbitHoleLayout'
 import type { MenuBoard, SecondaryScreen } from '../types'
 
 interface ProjectorLayoutProps {
   board: MenuBoard
+  /** The projected menu `board` was built from; the rabbit hole plans plates from it. */
+  document?: ProjectedMenuDocument | null
   announcementBar?: string
   ignoreStockLevels?: boolean
 }
@@ -28,11 +31,13 @@ interface ProjectorLayoutProps {
  */
 export function ProjectorLayout({
   board,
+  document,
   announcementBar,
   ignoreStockLevels,
 }: ProjectorLayoutProps) {
   const { mode, activeScreen } = useScreenContext()
-  const { isSleepMode, isClosedMode, isMassageMode } = useSleepMode()
+  const { search } = useLocation()
+  const layout = resolveEffectiveLayout({ search })
 
   // Track the current and previous screens for transitions
   const [displayedScreen, setDisplayedScreen] = useState<SecondaryScreen | null>(activeScreen)
@@ -65,6 +70,14 @@ export function ProjectorLayout({
       return () => clearTimeout(timer)
     }
   }, [mode, activeScreen])
+
+  if (layout === 'rabbit-hole' && document) {
+    return (
+      <div className="projector-layout">
+        <RabbitHoleLayout document={document} overlays={<ProjectorOverlays />} />
+      </div>
+    )
+  }
 
   const showSecondary = mode === 'secondary' || displayedScreen !== null
   const showNowPlaying = mode === 'primary' && !showSecondary
@@ -125,14 +138,7 @@ export function ProjectorLayout({
         <CurrentTimeWidget visible={showNowPlaying} />
       </div>
 
-      {/* Sleep mode overlay */}
-      {isSleepMode && <SleepModeOverlay />}
-
-      {/* Closed mode overlay */}
-      {isClosedMode && <ClosedOverlay />}
-
-      {/* Massage mode overlay — multi-day closure */}
-      {isMassageMode && <MassageOverlay />}
+      <ProjectorOverlays />
     </div>
   )
 }

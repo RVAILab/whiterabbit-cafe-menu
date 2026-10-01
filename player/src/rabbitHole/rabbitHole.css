@@ -1,0 +1,181 @@
+/* Rabbit hole layout. Every size here is in stage px (the 1920x1080 stage),
+   never vw: the pin transform does all the scaling. SPEC §4 tokens. */
+
+.rh-root {
+  --wr-black: #000;
+  --wr-cream: #fff3e8;
+  --wr-pink: #ff84c6;
+  --wr-lav: #c8b5ff;
+  --wr-gold: #ffd36e;
+  --wr-cyan: #9be9ff;
+  --wr-plate: rgba(0, 0, 0, 0.86);
+  --wr-plate-line: rgba(200, 181, 255, 0.5);
+  /* Hard floor for every piece of text on the stage. */
+  --rh-min-text: 20px;
+
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--wr-black);
+}
+
+/* No will-change: transform here; it rasterizes low-res and blurs the text. */
+.rh-pin {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1920px;
+  height: 1080px;
+  transform-origin: 0 0;
+  overflow: hidden;
+  background: var(--wr-black);
+}
+
+.rh-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  font-family: 'PP Pangram Sans Rounded', 'Helvetica Neue', Arial, sans-serif;
+  letter-spacing: normal;
+  color: var(--wr-cream);
+}
+
+/* Stacking order inside the stage (SPEC §2). */
+.rh-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.rh-layer-background { z-index: 0; }
+.rh-layer-hole-event { z-index: 1; }
+.rh-layer-menu { z-index: 2; }
+.rh-layer-hic { z-index: 3; }
+.rh-layer-hud { z-index: 4; }
+.rh-layer-overlays { z-index: 5; pointer-events: auto; }
+.rh-layer-calibration-grid { z-index: 6; }
+
+/* Viewport-space content (calibration handles, help card): outside the pin. */
+.rh-viewport { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
+.rh-viewport > * { pointer-events: auto; }
+
+/* Menu zone: the hole zone is x 0..600; the top 150px is the safe zone. */
+.rh-menu {
+  position: absolute;
+  left: 600px;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  padding: 150px 48px 64px 0;
+  display: flex;
+  flex-direction: column;
+  font-size: var(--fs, 32px);
+}
+
+.rh-titles,
+.rh-plates {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  column-gap: 40px;
+}
+.rh-titles { align-items: end; }
+.rh-title {
+  font-weight: 700;
+  font-size: 2.2em;
+  line-height: 1.05;
+  letter-spacing: 0.03em;
+  color: var(--wr-gold);
+  text-transform: uppercase;
+}
+.rh-title i {
+  font-style: normal;
+  color: var(--wr-pink);
+  font-size: 0.6em;
+  vertical-align: 0.25em;
+}
+.rh-title-drink { grid-column: 1 / 3; }
+
+.rh-plates {
+  margin-top: 18px;
+  flex: 1;
+  min-height: 0;
+}
+.rh-plate {
+  background: var(--wr-plate);
+  border: 3px solid var(--wr-plate-line);
+  border-radius: 26px;
+  padding: 0.55em 0.7em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7em;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.rh-section-heading {
+  font-weight: 700;
+  font-size: max(var(--rh-min-text), 0.62em);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--wr-pink);
+  margin-bottom: 0.35em;
+}
+
+.rh-item {
+  line-height: 1.28;
+  font-weight: 600;
+}
+.rh-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.6em;
+}
+.rh-price {
+  color: var(--wr-gold);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.rh-sold-out {
+  font-size: max(var(--rh-min-text), 0.62em);
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  color: #fbbf24;
+  margin-left: 0.5em;
+  white-space: nowrap;
+}
+.rh-subline {
+  display: block;
+  font-size: max(var(--rh-min-text), 0.62em);
+  font-weight: 600;
+  color: var(--wr-gold);
+  margin-bottom: 0.2em;
+}
+.rh-variant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10em, 1fr));
+  column-gap: 1.1em;
+  font-size: max(var(--rh-min-text), 0.68em);
+  line-height: 1.5;
+  font-weight: 500;
+}
+.rh-variant-grid > span {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.4em;
+  white-space: nowrap;
+}
+.rh-variant-grid b {
+  color: var(--wr-gold);
+  font-weight: 600;
+}
+
+.rh-hud {
+  position: absolute;
+  right: 40px;
+  bottom: 20px;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--wr-lav);
+  font-variant-numeric: tabular-nums;
+}

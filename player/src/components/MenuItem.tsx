@@ -1,4 +1,5 @@
 import type { MenuItem as MenuItemType } from '../types'
+import { isMenuItemAvailable } from '../lib/stock'
 
 interface MenuItemProps {
   item: MenuItemType
@@ -6,31 +7,12 @@ interface MenuItemProps {
 }
 
 export function MenuItem({ item, ignoreStockLevels = false }: MenuItemProps) {
-  const { title, price, isAvailable, stockStatus, availabilityOverride, dietaryTags, marketingDescription } = item
+  const { title, price, dietaryTags, marketingDescription } = item
 
   // Format price - show "Gratis" for free items
   const formattedPrice = price === 0 ? 'Gratis' : price.toFixed(2)
 
-  // Calculate final availability using priority logic
-  const calculateAvailability = (): boolean => {
-    // Projected stock is an explicit Odoo/POS verdict and must be reflected as-is.
-    if (stockStatus) return stockStatus !== 'sold-out'
-
-    // Priority 1: Per-item override
-    if (availabilityOverride && availabilityOverride !== 'use-inventory') {
-      return availabilityOverride === 'always-available'
-    }
-
-    // Priority 2: Global ignore stock levels
-    if (ignoreStockLevels) {
-      return true
-    }
-
-    // Priority 3: Use actual inventory status
-    return isAvailable
-  }
-
-  const finalIsAvailable = calculateAvailability()
+  const finalIsAvailable = isMenuItemAvailable(item, ignoreStockLevels)
 
   return (
     <div

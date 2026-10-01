@@ -1,4 +1,5 @@
 import type { MenuItemGroup as MenuItemGroupType } from '../types'
+import { isSoldOut as isStockSoldOut } from '../lib/stock'
 
 interface MenuItemGroupProps {
   item: MenuItemGroupType
@@ -8,7 +9,7 @@ export function MenuItemGroup({ item }: MenuItemGroupProps) {
   const { title, itemNames, priceRange, dietaryTags, stockStatus, variants } = item
 
   const isSinglePrice = priceRange.minPrice === priceRange.maxPrice
-  const isSoldOut = stockStatus === 'sold-out'
+  const isSoldOut = isStockSoldOut(stockStatus)
 
   return (
     <div
@@ -71,12 +72,12 @@ export function MenuItemGroup({ item }: MenuItemGroupProps) {
             ? variants.map((variant, index) => (
                 <span
                   key={variant.id}
-                  className={variant.stockStatus === 'sold-out' ? 'opacity-40' : ''}
-                  style={variant.stockStatus === 'sold-out' ? { textDecoration: 'line-through' } : undefined}
+                  className={isStockSoldOut(variant.stockStatus) ? 'opacity-40' : ''}
+                  style={isStockSoldOut(variant.stockStatus) ? { textDecoration: 'line-through' } : undefined}
                 >
                   {index > 0 && ' · '}
                   {variant.label} {variant.price === 0 ? 'Gratis' : variant.price.toFixed(2)}
-                  {variant.stockStatus === 'sold-out' && ' SOLD OUT'}
+                  {isStockSoldOut(variant.stockStatus) && ' SOLD OUT'}
                 </span>
               ))
             : itemNames}

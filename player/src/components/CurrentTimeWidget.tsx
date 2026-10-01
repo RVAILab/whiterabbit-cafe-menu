@@ -1,15 +1,8 @@
 import { useState, useEffect } from 'react'
+import { formatClockTime } from '../lib/time'
 
 interface CurrentTimeWidgetProps {
   visible: boolean
-}
-
-function formatTime(date: Date): string {
-  return date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })
 }
 
 export function CurrentTimeWidget({ visible }: CurrentTimeWidgetProps) {
@@ -38,7 +31,7 @@ export function CurrentTimeWidget({ visible }: CurrentTimeWidgetProps) {
         letterSpacing: '0.08em',
       }}
     >
-      {formatTime(currentTime)}
+      {formatClockTime(currentTime)}
     </div>
   )
 }
