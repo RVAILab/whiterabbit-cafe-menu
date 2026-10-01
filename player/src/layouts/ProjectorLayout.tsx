@@ -15,6 +15,8 @@ import { useDisplayControl } from '../hooks/useDisplayControl'
 import { resolveEffectiveLayout } from '../lib/effectiveLayout'
 import type { ProjectedMenuDocument } from '../lib/projectedMenu'
 import { RabbitHoleLayout } from '../rabbitHole/RabbitHoleLayout'
+import { HoleCanvas } from '../rabbitHole/HoleCanvas'
+import { resolveHoleSettings } from '../lib/holeSettings'
 import type { MenuBoard, SecondaryScreen } from '../types'
 
 interface ProjectorLayoutProps {
@@ -74,7 +76,11 @@ export function ProjectorLayout({
   if (layout === 'rabbit-hole' && document) {
     return (
       <div className="projector-layout">
-        <RabbitHoleLayout document={document} overlays={<ProjectorOverlays />} />
+        <RabbitHoleLayout
+          document={document}
+          background={<HoleCanvas {...resolveHoleSettings({ search })} />}
+          overlays={<ProjectorOverlays />}
+        />
       </div>
     )
   }

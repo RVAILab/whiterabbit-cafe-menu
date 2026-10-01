@@ -54,6 +54,15 @@
 .rh-layer-overlays { z-index: 5; pointer-events: auto; }
 .rh-layer-calibration-grid { z-index: 6; }
 
+/* Hole variant canvas: backing store and box both at stage resolution. */
+.rh-hole-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 1920px;
+  height: 1080px;
+}
+
 /* Viewport-space content (calibration handles, help card): outside the pin. */
 .rh-viewport { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
 .rh-viewport > * { pointer-events: auto; }
