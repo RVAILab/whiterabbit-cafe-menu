@@ -36,4 +36,16 @@ describe('useRabbitHoleFallback', () => {
     rerender({ doc: smaller })
     expect(result.current.fellBack).toBe(false)
   })
+
+  it('records the measured menu when the rabbit hole is holding a newer one back', () => {
+    const smaller = structuredClone(sampleProjectedMenu)
+    smaller.sections = smaller.sections.slice(1)
+    const { result, rerender } = render(smaller)
+    // The poller already has `smaller`; the rabbit hole still shows (and measured) the sample.
+    act(() => result.current.reportDoesNotFit(structuredClone(sampleProjectedMenu)))
+    expect(result.current.fellBack).toBe(false)
+
+    rerender({ doc: structuredClone(sampleProjectedMenu) })
+    expect(result.current.fellBack).toBe(true)
+  })
 })

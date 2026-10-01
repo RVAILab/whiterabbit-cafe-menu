@@ -24,6 +24,7 @@ import { resolveHoleSettings } from '../lib/holeSettings'
 import { useDevHoleVariantKeys } from '../rabbitHole/useDevHoleVariantKeys'
 import { useGulp } from '../rabbitHole/useGulp'
 import { GulpHic } from '../rabbitHole/GulpHic'
+import { useMenuChangeGulp } from '../rabbitHole/useMenuChangeGulp'
 import type { MenuBoard, SecondaryScreen } from '../types'
 
 interface ProjectorLayoutProps {
@@ -72,6 +73,12 @@ export function ProjectorLayout({
     enabled: layout === 'rabbit-hole' && !!document && !rabbitHoleFit.fellBack,
     stageRef,
   })
+  // Menu changes land inside the gulp (#25): the rabbit hole renders the held-back document.
+  const rabbitHoleDocument = useMenuChangeGulp({
+    document,
+    enabled: layout === 'rabbit-hole' && displayControl.rabbitHole?.gulp.onMenuChange !== false,
+    gulp,
+  })
 
   // Handle screen transitions
   useEffect(() => {
@@ -98,14 +105,14 @@ export function ProjectorLayout({
     return (
       <div className="projector-layout">
         <RabbitHoleLayout
-          document={document}
+          document={rabbitHoleDocument ?? document}
           background={<HoleCanvas {...holeSettings} variant={holeVariant} speedTarget={gulp.speedTarget} />}
           holeEvent={<HoleEvent variant={holeVariant} />}
           overlays={<ProjectorOverlays />}
           stageRef={stageRef}
           stageClassName={gulp.gulping ? 'gulping' : undefined}
           hic={<GulpHic />}
-          onDoesNotFit={rabbitHoleFit.reportDoesNotFit}
+          onDoesNotFit={() => rabbitHoleFit.reportDoesNotFit(rabbitHoleDocument)}
           corners={calibration.corners}
           calibrationGrid={calibration.isCalibrating && <CalibrationGrid />}
           viewport={calibration.isCalibrating && calibration.corners && (
