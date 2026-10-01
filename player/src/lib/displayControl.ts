@@ -53,7 +53,7 @@ export interface DisplayControlDesiredV2 extends DisplayControlDesiredV1 {
   rabbitHole: RabbitHoleSettings
 }
 
-/** A one-shot remote effect trigger. Consumers must dedupe by `id` (see #27). */
+/** A one-shot remote effect trigger. Consumers must dedupe by `id` (useRemoteGulp does). */
 export interface DisplayEffectCommand {
   id: string
   value: 'gulp'

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { BoardLayout } from '../components/BoardLayout'
 import { SecondaryScreenLayout } from '../components/SecondaryScreenLayout'
 import { NowPlayingWidget } from '../components/NowPlayingWidget'
@@ -12,22 +12,12 @@ import { useKeyboardControls } from '../hooks/useKeyboardControls'
 import { useVisualizationControls } from '../hooks/useVisualizationControls'
 import { useSleepModeControls } from '../hooks/useSleepModeControls'
 import { useDisplayControl } from '../hooks/useDisplayControl'
-import { useCalibrationControls } from '../hooks/useCalibrationControls'
-import { resolveEffectiveLayout } from '../lib/effectiveLayout'
 import type { ProjectedMenuDocument } from '../lib/projectedMenu'
 import { RabbitHoleLayout } from '../rabbitHole/RabbitHoleLayout'
-import { useRabbitHoleFallback } from '../rabbitHole/useRabbitHoleFallback'
-import { CalibrationGrid, CalibrationHandles } from '../rabbitHole/Calibration'
 import { HoleCanvas } from '../rabbitHole/HoleCanvas'
 import { HoleEvent } from '../rabbitHole/HoleEvent'
-import { resolveHoleSettings } from '../lib/holeSettings'
-import { useDevHoleVariantKeys } from '../rabbitHole/useDevHoleVariantKeys'
-import { useGulp } from '../rabbitHole/useGulp'
 import { GulpHic } from '../rabbitHole/GulpHic'
-import { useMenuChangeGulp } from '../rabbitHole/useMenuChangeGulp'
-import { useGulpSchedule } from '../rabbitHole/useGulpSchedule'
-import { resolveGulpSchedule } from '../rabbitHole/gulpSchedule'
-import { useRemoteGulp } from '../rabbitHole/useRemoteGulp'
+import { useRabbitHole } from '../rabbitHole/useRabbitHole'
 import type { MenuBoard, SecondaryScreen } from '../types'
 
 interface ProjectorLayoutProps {
@@ -50,7 +40,6 @@ export function ProjectorLayout({
 }: ProjectorLayoutProps) {
   const { mode, activeScreen } = useScreenContext()
   const { search } = useLocation()
-  const rabbitHoleFit = useRabbitHoleFallback(document)
 
   // Track the current and previous screens for transitions
   const [displayedScreen, setDisplayedScreen] = useState<SecondaryScreen | null>(activeScreen)
@@ -62,33 +51,7 @@ export function ProjectorLayout({
   useVisualizationControls()
   useSleepModeControls()
   const displayControl = useDisplayControl()
-  const layout = resolveEffectiveLayout({ search, desiredLayout: displayControl.layout })
-  const calibration = useCalibrationControls({
-    enabled: layout === 'rabbit-hole' && !!document && !rabbitHoleFit.fellBack,
-    search,
-  })
-  const holeSettings = resolveHoleSettings({ search, desired: displayControl.rabbitHole })
-  const devHoleVariant = useDevHoleVariantKeys(layout === 'rabbit-hole', holeSettings.variant)
-  const holeVariant = devHoleVariant ?? holeSettings.variant
-  // The gulp (#24). Other triggers (#25 menu change, #27 schedule/remote) call `gulp.gulp()` from hooks here.
-  const stageRef = useRef<HTMLDivElement>(null)
-  const gulp = useGulp({
-    enabled: layout === 'rabbit-hole' && !!document && !rabbitHoleFit.fellBack,
-    stageRef,
-  })
-  // Menu changes land inside the gulp (#25): the rabbit hole renders the held-back document.
-  const rabbitHoleDocument = useMenuChangeGulp({
-    document,
-    enabled: layout === 'rabbit-hole' && !rabbitHoleFit.fellBack && displayControl.rabbitHole?.gulp.onMenuChange !== false,
-    gulp,
-  })
-  // #27: scheduled and remote (effectCommand) gulps.
-  useGulpSchedule({
-    gulp: gulp.gulp,
-    active: layout === 'rabbit-hole' && !!document && !rabbitHoleFit.fellBack,
-    settings: resolveGulpSchedule({ search, desired: displayControl.rabbitHole?.gulp ?? null }),
-  })
-  useRemoteGulp({ gulp: gulp.gulp, command: displayControl.effectCommand })
+  const rabbitHole = useRabbitHole({ document, search, displayControl })
 
   // Handle screen transitions
   useEffect(() => {
@@ -111,28 +74,21 @@ export function ProjectorLayout({
     }
   }, [mode, activeScreen])
 
-  if (layout === 'rabbit-hole' && document && !rabbitHoleFit.fellBack) {
+  if (rabbitHole.active && rabbitHole.document) {
     return (
       <div className="projector-layout">
         <RabbitHoleLayout
-          document={rabbitHoleDocument ?? document}
-          background={<HoleCanvas {...holeSettings} variant={holeVariant} speedTarget={gulp.speedTarget} />}
-          holeEvent={<HoleEvent variant={holeVariant} />}
+          document={rabbitHole.document}
+          background={
+            <HoleCanvas variant={rabbitHole.variant} speed={rabbitHole.speed} speedTarget={rabbitHole.speedTarget} />
+          }
+          holeEvent={<HoleEvent variant={rabbitHole.variant} />}
           overlays={<ProjectorOverlays />}
-          stageRef={stageRef}
-          stageClassName={gulp.gulping ? 'gulping' : undefined}
+          stageRef={rabbitHole.stageRef}
+          stageClassName={rabbitHole.gulping ? 'gulping' : undefined}
           hic={<GulpHic />}
-          onDoesNotFit={() => rabbitHoleFit.reportDoesNotFit(rabbitHoleDocument)}
-          corners={calibration.corners}
-          calibrationGrid={calibration.isCalibrating && <CalibrationGrid />}
-          viewport={calibration.isCalibrating && calibration.corners && (
-            <CalibrationHandles
-              corners={calibration.corners}
-              selectedCorner={calibration.selectedCorner}
-              onSelect={calibration.selectCorner}
-              onMove={calibration.setCorner}
-            />
-          )}
+          onDoesNotFit={rabbitHole.onDoesNotFit}
+          calibration={rabbitHole.calibration}
         />
       </div>
     )

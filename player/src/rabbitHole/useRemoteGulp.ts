@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import type { DisplayEffectCommand } from '../lib/displayControl'
+import { commandReceipts } from '../lib/storage'
 import type { GulpOptions } from './gulpController'
 
 /** The last effectCommand id received; persisted like the screen command id. */
@@ -7,30 +8,6 @@ export const DISPLAY_EFFECT_COMMAND_STORAGE_KEY = 'white-rabbit:display-effect-c
 
 /** Effect commands issued longer ago than this are ignored (SPEC §7.2 trigger 3). */
 export const EFFECT_COMMAND_MAX_AGE_MS = 30_000
-
-function getStorage(): Storage | null {
-  try {
-    return typeof window === 'undefined' ? null : window.localStorage
-  } catch {
-    return null
-  }
-}
-
-function getLastEffectCommandId(): string | null {
-  try {
-    return getStorage()?.getItem(DISPLAY_EFFECT_COMMAND_STORAGE_KEY) ?? null
-  } catch {
-    return null
-  }
-}
-
-function rememberEffectCommandId(id: string) {
-  try {
-    getStorage()?.setItem(DISPLAY_EFFECT_COMMAND_STORAGE_KEY, id)
-  } catch {
-    // Dedupe still holds in memory for this session.
-  }
-}
 
 interface UseRemoteGulpOptions {
   /** `useGulp().gulp` (stable identity). */
@@ -40,7 +17,7 @@ interface UseRemoteGulpOptions {
 }
 
 /**
- * Remote gulps (SPEC §7.2 trigger 3, #27): run a display-control
+ * Remote gulps (SPEC §7.2 trigger 3): run a display-control
  * `effectCommand` once per `id`.
  *
  * - Receipt is recorded (memory + localStorage) before dispatch, so a reload
@@ -52,17 +29,13 @@ interface UseRemoteGulpOptions {
  *   already gulping) it is dropped, never queued.
  */
 export function useRemoteGulp({ gulp, command }: UseRemoteGulpOptions) {
-  const lastIdRef = useRef<string | null | undefined>(undefined)
+  const [receipts] = useState(() => commandReceipts(DISPLAY_EFFECT_COMMAND_STORAGE_KEY))
   const id = command?.id ?? null
   const issuedAt = command?.issuedAt ?? null
 
   useEffect(() => {
     if (id === null || issuedAt === null) return
-    if (lastIdRef.current === undefined) lastIdRef.current = getLastEffectCommandId()
-    if (id === lastIdRef.current) return
-
-    lastIdRef.current = id
-    rememberEffectCommandId(id)
+    if (!receipts.receive(id)) return
 
     const age = Date.now() - Date.parse(issuedAt)
     if (!(age <= EFFECT_COMMAND_MAX_AGE_MS)) {
@@ -70,5 +43,5 @@ export function useRemoteGulp({ gulp, command }: UseRemoteGulpOptions) {
       return
     }
     if (!gulp()) console.log(`Display control: effect command "${id}" refused; dropped, not queued`)
-  }, [id, issuedAt, gulp])
+  }, [id, issuedAt, gulp, receipts])
 }

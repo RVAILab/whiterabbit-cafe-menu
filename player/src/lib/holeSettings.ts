@@ -1,4 +1,5 @@
 import { DEFAULT_HOLE_VARIANT, getHoleVariant, type HoleVariantId } from '../rabbitHole/holeVariants'
+import type { RabbitHoleSettings } from './displayControl'
 
 export const DEFAULT_HOLE_SPEED = 0.4
 /** Display-control v2 speed range; 1 = prototype speed. */
@@ -16,8 +17,8 @@ export interface HoleSettings {
 export interface HoleSettingsInputs {
   /** `location.search`; `?variant=` and `?speed=` (0.05–5) override everything. */
   search: string
-  /** Display-control `desired.rabbitHole` (v2 only; #22 feeds it). */
-  desired?: { variant?: string | null; speed?: number | null } | null
+  /** Display-control v2 `desired.rabbitHole` (variant already normalized by the parser); null for v1. */
+  desired?: Partial<Pick<RabbitHoleSettings, 'variant' | 'speed'>> | null
 }
 
 function parseSpeed(value: unknown, min: number, max: number): number | null {

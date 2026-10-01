@@ -7,8 +7,8 @@ import type { Corners, Point } from '../lib/homography'
  *
  * Consumers:
  * - the pin reads `corners` (draft while calibrating, else saved; null = default fit);
- * - the gulp scheduler (#27) pauses while `isCalibrating`;
- * - server persistence (#28) can `adopt` a server value and subscribe to saves via
+ * - the gulp scheduler pauses while `isCalibrating`;
+ * - server persistence can `adopt` a server value and subscribe to saves via
  *   `calibration` (its `updatedAt` changes on every save).
  */
 export interface CalibrationApi {

@@ -12,7 +12,7 @@ import {
   type ProjectionServer,
 } from '../test/projectionHarness'
 
-/* #25: menu changes land inside the gulp, at the route seam under fake timers. */
+/* Menu changes land inside the gulp, at the route seam under fake timers. */
 
 const MENU_POLL_MS = 20_000
 

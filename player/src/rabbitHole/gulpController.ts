@@ -1,7 +1,7 @@
 /**
- * The gulp (SPEC §7): a framework-free timeline so every trigger — the G key
- * (#24), a menu change (#25), the schedule and a remote effectCommand (#27) —
- * goes through one `gulp()` that returns `false` when it refuses.
+ * The gulp (SPEC §7): a framework-free timeline so every trigger — the G key,
+ * a menu change, the schedule and a remote effectCommand — goes through one
+ * `gulp()` that returns `false` when it refuses.
  *
  * Timers are plain setTimeout and the clock is Date.now, so the whole
  * timeline runs under vitest fake timers.

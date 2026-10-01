@@ -10,6 +10,7 @@ import {
   type DisplayControlExtras,
   type DisplayControlSnapshot,
 } from '../lib/displayControl'
+import { commandReceipts, readStoredJson, removeStorage, writeStoredJson } from '../lib/storage'
 
 function configuredDisplayControlUrl(): string {
   const configured = import.meta.env.VITE_DISPLAY_CONTROL_URL?.trim()
@@ -38,23 +39,13 @@ interface StoredDisplayControl {
   etag: string | null
 }
 
-function getStorage(): Storage | null {
-  try {
-    return typeof window === 'undefined' ? null : window.localStorage
-  } catch {
-    return null
-  }
-}
-
 function restoreDisplayControl(): StoredDisplayControl | null {
-  const storage = getStorage()
-  if (!storage) return null
+  const value = readStoredJson(DISPLAY_CONTROL_STORAGE_KEY)
+  if (value === null) return null
 
   try {
-    const value = JSON.parse(storage.getItem(DISPLAY_CONTROL_STORAGE_KEY) ?? 'null') as unknown
     if (
       typeof value !== 'object'
-      || value === null
       || !('snapshot' in value)
       || !('etag' in value)
       || (value.etag !== null && typeof value.etag !== 'string')
@@ -67,40 +58,13 @@ function restoreDisplayControl(): StoredDisplayControl | null {
       etag: value.etag,
     }
   } catch {
-    try {
-      storage.removeItem(DISPLAY_CONTROL_STORAGE_KEY)
-    } catch {
-      // Storage failures do not prevent the network path from operating.
-    }
+    removeStorage(DISPLAY_CONTROL_STORAGE_KEY)
     return null
   }
 }
 
 function persistDisplayControl(snapshot: DisplayControlSnapshot, etag: string | null) {
-  try {
-    getStorage()?.setItem(
-      DISPLAY_CONTROL_STORAGE_KEY,
-      JSON.stringify({ snapshot, etag } satisfies StoredDisplayControl),
-    )
-  } catch {
-    // A valid control response remains usable when persistence is blocked.
-  }
-}
-
-function getLastAppliedScreenCommandId(): string | null {
-  try {
-    return getStorage()?.getItem(DISPLAY_SCREEN_COMMAND_STORAGE_KEY) ?? null
-  } catch {
-    return null
-  }
-}
-
-function rememberAppliedScreenCommandId(id: string) {
-  try {
-    getStorage()?.setItem(DISPLAY_SCREEN_COMMAND_STORAGE_KEY, id)
-  } catch {
-    // Remote controls continue to work when browser storage is unavailable.
-  }
+  writeStoredJson(DISPLAY_CONTROL_STORAGE_KEY, { snapshot, etag } satisfies StoredDisplayControl)
 }
 
 /** Extras restored from cache never carry the one-shot effect command. */
@@ -187,8 +151,10 @@ export function useDisplayControl(
     let controller: AbortController | null = null
     let etag = initialCache?.etag ?? null
     let latestRevision = initialCache?.snapshot.revision ?? -1
-    let lastScreenCommandId = initialCache?.snapshot.screenCommand?.id
-      ?? getLastAppliedScreenCommandId()
+    const screenCommands = commandReceipts(
+      DISPLAY_SCREEN_COMMAND_STORAGE_KEY,
+      initialCache?.snapshot.screenCommand?.id,
+    )
 
     const clearPollTimer = () => {
       if (pollTimer !== undefined) window.clearTimeout(pollTimer)
@@ -203,13 +169,10 @@ export function useDisplayControl(
       setExtras(displayControlExtras(snapshot))
       const handlers = handlersRef.current
 
+      // Receipt is recorded before dispatch so a reload during a timed screen
+      // cannot replay the same one-shot command.
       const command = snapshot.screenCommand
-      if (!command || command.id === lastScreenCommandId) return
-
-      // Record receipt before dispatch so a reload during a timed screen cannot
-      // replay the same one-shot command.
-      lastScreenCommandId = command.id
-      rememberAppliedScreenCommandId(command.id)
+      if (!command || !screenCommands.receive(command.id)) return
 
       if (command.value === 'primary') {
         handlers.returnToPrimary()

@@ -13,7 +13,7 @@ import {
 import { DISPLAY_CONTROL_STORAGE_KEY } from '../hooks/useDisplayControl'
 import { DISPLAY_EFFECT_COMMAND_STORAGE_KEY } from '../rabbitHole/useRemoteGulp'
 
-/* Scheduled and remote gulps (#27) at the route seam, under fake timers. */
+/* Scheduled and remote gulps at the route seam, under fake timers. */
 
 const MINUTE = 60_000
 const POLL_MS = 2_000

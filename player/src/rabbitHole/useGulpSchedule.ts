@@ -15,7 +15,7 @@ interface UseGulpScheduleOptions {
 }
 
 /**
- * Scheduled gulps (SPEC §7.2 trigger 1, #27): attempt a gulp every
+ * Scheduled gulps (SPEC §7.2 trigger 1): attempt a gulp every
  * intervalMinutes ± 2 min while the rabbit hole is active and `gulp.enabled`.
  *
  * - Each attempt goes through `gulp()`, so the usual refusals apply (overlay,

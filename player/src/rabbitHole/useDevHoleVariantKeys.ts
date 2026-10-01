@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
+import { useProjectorKeys } from '../hooks/useProjectorKeys'
 import type { HoleVariantId } from './holeVariants'
 
 /**
@@ -25,19 +26,14 @@ export function useDevHoleVariantKeys(enabled: boolean, baseVariant: HoleVariant
     setVariant(null)
   }
 
-  useEffect(() => {
-    if (!enabled || !import.meta.env.DEV) return
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return
-      if (event.ctrlKey || event.metaKey || event.altKey) return
-      const next = DEV_VARIANT_KEYS[event.key]
-      if (!next) return
-      event.preventDefault()
-      setVariant(next)
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [enabled])
+  const onKeyDown = useCallback((event: KeyboardEvent) => {
+    if (event.ctrlKey || event.metaKey || event.altKey) return
+    const next = DEV_VARIANT_KEYS[event.key]
+    if (!next) return
+    event.preventDefault()
+    setVariant(next)
+  }, [])
+  useProjectorKeys(onKeyDown, { enabled: enabled && !!import.meta.env.DEV })
 
   return variant
 }

@@ -1,6 +1,7 @@
-import { useEffect, useState, useSyncExternalStore, type RefObject } from 'react'
+import { useCallback, useEffect, useState, useSyncExternalStore, type RefObject } from 'react'
 import { useCalibration } from '../context/calibrationContext'
 import { useSleepMode } from '../context/SleepModeContext'
+import { useProjectorKeys } from '../hooks/useProjectorKeys'
 import { stageCenterOf } from '../lib/stageOffset'
 import { createGulpController, type GulpOptions, type GulpState } from './gulpController'
 import { getHoleVariant } from './holeVariants'
@@ -50,18 +51,18 @@ const isGulpKey = (event: KeyboardEvent) =>
   (event.key === 'g' || event.key === 'G') && !event.ctrlKey && !event.metaKey && !event.altKey
 
 /**
- * The gulp for the projector layout (SPEC §7). Call it once in ProjectorLayout;
+ * The gulp for the projector layout (SPEC §7). Call it once (useRabbitHole);
  * pass `stageRef`, `gulping ? 'gulping' : undefined` and `speedTarget` to the
- * layout and hole canvas. Other triggers (#25 menu change, #27 schedule and
- * remote) call `gulp()` from their own hooks.
+ * layout and hole canvas. The other triggers (menu change, schedule, remote
+ * effect command) call `gulp()` from their own hooks.
  *
  * Refused while: running, disabled/no stage, an overlay is up, reduced motion,
  * calibrating, or within 60s of the last gulp (unless `ignoreGap`).
  *
  * The G key gulps with `ignoreGap`. It listens on `document` in the bubble
- * phase: the calibration capture listener on `window` swallows it while
- * calibrating, and stopping it here keeps a secondary screen assigned G
- * (window, bubble) from also firing in the rabbit hole.
+ * phase, ahead of the other projector keys on `window`: stopping it here keeps
+ * a secondary screen assigned G from also firing in the rabbit hole, and the
+ * calibration capture listener on `window` still swallows it while calibrating.
  */
 export function useGulp({ enabled, stageRef }: UseGulpOptions): Gulp {
   const { overlayMode } = useSleepMode()
@@ -91,18 +92,13 @@ export function useGulp({ enabled, stageRef }: UseGulpOptions): Gulp {
   }, [enabled, controller])
   useEffect(() => () => controller.cancel(), [controller])
 
-  useEffect(() => {
-    if (!enabled) return
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return
-      if (!isGulpKey(event)) return
-      event.preventDefault()
-      event.stopPropagation()
-      if (!event.repeat) controller.gulp({ ignoreGap: true })
-    }
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [enabled, controller])
+  const onKeyDown = useCallback((event: KeyboardEvent) => {
+    if (!isGulpKey(event)) return
+    event.preventDefault()
+    event.stopPropagation()
+    if (!event.repeat) controller.gulp({ ignoreGap: true })
+  }, [controller])
+  useProjectorKeys(onKeyDown, { enabled, target: 'document' })
 
   return { ...state, gulp: controller.gulp, getState: controller.getState }
 }

@@ -1,7 +1,8 @@
 import { useMemo, type ReactNode, type Ref } from 'react'
-import type { Corners } from '../lib/homography'
+import type { CalibrationApi } from '../context/calibrationContext'
 import { planPlates } from '../lib/platePlanner'
 import type { ProjectedMenuDocument } from '../lib/projectedMenu'
+import { CalibrationGrid, CalibrationHandles } from './Calibration'
 import { PinnedSurface } from './PinnedSurface'
 import { RabbitHoleHud } from './RabbitHoleHud'
 import { RabbitHoleMenu } from './RabbitHoleMenu'
@@ -11,8 +12,12 @@ import './rabbitHole.css'
 export interface RabbitHoleLayoutProps {
   /** The menu document to show (the gulp may hold back a newer one). */
   document: ProjectedMenuDocument
-  /** Normalized calibration corners; absent means the default letterbox fit. */
-  corners?: Corners | null
+  /**
+   * Corner-pin calibration: `corners` (normalized; null = default letterbox
+   * fit) and, while calibrating, the grid (warps with the pin, z 6) and the
+   * viewport-space handles.
+   */
+  calibration?: Pick<CalibrationApi, 'corners' | 'isCalibrating' | 'selectedCorner' | 'selectCorner' | 'setCorner'>
   /** Hole variant canvas (z 0). */
   background?: ReactNode
   /** Next event at the hole center (z 1). */
@@ -26,10 +31,6 @@ export interface RabbitHoleLayoutProps {
    * SPEC §2 (overlays as stage layer z 5) until they are converted to stage units.
    */
   overlays?: ReactNode
-  /** Calibration grid; warps with the pin (z 6). */
-  calibrationGrid?: ReactNode
-  /** Viewport-space content outside the pin (calibration handles, help card). */
-  viewport?: ReactNode
   /** Stage state classes, e.g. `gulping`. */
   stageClassName?: string
   stageRef?: Ref<HTMLDivElement>
@@ -43,28 +44,38 @@ export interface RabbitHoleLayoutProps {
  */
 export function RabbitHoleLayout({
   document,
-  corners,
+  calibration,
   background,
   holeEvent,
   hic,
   overlays,
-  calibrationGrid,
-  viewport,
   stageClassName,
   stageRef,
   onDoesNotFit,
 }: RabbitHoleLayoutProps) {
   const plates = useMemo(() => planPlates(document), [document])
+  const calibrating = calibration?.isCalibrating ?? false
 
   return (
-    <PinnedSurface corners={corners} overlays={overlays} viewport={viewport}>
+    <PinnedSurface
+      corners={calibration?.corners}
+      overlays={overlays}
+      viewport={calibration?.isCalibrating && calibration.corners && (
+        <CalibrationHandles
+          corners={calibration.corners}
+          selectedCorner={calibration.selectedCorner}
+          onSelect={calibration.selectCorner}
+          onMove={calibration.setCorner}
+        />
+      )}
+    >
       <Stage ref={stageRef} className={stageClassName}>
         <StageLayer layer="background">{background}</StageLayer>
         <StageLayer layer="hole-event">{holeEvent}</StageLayer>
         <StageLayer layer="menu"><RabbitHoleMenu plates={plates} onDoesNotFit={onDoesNotFit} /></StageLayer>
         <StageLayer layer="hic">{hic}</StageLayer>
         <StageLayer layer="hud"><RabbitHoleHud /></StageLayer>
-        <StageLayer layer="calibration-grid">{calibrationGrid}</StageLayer>
+        <StageLayer layer="calibration-grid">{calibrating && <CalibrationGrid />}</StageLayer>
       </Stage>
     </PinnedSurface>
   )

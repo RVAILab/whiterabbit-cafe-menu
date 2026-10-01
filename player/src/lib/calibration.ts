@@ -1,4 +1,5 @@
 import type { Corners, Point } from './homography'
+import { readStoredJson, writeStoredJson } from './storage'
 
 /** SPEC §3.1: normalized viewport corners (TL, TR, BR, BL), so it survives resolution changes. */
 export interface Calibration {
@@ -28,26 +29,11 @@ export function parseCalibration(value: unknown): Calibration | null {
   }
 }
 
-function storage(): Storage | null {
-  try {
-    return typeof window === 'undefined' ? null : window.localStorage
-  } catch {
-    return null
-  }
-}
-
 export function loadCalibration(): Calibration | null {
-  try {
-    return parseCalibration(JSON.parse(storage()?.getItem(CALIBRATION_STORAGE_KEY) ?? 'null'))
-  } catch {
-    return null
-  }
+  return parseCalibration(readStoredJson(CALIBRATION_STORAGE_KEY))
 }
 
+/** The calibration still applies for this session when storage is blocked. */
 export function storeCalibration(calibration: Calibration) {
-  try {
-    storage()?.setItem(CALIBRATION_STORAGE_KEY, JSON.stringify(calibration))
-  } catch {
-    // The calibration still applies for this session when storage is blocked.
-  }
+  writeStoredJson(CALIBRATION_STORAGE_KEY, calibration)
 }
