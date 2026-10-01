@@ -28,6 +28,8 @@ export interface RabbitHoleLayoutProps {
   /** Stage state classes, e.g. `gulping`. */
   stageClassName?: string
   stageRef?: Ref<HTMLDivElement>
+  /** Called (after a warning) when the menu overflows its plates even at the 26px floor. */
+  onDoesNotFit?: () => void
 }
 
 /**
@@ -45,6 +47,7 @@ export function RabbitHoleLayout({
   viewport,
   stageClassName,
   stageRef,
+  onDoesNotFit,
 }: RabbitHoleLayoutProps) {
   const plates = useMemo(() => planPlates(document), [document])
 
@@ -53,7 +56,7 @@ export function RabbitHoleLayout({
       <Stage ref={stageRef} className={stageClassName}>
         <StageLayer layer="background">{background}</StageLayer>
         <StageLayer layer="hole-event">{holeEvent}</StageLayer>
-        <StageLayer layer="menu"><RabbitHoleMenu plates={plates} /></StageLayer>
+        <StageLayer layer="menu"><RabbitHoleMenu plates={plates} onDoesNotFit={onDoesNotFit} /></StageLayer>
         <StageLayer layer="hic">{hic}</StageLayer>
         <StageLayer layer="hud"><RabbitHoleHud /></StageLayer>
         <StageLayer layer="overlays">{overlays}</StageLayer>
