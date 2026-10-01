@@ -38,7 +38,6 @@ export function ProjectorLayout({
 }: ProjectorLayoutProps) {
   const { mode, activeScreen } = useScreenContext()
   const { search } = useLocation()
-  const layout = resolveEffectiveLayout({ search })
   const rabbitHoleFit = useRabbitHoleFallback(document)
 
   // Track the current and previous screens for transitions
@@ -50,7 +49,8 @@ export function ProjectorLayout({
   useKeyboardControls()
   useVisualizationControls()
   useSleepModeControls()
-  useDisplayControl()
+  const displayControl = useDisplayControl()
+  const layout = resolveEffectiveLayout({ search, desiredLayout: displayControl.layout })
 
   // Handle screen transitions
   useEffect(() => {
