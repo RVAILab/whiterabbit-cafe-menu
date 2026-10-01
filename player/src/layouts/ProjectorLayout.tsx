@@ -37,7 +37,6 @@ export function ProjectorLayout({
 }: ProjectorLayoutProps) {
   const { mode, activeScreen } = useScreenContext()
   const { search } = useLocation()
-  const layout = resolveEffectiveLayout({ search })
 
   // Track the current and previous screens for transitions
   const [displayedScreen, setDisplayedScreen] = useState<SecondaryScreen | null>(activeScreen)
@@ -48,7 +47,8 @@ export function ProjectorLayout({
   useKeyboardControls()
   useVisualizationControls()
   useSleepModeControls()
-  useDisplayControl()
+  const displayControl = useDisplayControl()
+  const layout = resolveEffectiveLayout({ search, desiredLayout: displayControl.layout })
 
   // Handle screen transitions
   useEffect(() => {

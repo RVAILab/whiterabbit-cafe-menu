@@ -1,10 +1,13 @@
 // @vitest-environment jsdom
 import { act, cleanup, render } from '@testing-library/react'
+import { useEffect } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { DisplayControlExtras } from '../lib/displayControl'
 import {
   DISPLAY_CONTROL_STORAGE_KEY,
   DISPLAY_SCREEN_COMMAND_STORAGE_KEY,
   useDisplayControl,
+  withSchemaVersion,
 } from './useDisplayControl'
 
 const handlers = vi.hoisted(() => ({
@@ -64,10 +67,38 @@ function response(
   } as Response
 }
 
+const captured: { extras: DisplayControlExtras | null } = { extras: null }
+
 function Harness({ interval = 2_000 }: { interval?: number }) {
-  useDisplayControl('/display-control', interval)
+  const extras = useDisplayControl('/display-control', interval)
+  useEffect(() => { captured.extras = extras })
   return null
 }
+
+const snapshotV2 = (revision: number, overrides: Record<string, unknown> = {}) => ({
+  schemaVersion: 2,
+  revision,
+  updatedAt: '2026-09-30T18:00:00.000Z',
+  desired: {
+    overlay: 'none',
+    visualization: 'bubbles',
+    visualizationMode: 'background',
+    layout: 'rabbit-hole',
+    rabbitHole: {
+      variant: 'vortex',
+      speed: 0.5,
+      gulp: { enabled: true, intervalMinutes: 10, onMenuChange: false },
+    },
+  },
+  screenCommand: null,
+  effectCommand: { id: 'gulp-1', value: 'gulp', issuedAt: '2026-09-30T17:59:59.000Z' },
+  calibration: {
+    version: 1,
+    corners: [[0, 0], [1, 0], [1, 1], [0, 1]],
+    updatedAt: '2026-09-29T12:00:00.000Z',
+  },
+  ...overrides,
+})
 
 const flushRequest = async () => {
   await act(async () => { await Promise.resolve() })
@@ -248,7 +279,7 @@ describe('useDisplayControl', () => {
     expect(handlers.setFullscreen).toHaveBeenCalledWith(false)
     expect(handlers.showScreen).not.toHaveBeenCalled()
     await flushRequest()
-    expect(fetchMock).toHaveBeenCalledWith('/display-control', expect.objectContaining({
+    expect(fetchMock).toHaveBeenCalledWith('/display-control?schemaVersion=2', expect.objectContaining({
       headers: { 'If-None-Match': '"control-7"' },
     }))
   })
@@ -292,5 +323,84 @@ describe('useDisplayControl', () => {
     expect(handlers.setSleepMode).not.toHaveBeenCalled()
     expect(handlers.setClosedMode).not.toHaveBeenCalled()
     expect(handlers.setVisualization).not.toHaveBeenCalled()
+  })
+
+  it('asks for schema v2, keeping any existing query string', () => {
+    expect(withSchemaVersion('/display-control')).toBe('/display-control?schemaVersion=2')
+    expect(withSchemaVersion('https://pos.example/api/display-control?screen=wall'))
+      .toBe('https://pos.example/api/display-control?screen=wall&schemaVersion=2')
+  })
+
+  it('returns standard-layout extras for v1 and the parsed extras for v2', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(response(snapshot(1)))
+      .mockResolvedValueOnce(response(snapshotV2(2)))
+    vi.stubGlobal('fetch', fetchMock)
+
+    render(<Harness interval={1_000} />)
+    expect(captured.extras).toEqual({ layout: 'standard', rabbitHole: null, effectCommand: null, calibration: null })
+    await flushRequest()
+    expect(captured.extras?.layout).toBe('standard')
+
+    await act(async () => vi.advanceTimersByTimeAsync(1_000))
+    const v2 = snapshotV2(2)
+    expect(captured.extras).toEqual({
+      layout: 'rabbit-hole',
+      rabbitHole: v2.desired.rabbitHole,
+      effectCommand: v2.effectCommand,
+      calibration: v2.calibration,
+    })
+    // v2 still drives the existing overlay and visualization contexts.
+    expect(handlers.setSleepMode).toHaveBeenLastCalledWith(false)
+    expect(handlers.setVisualization).toHaveBeenLastCalledWith('bubbles')
+  })
+
+  it('restores a cached v2 snapshot, but never its effect command, and keeps the ETag', async () => {
+    localStorage.setItem(DISPLAY_CONTROL_STORAGE_KEY, JSON.stringify({
+      snapshot: snapshotV2(5),
+      etag: '"control-5"',
+    }))
+    const fetchMock = vi.fn().mockResolvedValue(response(null, { status: 304 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    render(<Harness />)
+    expect(captured.extras?.layout).toBe('rabbit-hole')
+    expect(captured.extras?.rabbitHole?.variant).toBe('vortex')
+    expect(captured.extras?.calibration).toEqual(snapshotV2(5).calibration)
+    expect(captured.extras?.effectCommand).toBeNull()
+
+    await flushRequest()
+    expect(fetchMock).toHaveBeenCalledWith('/display-control?schemaVersion=2', expect.objectContaining({
+      headers: { 'If-None-Match': '"control-5"' },
+    }))
+    expect(captured.extras?.layout).toBe('rabbit-hole')
+  })
+
+  it('persists a validated v2 snapshot as received', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response(snapshotV2(3), { etag: '"control-3"' })))
+
+    render(<Harness />)
+    await flushRequest()
+
+    expect(JSON.parse(localStorage.getItem(DISPLAY_CONTROL_STORAGE_KEY)!)).toEqual({
+      snapshot: snapshotV2(3),
+      etag: '"control-3"',
+    })
+  })
+
+  it('rejects a v2 snapshot with an extra key without changing state', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(response(snapshotV2(1)))
+      .mockResolvedValueOnce(response({ ...snapshotV2(2, { desired: { ...snapshotV2(2).desired, layout: 'standard' } }), extra: 1 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    render(<Harness interval={1_000} />)
+    await flushRequest()
+    const calls = handlers.setVisualization.mock.calls.length
+    await act(async () => vi.advanceTimersByTimeAsync(1_000))
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(captured.extras?.layout).toBe('rabbit-hole')
+    expect(handlers.setVisualization).toHaveBeenCalledTimes(calls)
   })
 })

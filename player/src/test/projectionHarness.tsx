@@ -33,6 +33,33 @@ export function displayControlV1(overrides: Record<string, unknown> = {}) {
   }
 }
 
+/** A valid v2 snapshot (standard layout, no extras); `desired` overrides merge into its desired. */
+export function displayControlV2(
+  { desired, ...overrides }: { desired?: Record<string, unknown> } & Record<string, unknown> = {},
+) {
+  return {
+    schemaVersion: 2,
+    revision: 1,
+    updatedAt: '2026-09-30T16:00:00.000Z',
+    desired: {
+      overlay: 'none',
+      visualization: 'none',
+      visualizationMode: 'background',
+      layout: 'standard',
+      rabbitHole: {
+        variant: 'dive',
+        speed: 0.4,
+        gulp: { enabled: true, intervalMinutes: 15, onMenuChange: true },
+      },
+      ...desired,
+    },
+    screenCommand: null,
+    effectCommand: null,
+    calibration: null,
+    ...overrides,
+  }
+}
+
 export function stubProjectionServer(server: ProjectionServer) {
   const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
     const url = String(input)

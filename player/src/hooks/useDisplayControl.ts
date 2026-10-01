@@ -3,8 +3,11 @@ import { useScreenContext } from '../context/ScreenContext'
 import { useSleepMode } from '../context/SleepModeContext'
 import { useVisualization } from '../context/VisualizationContext'
 import {
+  displayControlExtras,
+  NO_DISPLAY_CONTROL_EXTRAS,
   parseDisplayControlSnapshot,
-  type DisplayControlSnapshotV1,
+  type DisplayControlExtras,
+  type DisplayControlSnapshot,
 } from '../lib/displayControl'
 
 function configuredDisplayControlUrl(): string {
@@ -18,11 +21,19 @@ const DEFAULT_DISPLAY_CONTROL_URL = configuredDisplayControlUrl()
 const DEFAULT_POLL_INTERVAL_MS = 2_000
 const REQUEST_TIMEOUT_MS = 5_000
 
+/** The schema version the player asks for; WR-POS serves v1 to requests without it. */
+export const DISPLAY_CONTROL_SCHEMA_VERSION = 2
+
+export function withSchemaVersion(url: string): string {
+  const separator = url.includes('?') ? '&' : '?'
+  return `${url}${separator}schemaVersion=${DISPLAY_CONTROL_SCHEMA_VERSION}`
+}
+
 export const DISPLAY_SCREEN_COMMAND_STORAGE_KEY = 'white-rabbit:display-screen-command:v1'
 export const DISPLAY_CONTROL_STORAGE_KEY = 'white-rabbit:display-control:v1'
 
 interface StoredDisplayControl {
-  snapshot: DisplayControlSnapshotV1
+  snapshot: DisplayControlSnapshot
   etag: string | null
 }
 
@@ -64,7 +75,7 @@ function restoreDisplayControl(): StoredDisplayControl | null {
   }
 }
 
-function persistDisplayControl(snapshot: DisplayControlSnapshotV1, etag: string | null) {
+function persistDisplayControl(snapshot: DisplayControlSnapshot, etag: string | null) {
   try {
     getStorage()?.setItem(
       DISPLAY_CONTROL_STORAGE_KEY,
@@ -91,11 +102,28 @@ function rememberAppliedScreenCommandId(id: string) {
   }
 }
 
+/** Extras restored from cache never carry the one-shot effect command. */
+function cachedExtras(cache: StoredDisplayControl | null): DisplayControlExtras {
+  if (!cache) return NO_DISPLAY_CONTROL_EXTRAS
+  return { ...displayControlExtras(cache.snapshot), effectCommand: null }
+}
+
+/**
+ * Polls display control, applies overlay/visualization/screen commands through
+ * their contexts, and returns the v2 extras for the projector to act on:
+ *
+ * - `layout`: `desired.layout` (`standard` for v1); feed to `resolveEffectiveLayout`.
+ * - `rabbitHole`: variant, speed and gulp settings, or null (v1).
+ * - `effectCommand`: the latest snapshot's effect command, or null. Never
+ *   restored from cache, but NOT deduped here: consumers dedupe by `id`.
+ * - `calibration`: the server calibration, or null (v1 / none saved).
+ */
 export function useDisplayControl(
   url = DEFAULT_DISPLAY_CONTROL_URL,
   pollIntervalMs = DEFAULT_POLL_INTERVAL_MS,
-) {
+): DisplayControlExtras {
   const [initialCache] = useState(restoreDisplayControl)
+  const [extras, setExtras] = useState(() => cachedExtras(initialCache))
   const { setSleepMode, setClosedMode, setMassageMode } = useSleepMode()
   const { setVisualization, setFullscreen } = useVisualization()
   const { showScreen, returnToPrimary, keyMap } = useScreenContext()
@@ -110,7 +138,7 @@ export function useDisplayControl(
     keyMap,
   })
 
-  const applyDesired = useCallback((snapshot: DisplayControlSnapshotV1) => {
+  const applyDesired = useCallback((snapshot: DisplayControlSnapshot) => {
     const handlers = handlersRef.current
     if (snapshot.desired.overlay === 'sleep') {
       handlers.setSleepMode(true)
@@ -163,11 +191,12 @@ export function useDisplayControl(
       pollTimer = undefined
     }
 
-    const applySnapshot = (snapshot: DisplayControlSnapshotV1) => {
+    const applySnapshot = (snapshot: DisplayControlSnapshot) => {
       if (snapshot.revision <= latestRevision) return
       latestRevision = snapshot.revision
 
       applyDesired(snapshot)
+      setExtras(displayControlExtras(snapshot))
       const handlers = handlersRef.current
 
       const command = snapshot.screenCommand
@@ -213,7 +242,7 @@ export function useDisplayControl(
       try {
         const headers: HeadersInit = {}
         if (etag) headers['If-None-Match'] = etag
-        const response = await fetch(url, {
+        const response = await fetch(withSchemaVersion(url), {
           cache: 'no-store',
           headers,
           signal: requestController.signal,
@@ -273,4 +302,6 @@ export function useDisplayControl(
       document.removeEventListener('visibilitychange', retryWhenVisible)
     }
   }, [applyDesired, initialCache, pollIntervalMs, url])
+
+  return extras
 }
