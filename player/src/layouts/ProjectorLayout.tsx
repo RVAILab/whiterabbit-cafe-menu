@@ -18,6 +18,8 @@ import type { ProjectedMenuDocument } from '../lib/projectedMenu'
 import { RabbitHoleLayout } from '../rabbitHole/RabbitHoleLayout'
 import { useRabbitHoleFallback } from '../rabbitHole/useRabbitHoleFallback'
 import { CalibrationGrid, CalibrationHandles } from '../rabbitHole/Calibration'
+import { HoleCanvas } from '../rabbitHole/HoleCanvas'
+import { resolveHoleSettings } from '../lib/holeSettings'
 import type { MenuBoard, SecondaryScreen } from '../types'
 
 interface ProjectorLayoutProps {
@@ -84,6 +86,7 @@ export function ProjectorLayout({
       <div className="projector-layout">
         <RabbitHoleLayout
           document={document}
+          background={<HoleCanvas {...resolveHoleSettings({ search })} />}
           overlays={<ProjectorOverlays />}
           onDoesNotFit={rabbitHoleFit.reportDoesNotFit}
           corners={calibration.corners}
