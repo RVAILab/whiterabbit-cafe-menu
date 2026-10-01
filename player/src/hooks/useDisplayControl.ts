@@ -1,11 +1,16 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useScreenContext } from '../context/ScreenContext'
+import { useCalibration } from '../context/calibrationContext'
 import { useSleepMode } from '../context/SleepModeContext'
 import { useVisualization } from '../context/VisualizationContext'
 import {
+  displayControlExtras,
+  NO_DISPLAY_CONTROL_EXTRAS,
   parseDisplayControlSnapshot,
-  type DisplayControlSnapshotV1,
+  type DisplayControlExtras,
+  type DisplayControlSnapshot,
 } from '../lib/displayControl'
+import { commandReceipts, readStoredJson, removeStorage, writeStoredJson } from '../lib/storage'
 
 function configuredDisplayControlUrl(): string {
   const configured = import.meta.env.VITE_DISPLAY_CONTROL_URL?.trim()
@@ -18,31 +23,29 @@ const DEFAULT_DISPLAY_CONTROL_URL = configuredDisplayControlUrl()
 const DEFAULT_POLL_INTERVAL_MS = 2_000
 const REQUEST_TIMEOUT_MS = 5_000
 
+/** The schema version the player asks for; WR-POS serves v1 to requests without it. */
+export const DISPLAY_CONTROL_SCHEMA_VERSION = 2
+
+export function withSchemaVersion(url: string): string {
+  const separator = url.includes('?') ? '&' : '?'
+  return `${url}${separator}schemaVersion=${DISPLAY_CONTROL_SCHEMA_VERSION}`
+}
+
 export const DISPLAY_SCREEN_COMMAND_STORAGE_KEY = 'white-rabbit:display-screen-command:v1'
 export const DISPLAY_CONTROL_STORAGE_KEY = 'white-rabbit:display-control:v1'
 
 interface StoredDisplayControl {
-  snapshot: DisplayControlSnapshotV1
+  snapshot: DisplayControlSnapshot
   etag: string | null
 }
 
-function getStorage(): Storage | null {
-  try {
-    return typeof window === 'undefined' ? null : window.localStorage
-  } catch {
-    return null
-  }
-}
-
 function restoreDisplayControl(): StoredDisplayControl | null {
-  const storage = getStorage()
-  if (!storage) return null
+  const value = readStoredJson(DISPLAY_CONTROL_STORAGE_KEY)
+  if (value === null) return null
 
   try {
-    const value = JSON.parse(storage.getItem(DISPLAY_CONTROL_STORAGE_KEY) ?? 'null') as unknown
     if (
       typeof value !== 'object'
-      || value === null
       || !('snapshot' in value)
       || !('etag' in value)
       || (value.etag !== null && typeof value.etag !== 'string')
@@ -55,51 +58,43 @@ function restoreDisplayControl(): StoredDisplayControl | null {
       etag: value.etag,
     }
   } catch {
-    try {
-      storage.removeItem(DISPLAY_CONTROL_STORAGE_KEY)
-    } catch {
-      // Storage failures do not prevent the network path from operating.
-    }
+    removeStorage(DISPLAY_CONTROL_STORAGE_KEY)
     return null
   }
 }
 
-function persistDisplayControl(snapshot: DisplayControlSnapshotV1, etag: string | null) {
-  try {
-    getStorage()?.setItem(
-      DISPLAY_CONTROL_STORAGE_KEY,
-      JSON.stringify({ snapshot, etag } satisfies StoredDisplayControl),
-    )
-  } catch {
-    // A valid control response remains usable when persistence is blocked.
-  }
+function persistDisplayControl(snapshot: DisplayControlSnapshot, etag: string | null) {
+  writeStoredJson(DISPLAY_CONTROL_STORAGE_KEY, { snapshot, etag } satisfies StoredDisplayControl)
 }
 
-function getLastAppliedScreenCommandId(): string | null {
-  try {
-    return getStorage()?.getItem(DISPLAY_SCREEN_COMMAND_STORAGE_KEY) ?? null
-  } catch {
-    return null
-  }
+/** Extras restored from cache never carry the one-shot effect command. */
+function cachedExtras(cache: StoredDisplayControl | null): DisplayControlExtras {
+  if (!cache) return NO_DISPLAY_CONTROL_EXTRAS
+  return { ...displayControlExtras(cache.snapshot), effectCommand: null }
 }
 
-function rememberAppliedScreenCommandId(id: string) {
-  try {
-    getStorage()?.setItem(DISPLAY_SCREEN_COMMAND_STORAGE_KEY, id)
-  } catch {
-    // Remote controls continue to work when browser storage is unavailable.
-  }
-}
-
+/**
+ * Polls display control, applies overlay/visualization/screen commands through
+ * their contexts, and returns the v2 extras for the projector to act on:
+ *
+ * - `layout`: `desired.layout` (`standard` for v1); feed to `resolveEffectiveLayout`.
+ * - `rabbitHole`: variant, speed and gulp settings, or null (v1).
+ * - `effectCommand`: the latest snapshot's effect command, or null. Never
+ *   restored from cache, but NOT deduped here: consumers dedupe by `id`.
+ * - `calibration`: the server calibration, or null (v1 / none saved).
+ */
 export function useDisplayControl(
   url = DEFAULT_DISPLAY_CONTROL_URL,
   pollIntervalMs = DEFAULT_POLL_INTERVAL_MS,
-) {
+): DisplayControlExtras {
   const [initialCache] = useState(restoreDisplayControl)
+  const [extras, setExtras] = useState(() => cachedExtras(initialCache))
   const { setSleepMode, setClosedMode, setMassageMode } = useSleepMode()
   const { setVisualization, setFullscreen } = useVisualization()
   const { showScreen, returnToPrimary, keyMap } = useScreenContext()
+  const { start: startCalibration } = useCalibration()
   const handlersRef = useRef({
+    startCalibration,
     setSleepMode,
     setClosedMode,
     setMassageMode,
@@ -110,7 +105,7 @@ export function useDisplayControl(
     keyMap,
   })
 
-  const applyDesired = useCallback((snapshot: DisplayControlSnapshotV1) => {
+  const applyDesired = useCallback((snapshot: DisplayControlSnapshot) => {
     const handlers = handlersRef.current
     if (snapshot.desired.overlay === 'sleep') {
       handlers.setSleepMode(true)
@@ -136,6 +131,7 @@ export function useDisplayControl(
   // disallowed by React's refs rule, so synchronize it after commit.
   useEffect(() => {
     handlersRef.current = {
+      startCalibration,
       setSleepMode,
       setClosedMode,
       setMassageMode,
@@ -145,7 +141,7 @@ export function useDisplayControl(
       returnToPrimary,
       keyMap,
     }
-  }, [keyMap, returnToPrimary, setClosedMode, setFullscreen, setMassageMode, setSleepMode, setVisualization, showScreen])
+  }, [keyMap, returnToPrimary, startCalibration, setClosedMode, setFullscreen, setMassageMode, setSleepMode, setVisualization, showScreen])
 
   useEffect(() => {
     let disposed = false
@@ -155,31 +151,37 @@ export function useDisplayControl(
     let controller: AbortController | null = null
     let etag = initialCache?.etag ?? null
     let latestRevision = initialCache?.snapshot.revision ?? -1
-    let lastScreenCommandId = initialCache?.snapshot.screenCommand?.id
-      ?? getLastAppliedScreenCommandId()
+    const screenCommands = commandReceipts(
+      DISPLAY_SCREEN_COMMAND_STORAGE_KEY,
+      initialCache?.snapshot.screenCommand?.id,
+    )
 
     const clearPollTimer = () => {
       if (pollTimer !== undefined) window.clearTimeout(pollTimer)
       pollTimer = undefined
     }
 
-    const applySnapshot = (snapshot: DisplayControlSnapshotV1) => {
+    const applySnapshot = (snapshot: DisplayControlSnapshot) => {
       if (snapshot.revision <= latestRevision) return
       latestRevision = snapshot.revision
 
       applyDesired(snapshot)
+      setExtras(displayControlExtras(snapshot))
       const handlers = handlersRef.current
 
+      // Receipt is recorded before dispatch so a reload during a timed screen
+      // cannot replay the same one-shot command.
       const command = snapshot.screenCommand
-      if (!command || command.id === lastScreenCommandId) return
-
-      // Record receipt before dispatch so a reload during a timed screen cannot
-      // replay the same one-shot command.
-      lastScreenCommandId = command.id
-      rememberAppliedScreenCommandId(command.id)
+      if (!command || !screenCommands.receive(command.id)) return
 
       if (command.value === 'primary') {
         handlers.returnToPrimary()
+        return
+      }
+
+      // Calibration mode (rabbit hole only; a no-op elsewhere), not a screen key.
+      if (command.value === 'calibrate') {
+        handlers.startCalibration()
         return
       }
 
@@ -213,7 +215,7 @@ export function useDisplayControl(
       try {
         const headers: HeadersInit = {}
         if (etag) headers['If-None-Match'] = etag
-        const response = await fetch(url, {
+        const response = await fetch(withSchemaVersion(url), {
           cache: 'no-store',
           headers,
           signal: requestController.signal,
@@ -273,4 +275,6 @@ export function useDisplayControl(
       document.removeEventListener('visibilitychange', retryWhenVisible)
     }
   }, [applyDesired, initialCache, pollIntervalMs, url])
+
+  return extras
 }

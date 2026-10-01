@@ -3,6 +3,7 @@ import { useProjectedMenu } from './hooks/useProjectedMenu'
 import { ScreenProvider } from './context/ScreenContext'
 import { VisualizationProvider } from './context/VisualizationContext'
 import { SleepModeProvider } from './context/SleepModeContext'
+import { CalibrationProvider } from './context/CalibrationProvider'
 import { ProjectorLayout } from './layouts/ProjectorLayout'
 import { CustomerLayout } from './layouts/CustomerLayout'
 import { PrintLayout } from './layouts/PrintLayout'
@@ -101,6 +102,7 @@ function App() {
         secondaryScreens={SECONDARY_SCREENS}
         defaultTimeoutSeconds={DEFAULT_SECONDARY_SCREEN_TIMEOUT_SECONDS}
       >
+        <CalibrationProvider>
         <Routes>
           {/* Customer view - default route */}
           <Route
@@ -117,6 +119,7 @@ function App() {
             element={
               <ProjectorLayout
                 board={board}
+                document={projectedMenu.document}
               />
             }
           />
@@ -140,6 +143,7 @@ function App() {
             }
           />
         </Routes>
+        </CalibrationProvider>
       </ScreenProvider>
     </VisualizationProvider>
     </SleepModeProvider>

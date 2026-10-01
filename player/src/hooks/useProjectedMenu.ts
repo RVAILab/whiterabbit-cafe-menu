@@ -3,6 +3,7 @@ import {
   parseProjectedMenuDocument,
   type ProjectedMenuDocument,
 } from '../lib/projectedMenu'
+import { readStoredJson, removeStorage, writeStoredJson } from '../lib/storage'
 
 function configuredProjectedMenuUrl(): string {
   const configured = import.meta.env.VITE_PROJECTED_MENU_URL?.trim()
@@ -30,25 +31,11 @@ export interface ProjectedMenuState {
   isDisplayLive: () => boolean
 }
 
-function getStorage(): Storage | null {
-  try {
-    return typeof window === 'undefined' ? null : window.localStorage
-  } catch {
-    // Browsers can expose localStorage while denying access to it.
-    return null
-  }
-}
-
 function restoreProjectedMenu(): StoredProjectedMenu | null {
-  const storage = getStorage()
-  if (!storage) return null
+  const stored = readStoredJson(PROJECTED_MENU_STORAGE_KEY)
+  if (typeof stored !== 'object' || stored === null || !('document' in stored)) return null
 
   try {
-    const stored = JSON.parse(storage.getItem(PROJECTED_MENU_STORAGE_KEY) ?? 'null') as unknown
-    if (typeof stored !== 'object' || stored === null || !('document' in stored)) {
-      return null
-    }
-
     const etag = 'etag' in stored ? stored.etag : null
     if (etag !== null && typeof etag !== 'string') throw new Error('Invalid stored ETag')
 
@@ -58,24 +45,13 @@ function restoreProjectedMenu(): StoredProjectedMenu | null {
     }
   } catch {
     // Never allow a corrupt or obsolete cache entry to become display data.
-    try {
-      storage.removeItem(PROJECTED_MENU_STORAGE_KEY)
-    } catch {
-      // Storage failures do not prevent the network path from operating.
-    }
+    removeStorage(PROJECTED_MENU_STORAGE_KEY)
     return null
   }
 }
 
 function persistProjectedMenu(document: ProjectedMenuDocument, etag: string | null) {
-  try {
-    getStorage()?.setItem(
-      PROJECTED_MENU_STORAGE_KEY,
-      JSON.stringify({ document, etag } satisfies StoredProjectedMenu),
-    )
-  } catch {
-    // A valid network response should remain usable when persistence is blocked.
-  }
+  writeStoredJson(PROJECTED_MENU_STORAGE_KEY, { document, etag } satisfies StoredProjectedMenu)
 }
 
 export function useProjectedMenu(

@@ -1,0 +1,45 @@
+/* The gulp (SPEC §7.1), ported from the reference player.
+   The RETURN transition lives on the base rule (spring) and the SWALLOW
+   transition on .gulping: CSS uses the transition of the state you move into.
+   --dx/--dy/--in-delay/--ret-delay are set per target at trigger time (useGulp). */
+
+.rh-gulp-target {
+  transition:
+    transform 1.3s cubic-bezier(.2, 1.35, .4, 1) var(--ret-delay, 0s),
+    opacity .6s ease calc(var(--ret-delay, 0s) + .1s);
+}
+.gulping .rh-gulp-target {
+  transform: translate(var(--dx), var(--dy)) scale(.03) rotate(-300deg);
+  opacity: 0;
+  transition:
+    transform 1.1s cubic-bezier(.6, 0, .95, .5) var(--in-delay, 0s),
+    opacity .5s ease calc(var(--in-delay, 0s) + .6s);
+}
+
+/* "*hic*" at the hole center (left/top set at trigger; both v1 variants use 300, 520). */
+.rh-hic {
+  position: absolute;
+  left: 300px;
+  top: 520px;
+  transform: translate(-50%, -50%) scale(.2);
+  font-weight: 800;
+  font-size: 110px;
+  color: var(--wr-pink);
+  opacity: 0;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: transform .5s ease, opacity .4s;
+}
+.gulping .rh-hic {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  transition: transform .9s cubic-bezier(.2, 1.4, .4, 1) 1.1s, opacity .3s 1.1s;
+}
+
+/* The next event at the hole (.rh-hole-event): out over 300ms, back after 1.4s. */
+.rh-stage .rh-hole-event { transition: opacity .6s ease 1.4s; }
+.rh-stage.gulping .rh-hole-event { opacity: 0; transition: opacity .3s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rh-gulp-target, .rh-hic { transition: none !important; }
+}

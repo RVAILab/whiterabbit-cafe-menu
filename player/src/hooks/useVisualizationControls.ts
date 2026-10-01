@@ -1,4 +1,5 @@
-import { useEffect, useCallback } from 'react'
+import { useCallback } from 'react'
+import { useProjectorKeys } from './useProjectorKeys'
 import { useVisualization, type VisualizationType } from '../context/VisualizationContext'
 
 /**
@@ -33,11 +34,6 @@ export function useVisualizationControls() {
     useVisualization()
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    // Ignore if user is typing in an input
-    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
-      return
-    }
-
     if (event.key === FULLSCREEN_KEY) {
       event.preventDefault()
       toggleFullscreen()
@@ -51,12 +47,7 @@ export function useVisualizationControls() {
     }
   }, [toggleVisualization, toggleFullscreen])
 
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown)
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [handleKeyDown])
+  useProjectorKeys(handleKeyDown)
 
   return {
     activeVisualization,

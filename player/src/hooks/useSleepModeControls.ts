@@ -1,4 +1,5 @@
-import { useEffect, useCallback } from 'react'
+import { useCallback } from 'react'
+import { useProjectorKeys } from './useProjectorKeys'
 import { useSleepMode } from '../context/SleepModeContext'
 
 /**
@@ -16,11 +17,6 @@ export function useSleepModeControls() {
   } = useSleepMode()
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    // Ignore if user is typing in an input
-    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
-      return
-    }
-
     if (event.key === '0') {
       event.preventDefault()
       toggleSleepMode()
@@ -37,12 +33,7 @@ export function useSleepModeControls() {
     }
   }, [toggleSleepMode, toggleClosedMode, toggleMassageMode])
 
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown)
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [handleKeyDown])
+  useProjectorKeys(handleKeyDown)
 
   return { isSleepMode, isClosedMode, isMassageMode }
 }

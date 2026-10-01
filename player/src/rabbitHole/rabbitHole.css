@@ -1,0 +1,277 @@
+/* Rabbit hole layout. Every size here is in stage px (the 1920x1080 stage),
+   never vw: the pin transform does all the scaling. SPEC §4 tokens. */
+
+.rh-root {
+  --wr-black: #000;
+  --wr-cream: #fff3e8;
+  --wr-pink: #ff84c6;
+  --wr-lav: #c8b5ff;
+  --wr-gold: #ffd36e;
+  --wr-cyan: #9be9ff;
+  --wr-plate: rgba(0, 0, 0, 0.86);
+  --wr-plate-line: rgba(200, 181, 255, 0.5);
+  /* Hard floor for every piece of text on the stage. */
+  --rh-min-text: 20px;
+
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--wr-black);
+}
+
+/* No will-change: transform here; it rasterizes low-res and blurs the text. */
+.rh-pin {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1920px;
+  height: 1080px;
+  transform-origin: 0 0;
+  overflow: hidden;
+  background: var(--wr-black);
+}
+
+.rh-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  font-family: 'PP Pangram Sans Rounded', 'Helvetica Neue', Arial, sans-serif;
+  letter-spacing: normal;
+  color: var(--wr-cream);
+}
+
+/* Stacking order inside the stage (SPEC §2). */
+.rh-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.rh-layer-background { z-index: 0; }
+.rh-layer-hole-event { z-index: 1; }
+.rh-layer-menu { z-index: 2; }
+.rh-layer-hic { z-index: 3; }
+.rh-layer-hud { z-index: 4; }
+.rh-layer-calibration-grid { z-index: 6; }
+
+/* Hole variant canvas: backing store and box both at stage resolution. */
+.rh-hole-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 1920px;
+  height: 1080px;
+}
+
+/* Next event at the hole (SPEC §4/§5): 360px wide, centered on the variant's
+   holeCenter (left/top set inline). The gulp fades `.rh-hole-event` itself. */
+.rh-hole-event {
+  position: absolute;
+  width: 360px;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  font-weight: 700;
+}
+.rh-hole-event-label {
+  display: block;
+  font-size: 20px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--wr-gold);
+}
+.rh-hole-event-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-weight: 800;
+  font-size: 58px;
+  line-height: 1.05;
+  margin: 0.08em 0;
+}
+.rh-hole-event-time {
+  font-size: 26px;
+  color: var(--wr-pink);
+}
+
+/* Viewport-space content (calibration handles, help card): outside the pin. */
+/* Overlays live in viewport space, outside the pin (see RabbitHoleLayout). */
+.rh-overlays { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+.rh-overlays > * { pointer-events: auto; }
+.rh-viewport { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
+.rh-viewport > * { pointer-events: auto; }
+
+/* Menu zone: the hole zone is x 0..600; the top 150px is the safe zone. */
+.rh-menu {
+  position: absolute;
+  left: 600px;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  padding: 150px 48px 64px 0;
+  display: flex;
+  flex-direction: column;
+  font-size: var(--fs, 32px);
+}
+
+.rh-titles,
+.rh-plates {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  column-gap: 40px;
+}
+.rh-titles { align-items: end; }
+.rh-title {
+  font-weight: 700;
+  font-size: 2.2em;
+  line-height: 1.05;
+  letter-spacing: 0.03em;
+  color: var(--wr-gold);
+  text-transform: uppercase;
+}
+.rh-title i {
+  font-style: normal;
+  color: var(--wr-pink);
+  font-size: 0.6em;
+  vertical-align: 0.25em;
+}
+.rh-title-drink { grid-column: 1 / 3; }
+
+.rh-plates {
+  margin-top: 18px;
+  flex: 1;
+  min-height: 0;
+}
+.rh-plate {
+  background: var(--wr-plate);
+  border: 3px solid var(--wr-plate-line);
+  border-radius: 26px;
+  padding: 0.55em 0.7em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7em;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.rh-section-heading {
+  font-weight: 700;
+  font-size: max(var(--rh-min-text), 0.62em);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--wr-pink);
+  margin-bottom: 0.35em;
+}
+
+.rh-item {
+  line-height: 1.28;
+  font-weight: 600;
+}
+.rh-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.6em;
+}
+.rh-price {
+  color: var(--wr-gold);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.rh-sold-out {
+  font-size: max(var(--rh-min-text), 0.62em);
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  color: #fbbf24;
+  margin-left: 0.5em;
+  white-space: nowrap;
+}
+.rh-subline {
+  display: block;
+  font-size: max(var(--rh-min-text), 0.62em);
+  font-weight: 600;
+  color: var(--wr-gold);
+  margin-bottom: 0.2em;
+}
+.rh-variant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10em, 1fr));
+  column-gap: 1.1em;
+  font-size: max(var(--rh-min-text), 0.68em);
+  line-height: 1.5;
+  font-weight: 500;
+}
+.rh-variant-grid > span {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.4em;
+  white-space: nowrap;
+}
+.rh-variant-grid b {
+  color: var(--wr-gold);
+  font-weight: 600;
+}
+
+.rh-hud {
+  position: absolute;
+  right: 40px;
+  bottom: 20px;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--wr-lav);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Calibration (SPEC §3.3). The grid is in stage px and warps with the pin;
+   handles and help live in viewport space. */
+.rh-root:has(.rh-calibration) { user-select: none; -webkit-user-select: none; cursor: default; }
+.rh-calgrid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(155, 233, 255, 0.35) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(155, 233, 255, 0.35) 2px, transparent 2px);
+  background-size: 120px 120px;
+  box-shadow: inset 0 0 0 6px var(--wr-cyan);
+}
+.rh-calgrid-circle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 240px;
+  height: 240px;
+  margin: -120px;
+  box-sizing: border-box;
+  border: 4px solid var(--wr-cyan);
+  border-radius: 50%;
+}
+.rh-calibration { position: absolute; inset: 0; }
+.rh-calhandle {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  margin: -22px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 4px solid var(--wr-cyan);
+  background: rgba(155, 233, 255, 0.25);
+  cursor: grab;
+  touch-action: none;
+}
+.rh-calhandle-selected { background: var(--wr-cyan); }
+.rh-calhelp {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 560px;
+  font: 600 15px/1.5 system-ui, sans-serif;
+  color: #000;
+  background: var(--wr-cyan);
+  padding: 12px 18px;
+  border-radius: 12px;
+  pointer-events: none;
+}
+.rh-calhelp p, .rh-calhelp ol { margin: 0.25em 0; }
+.rh-calhelp ol { padding-left: 1.4em; }

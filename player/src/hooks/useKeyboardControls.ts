@@ -1,4 +1,5 @@
-import { useEffect, useCallback } from 'react'
+import { useCallback } from 'react'
+import { useProjectorKeys } from './useProjectorKeys'
 import { useScreenContext } from '../context/ScreenContext'
 
 /**
@@ -13,11 +14,6 @@ export function useKeyboardControls() {
   const { mode, keyMap, showScreen, returnToPrimary } = useScreenContext()
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    // Ignore if user is typing in an input
-    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
-      return
-    }
-
     const key = event.key.toUpperCase()
 
     // ESC or Backspace: Return to primary menu
@@ -45,12 +41,7 @@ export function useKeyboardControls() {
     }
   }, [mode, keyMap, showScreen, returnToPrimary])
 
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown)
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [handleKeyDown])
+  useProjectorKeys(handleKeyDown)
 
   // Return info about available keys for potential UI display
   const availableKeys = Object.keys(keyMap).sort()
