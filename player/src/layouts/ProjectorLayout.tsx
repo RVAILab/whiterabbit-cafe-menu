@@ -15,6 +15,7 @@ import { useDisplayControl } from '../hooks/useDisplayControl'
 import { resolveEffectiveLayout } from '../lib/effectiveLayout'
 import type { ProjectedMenuDocument } from '../lib/projectedMenu'
 import { RabbitHoleLayout } from '../rabbitHole/RabbitHoleLayout'
+import { useRabbitHoleFallback } from '../rabbitHole/useRabbitHoleFallback'
 import type { MenuBoard, SecondaryScreen } from '../types'
 
 interface ProjectorLayoutProps {
@@ -38,6 +39,7 @@ export function ProjectorLayout({
   const { mode, activeScreen } = useScreenContext()
   const { search } = useLocation()
   const layout = resolveEffectiveLayout({ search })
+  const rabbitHoleFit = useRabbitHoleFallback(document)
 
   // Track the current and previous screens for transitions
   const [displayedScreen, setDisplayedScreen] = useState<SecondaryScreen | null>(activeScreen)
@@ -71,10 +73,14 @@ export function ProjectorLayout({
     }
   }, [mode, activeScreen])
 
-  if (layout === 'rabbit-hole' && document) {
+  if (layout === 'rabbit-hole' && document && !rabbitHoleFit.fellBack) {
     return (
       <div className="projector-layout">
-        <RabbitHoleLayout document={document} overlays={<ProjectorOverlays />} />
+        <RabbitHoleLayout
+          document={document}
+          overlays={<ProjectorOverlays />}
+          onDoesNotFit={rabbitHoleFit.reportDoesNotFit}
+        />
       </div>
     )
   }
