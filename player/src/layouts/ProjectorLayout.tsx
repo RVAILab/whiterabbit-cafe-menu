@@ -20,6 +20,7 @@ import { useRabbitHoleFallback } from '../rabbitHole/useRabbitHoleFallback'
 import { CalibrationGrid, CalibrationHandles } from '../rabbitHole/Calibration'
 import { HoleCanvas } from '../rabbitHole/HoleCanvas'
 import { resolveHoleSettings } from '../lib/holeSettings'
+import { useDevHoleVariantKeys } from '../rabbitHole/useDevHoleVariantKeys'
 import type { MenuBoard, SecondaryScreen } from '../types'
 
 interface ProjectorLayoutProps {
@@ -59,6 +60,8 @@ export function ProjectorLayout({
     enabled: layout === 'rabbit-hole' && !!document && !rabbitHoleFit.fellBack,
     search,
   })
+  const holeSettings = resolveHoleSettings({ search, desired: displayControl.rabbitHole })
+  const devHoleVariant = useDevHoleVariantKeys(layout === 'rabbit-hole')
 
   // Handle screen transitions
   useEffect(() => {
@@ -86,7 +89,7 @@ export function ProjectorLayout({
       <div className="projector-layout">
         <RabbitHoleLayout
           document={document}
-          background={<HoleCanvas {...resolveHoleSettings({ search })} />}
+          background={<HoleCanvas {...holeSettings} variant={devHoleVariant ?? holeSettings.variant} />}
           overlays={<ProjectorOverlays />}
           onDoesNotFit={rabbitHoleFit.reportDoesNotFit}
           corners={calibration.corners}

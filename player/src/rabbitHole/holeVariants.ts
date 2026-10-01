@@ -1,13 +1,14 @@
 import { drawDive } from './variants/dive'
+import { drawVortex } from './variants/vortex'
 
 /**
  * Hole variant registry (SPEC §6). A variant is a background renderer plus
  * its hole center and the label over the next event.
  *
- * Adding one (vortex #22, later burrow/clocks/shaft/doors): write a pure
+ * Adding one (later burrow/clocks/shaft/doors): write a pure
  * `draw` in `variants/`, add its id to `HoleVariantId`, register it below.
  */
-export type HoleVariantId = 'dive' // #22 adds 'vortex'
+export type HoleVariantId = 'dive' | 'vortex'
 
 export interface HoleVariant {
   id: HoleVariantId
@@ -33,6 +34,13 @@ export const HOLE_VARIANTS: Record<HoleVariantId, HoleVariant> = {
     holeCenter: [300, 520],
     eventLabel: 'Next down the hole',
     draw: drawDive,
+  },
+  vortex: {
+    id: 'vortex',
+    label: 'Vortex',
+    holeCenter: [300, 520],
+    eventLabel: 'Get sucked into',
+    draw: drawVortex,
   },
 }
 
