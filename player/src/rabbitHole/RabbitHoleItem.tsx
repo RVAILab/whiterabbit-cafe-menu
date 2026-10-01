@@ -28,7 +28,7 @@ export function RabbitHoleItem({ item }: { item: ProjectedMenuItemV1 }) {
   return (
     <div className={available ? 'rh-item' : 'rh-item opacity-40'} data-rh-item="">
       <div className="rh-item-row">
-        <span>
+        <span className="rh-item-name">
           <span>{item.name}</span>
           {!available && <SoldOutBadge />}
         </span>

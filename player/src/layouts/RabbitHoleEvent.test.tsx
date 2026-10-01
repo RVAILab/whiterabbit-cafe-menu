@@ -58,7 +58,7 @@ describe('the next event at the bottom of the rabbit hole', () => {
     expect(block.closest('[data-testid="rabbit-hole-layer-hole-event"]')).toBeTruthy()
     expect(block.classList.contains('rh-hole-event')).toBe(true)
     await vi.waitFor(() => expect(within(block).getByText('RVAI Lab')).toBeTruthy())
-    expect(within(block).getByText('Next down the hole')).toBeTruthy()
+    expect(within(block).getByText('Next event')).toBeTruthy()
     expect(within(block).getByText('Tomorrow · 6:00 PM')).toBeTruthy()
     expect(fetchMock.mock.calls.some(([url]) => String(url).includes('rova.live'))).toBe(true)
   })
@@ -82,7 +82,7 @@ describe('the next event at the bottom of the rabbit hole', () => {
     )
     await vi.waitFor(() => expect(within(block).getByText('White Rabbit')).toBeTruthy())
     expect(within(block).getByText("We're all mad here")).toBeTruthy()
-    expect(within(block).queryByText('Next down the hole')).toBeNull()
+    expect(within(block).queryByText('Next event')).toBeNull()
   })
 
   it('falls back when Rova is unreachable', async () => {

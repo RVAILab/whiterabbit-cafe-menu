@@ -1,3 +1,25 @@
+/* The rabbit hole's own copy of PP Pangram, adding the Medium cut the app's
+   global face omits. A separate family keeps the standard board's weight
+   matching unchanged (there, 400–500 still resolves to Light). */
+@font-face {
+  font-family: 'WR Pangram Rabbit Hole';
+  src: url('/fonts/pppangramsansrounded-bold-webfont.woff') format('woff');
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'WR Pangram Rabbit Hole';
+  src: url('/fonts/pppangramsansrounded-medium-webfont.woff') format('woff');
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'WR Pangram Rabbit Hole';
+  src: url('/fonts/pppangramsansrounded-light-webfont.woff') format('woff');
+  font-weight: 300;
+  font-display: swap;
+}
+
 /* Rabbit hole layout. Every size here is in stage px (the 1920x1080 stage),
    never vw: the pin transform does all the scaling. SPEC §4 tokens. */
 
@@ -35,7 +57,7 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  font-family: 'PP Pangram Sans Rounded', 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'WR Pangram Rabbit Hole', 'PP Pangram Sans Rounded', 'Helvetica Neue', Arial, sans-serif;
   letter-spacing: normal;
   color: var(--wr-cream);
 }
@@ -164,8 +186,18 @@
 }
 
 .rh-item {
-  line-height: 1.28;
+  /* Tight inside an item so a wrapped name reads as one entry; the gap
+     between items is what separates entries. */
+  line-height: 1.12;
   font-weight: 600;
+}
+.rh-item + .rh-item {
+  margin-top: 0.32em;
+}
+/* Hanging indent: a name's continuation line sits in from its first line. */
+.rh-item-name {
+  padding-left: 0.6em;
+  text-indent: -0.6em;
 }
 .rh-item-row {
   display: flex;
@@ -175,7 +207,7 @@
 }
 .rh-price {
   color: var(--wr-gold);
-  font-weight: 700;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -190,9 +222,9 @@
 .rh-subline {
   display: block;
   font-size: max(var(--rh-min-text), 0.62em);
-  font-weight: 600;
+  font-weight: 500;
   color: var(--wr-gold);
-  margin-bottom: 0.2em;
+  margin-top: 0.15em;
 }
 .rh-variant-grid {
   display: grid;
@@ -210,7 +242,7 @@
 }
 .rh-variant-grid b {
   color: var(--wr-gold);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .rh-hud {
