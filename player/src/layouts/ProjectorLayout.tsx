@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { BoardLayout } from '../components/BoardLayout'
 import { SecondaryScreenLayout } from '../components/SecondaryScreenLayout'
 import { NowPlayingWidget } from '../components/NowPlayingWidget'
@@ -20,6 +20,8 @@ import { useRabbitHoleFallback } from '../rabbitHole/useRabbitHoleFallback'
 import { CalibrationGrid, CalibrationHandles } from '../rabbitHole/Calibration'
 import { HoleCanvas } from '../rabbitHole/HoleCanvas'
 import { resolveHoleSettings } from '../lib/holeSettings'
+import { useGulp } from '../rabbitHole/useGulp'
+import { GulpHic } from '../rabbitHole/GulpHic'
 import type { MenuBoard, SecondaryScreen } from '../types'
 
 interface ProjectorLayoutProps {
@@ -59,6 +61,12 @@ export function ProjectorLayout({
     enabled: layout === 'rabbit-hole' && !!document && !rabbitHoleFit.fellBack,
     search,
   })
+  // The gulp (#24). Other triggers (#25 menu change, #27 schedule/remote) call `gulp.gulp()` from hooks here.
+  const stageRef = useRef<HTMLDivElement>(null)
+  const gulp = useGulp({
+    enabled: layout === 'rabbit-hole' && !!document && !rabbitHoleFit.fellBack,
+    stageRef,
+  })
 
   // Handle screen transitions
   useEffect(() => {
@@ -86,8 +94,11 @@ export function ProjectorLayout({
       <div className="projector-layout">
         <RabbitHoleLayout
           document={document}
-          background={<HoleCanvas {...resolveHoleSettings({ search })} />}
+          background={<HoleCanvas {...resolveHoleSettings({ search })} speedTarget={gulp.speedTarget} />}
           overlays={<ProjectorOverlays />}
+          stageRef={stageRef}
+          stageClassName={gulp.gulping ? 'gulping' : undefined}
+          hic={<GulpHic />}
           onDoesNotFit={rabbitHoleFit.reportDoesNotFit}
           corners={calibration.corners}
           calibrationGrid={calibration.isCalibrating && <CalibrationGrid />}
