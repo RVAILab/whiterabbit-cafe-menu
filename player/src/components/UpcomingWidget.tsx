@@ -1,47 +1,8 @@
 import { useUpcomingEvent } from '../hooks/useUpcomingEvent'
+import { formatEventTime } from '../lib/eventTime'
 
 interface UpcomingWidgetProps {
   visible: boolean
-}
-
-function formatEventTime(startsAt: string): { date: string; time: string } {
-  const eventDate = new Date(startsAt)
-  const now = new Date()
-
-  // Check if it's today
-  const isToday =
-    eventDate.getFullYear() === now.getFullYear() &&
-    eventDate.getMonth() === now.getMonth() &&
-    eventDate.getDate() === now.getDate()
-
-  // Check if it's tomorrow
-  const tomorrow = new Date(now)
-  tomorrow.setDate(tomorrow.getDate() + 1)
-  const isTomorrow =
-    eventDate.getFullYear() === tomorrow.getFullYear() &&
-    eventDate.getMonth() === tomorrow.getMonth() &&
-    eventDate.getDate() === tomorrow.getDate()
-
-  let date: string
-  if (isToday) {
-    date = 'Today'
-  } else if (isTomorrow) {
-    date = 'Tomorrow'
-  } else {
-    date = eventDate.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-    })
-  }
-
-  const time = eventDate.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })
-
-  return { date, time }
 }
 
 export function UpcomingWidget({ visible }: UpcomingWidgetProps) {

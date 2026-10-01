@@ -63,6 +63,38 @@
   height: 1080px;
 }
 
+/* Next event at the hole (SPEC §4/§5): 360px wide, centered on the variant's
+   holeCenter (left/top set inline). The gulp fades `.rh-hole-event` itself. */
+.rh-hole-event {
+  position: absolute;
+  width: 360px;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  font-weight: 700;
+}
+.rh-hole-event-label {
+  display: block;
+  font-size: 20px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--wr-gold);
+}
+.rh-hole-event-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-weight: 800;
+  font-size: 58px;
+  line-height: 1.05;
+  margin: 0.08em 0;
+}
+.rh-hole-event-time {
+  font-size: 26px;
+  color: var(--wr-pink);
+}
+
 /* Viewport-space content (calibration handles, help card): outside the pin. */
 .rh-viewport { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
 .rh-viewport > * { pointer-events: auto; }

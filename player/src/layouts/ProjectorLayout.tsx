@@ -19,6 +19,7 @@ import { RabbitHoleLayout } from '../rabbitHole/RabbitHoleLayout'
 import { useRabbitHoleFallback } from '../rabbitHole/useRabbitHoleFallback'
 import { CalibrationGrid, CalibrationHandles } from '../rabbitHole/Calibration'
 import { HoleCanvas } from '../rabbitHole/HoleCanvas'
+import { HoleEvent } from '../rabbitHole/HoleEvent'
 import { resolveHoleSettings } from '../lib/holeSettings'
 import type { MenuBoard, SecondaryScreen } from '../types'
 
@@ -87,6 +88,7 @@ export function ProjectorLayout({
         <RabbitHoleLayout
           document={document}
           background={<HoleCanvas {...resolveHoleSettings({ search })} />}
+          holeEvent={<HoleEvent variant={resolveHoleSettings({ search }).variant} />}
           overlays={<ProjectorOverlays />}
           onDoesNotFit={rabbitHoleFit.reportDoesNotFit}
           corners={calibration.corners}
