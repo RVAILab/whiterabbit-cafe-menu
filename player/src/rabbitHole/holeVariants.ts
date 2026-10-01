@@ -32,7 +32,7 @@ export const HOLE_VARIANTS: Record<HoleVariantId, HoleVariant> = {
     id: 'dive',
     label: 'Dive',
     holeCenter: [300, 520],
-    eventLabel: 'Next down the hole',
+    eventLabel: 'Next event',
     draw: drawDive,
   },
   vortex: {
