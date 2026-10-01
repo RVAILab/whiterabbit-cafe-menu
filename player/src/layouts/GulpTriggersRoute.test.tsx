@@ -240,6 +240,23 @@ describe('scheduled gulps', () => {
   })
 })
 
+describe('?gulpEvery= (minutes, 0 = off)', () => {
+  it('turns scheduled gulps off with 0, over display control v2', async () => {
+    await boot('/projection?gulpEvery=0')
+    await advance(20 * MINUTE)
+    expect(gulpCount()).toBe(0)
+  })
+
+  it('sets the interval over v1', async () => {
+    server.displayControl = displayControlV1()
+    await boot('/projection?layout=rabbit-hole&gulpEvery=3')
+    await advance(3 * MINUTE - 1)
+    expect(gulpCount()).toBe(0)
+    await advance(1)
+    expect(gulpCount()).toBe(1)
+  })
+})
+
 describe('remote gulps (effectCommand)', () => {
   it('a new effectCommand triggers exactly one gulp', async () => {
     await boot()

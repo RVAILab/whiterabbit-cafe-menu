@@ -184,8 +184,9 @@ const isScreenCommand = (value: unknown): value is DisplayScreenCommandV1 =>
   && isNonEmptyString(value.value)
   && isIsoTimestamp(value.issuedAt)
 
-const isEffectCommand = (value: unknown): value is DisplayEffectCommand =>
-  isScreenCommand(value) && value.value === 'gulp'
+/** Effect values this player knows; others are ignored (forward compatibility), not rejected. */
+const EFFECT_VALUES: readonly string[] = ['gulp'] satisfies DisplayEffectCommand['value'][]
+const warnedEffectValues = new Set<string>()
 
 const isUnitInterval = (value: unknown) => isFiniteNumber(value) && value >= 0 && value <= 1
 
@@ -226,21 +227,31 @@ function parseV2(value: Record<string, unknown>): DisplayControlSnapshotV2 {
     ])
     || !hasValidEnvelope(value)
     || !isDesiredV2(value.desired)
-    || (value.effectCommand !== null && !isEffectCommand(value.effectCommand))
+    || (value.effectCommand !== null && !isScreenCommand(value.effectCommand))
     || (value.calibration !== null && !isCalibration(value.calibration))
   ) {
     throw new Error('Display control response does not match schema version 2')
   }
 
-  const snapshot = value as unknown as DisplayControlSnapshotV2
+  let snapshot = value as unknown as DisplayControlSnapshotV2
   const { variant } = snapshot.desired.rabbitHole as { variant: string }
-  if ((HOLE_VARIANT_IDS as readonly string[]).includes(variant)) return snapshot
-
-  console.warn(`Display control: unknown rabbit hole variant "${variant}"; using "dive"`)
-  return {
-    ...snapshot,
-    desired: { ...snapshot.desired, rabbitHole: { ...snapshot.desired.rabbitHole, variant: 'dive' } },
+  if (!(HOLE_VARIANT_IDS as readonly string[]).includes(variant)) {
+    console.warn(`Display control: unknown rabbit hole variant "${variant}"; using "dive"`)
+    snapshot = {
+      ...snapshot,
+      desired: { ...snapshot.desired, rabbitHole: { ...snapshot.desired.rabbitHole, variant: 'dive' } },
+    }
   }
+
+  const effect = snapshot.effectCommand
+  if (effect && !EFFECT_VALUES.includes(effect.value)) {
+    if (!warnedEffectValues.has(effect.value)) {
+      warnedEffectValues.add(effect.value)
+      console.warn(`Display control: ignoring unknown effect command "${effect.value}"`)
+    }
+    snapshot = { ...snapshot, effectCommand: null }
+  }
+  return snapshot
 }
 
 /**

@@ -8,7 +8,7 @@ interface UseGulpScheduleOptions {
   gulp: (options?: GulpOptions) => boolean
   /** The rabbit hole is on screen (the same condition as useGulp's `enabled`). */
   active: boolean
-  /** v2 `desired.rabbitHole.gulp`, or null (v1 / URL-only) → DEFAULT_GULP_SCHEDULE. */
+  /** From resolveGulpSchedule (URL, then v2 settings); null → DEFAULT_GULP_SCHEDULE. */
   settings: GulpScheduleSettings | null
   /** Jitter source in [0, 1); a test seam. Defaults to Math.random. */
   random?: () => number

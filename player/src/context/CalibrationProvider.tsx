@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import {
   clampPoint,
   loadCalibration,
@@ -10,16 +10,44 @@ import { CalibrationContext, type CalibrationApi } from './calibrationContext'
 
 const viewportDefault = () => defaultCorners(window.innerWidth, window.innerHeight)
 
+/** A start() that arrives before calibration is available waits this long for it. */
+const PENDING_START_MAX_MS = 30_000
+
 export function CalibrationProvider({ children }: { children: ReactNode }) {
   const [calibration, setCalibration] = useState<Calibration | null>(loadCalibration)
   const [draft, setDraft] = useState<Corners | null>(null)
   const [selectedCorner, setSelectedCorner] = useState(0)
   const available = useRef(false)
+  const savedCorners = useRef<Corners | null>(calibration?.corners ?? null)
+  /** A start() waiting for availability (e.g. the same snapshot switches to the rabbit hole). */
+  const pendingStart = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    savedCorners.current = calibration?.corners ?? null
+  }, [calibration])
+
+  const clearPendingStart = useCallback(() => {
+    if (pendingStart.current !== null) clearTimeout(pendingStart.current)
+    pendingStart.current = null
+  }, [])
+  useEffect(() => clearPendingStart, [clearPendingStart])
+
+  const open = useCallback(() => {
+    clearPendingStart()
+    setDraft((current) => current ?? (savedCorners.current ?? viewportDefault()).map((p) => [...p]) as Corners)
+  }, [clearPendingStart])
 
   const start = useCallback(() => {
-    if (!available.current) return
-    setDraft((current) => current ?? (calibration?.corners ?? viewportDefault()).map((p) => [...p]) as Corners)
-  }, [calibration])
+    if (available.current) {
+      open()
+      return
+    }
+    clearPendingStart()
+    pendingStart.current = setTimeout(() => {
+      pendingStart.current = null
+      console.warn('Calibration: not available within 30s (rabbit hole layout with a loaded menu); request dropped')
+    }, PENDING_START_MAX_MS)
+  }, [open, clearPendingStart])
 
   const cancel = useCallback(() => setDraft(null), [])
 
@@ -61,7 +89,8 @@ export function CalibrationProvider({ children }: { children: ReactNode }) {
   const setAvailable = useCallback((next: boolean) => {
     available.current = next
     if (!next) setDraft(null)
-  }, [])
+    else if (pendingStart.current !== null) open()
+  }, [open])
 
   const api = useMemo<CalibrationApi>(() => ({
     isCalibrating: draft !== null,

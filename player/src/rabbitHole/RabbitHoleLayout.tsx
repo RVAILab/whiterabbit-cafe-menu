@@ -19,7 +19,12 @@ export interface RabbitHoleLayoutProps {
   holeEvent?: ReactNode
   /** Gulp "*hic*" (z 3). */
   hic?: ReactNode
-  /** Sleep / closed / massage overlays (z 5). */
+  /**
+   * Sleep / closed / massage overlays. Drawn in viewport space outside the
+   * pin, as in the standard layout: they are sized in vw and position: fixed,
+   * so inside the scaled stage they would be scaled twice. This deviates from
+   * SPEC §2 (overlays as stage layer z 5) until they are converted to stage units.
+   */
   overlays?: ReactNode
   /** Calibration grid; warps with the pin (z 6). */
   calibrationGrid?: ReactNode
@@ -52,14 +57,13 @@ export function RabbitHoleLayout({
   const plates = useMemo(() => planPlates(document), [document])
 
   return (
-    <PinnedSurface corners={corners} viewport={viewport}>
+    <PinnedSurface corners={corners} overlays={overlays} viewport={viewport}>
       <Stage ref={stageRef} className={stageClassName}>
         <StageLayer layer="background">{background}</StageLayer>
         <StageLayer layer="hole-event">{holeEvent}</StageLayer>
         <StageLayer layer="menu"><RabbitHoleMenu plates={plates} onDoesNotFit={onDoesNotFit} /></StageLayer>
         <StageLayer layer="hic">{hic}</StageLayer>
         <StageLayer layer="hud"><RabbitHoleHud /></StageLayer>
-        <StageLayer layer="overlays">{overlays}</StageLayer>
         <StageLayer layer="calibration-grid">{calibrationGrid}</StageLayer>
       </Stage>
     </PinnedSurface>

@@ -12,12 +12,18 @@ const DEV_VARIANT_KEYS: Record<string, HoleVariantId> = {
 
 /**
  * Dev builds only: Shift+1 / Shift+2 switch the hole variant locally. Returns
- * the local choice (it wins over URL and display control until reload), or
- * `null`. Bubble phase, so calibration's capture listener swallows these keys
- * while calibrating.
+ * the local choice, or `null`. It wins over URL and display control until
+ * `baseVariant` (the URL / display-control variant) changes, then gives way.
+ * Bubble phase, so calibration's capture listener swallows these keys while
+ * calibrating.
  */
-export function useDevHoleVariantKeys(enabled: boolean): HoleVariantId | null {
+export function useDevHoleVariantKeys(enabled: boolean, baseVariant: HoleVariantId): HoleVariantId | null {
   const [variant, setVariant] = useState<HoleVariantId | null>(null)
+  const [overriddenBase, setOverriddenBase] = useState(baseVariant)
+  if (overriddenBase !== baseVariant) {
+    setOverriddenBase(baseVariant)
+    setVariant(null)
+  }
 
   useEffect(() => {
     if (!enabled || !import.meta.env.DEV) return

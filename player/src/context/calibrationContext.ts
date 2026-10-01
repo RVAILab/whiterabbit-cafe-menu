@@ -20,7 +20,11 @@ export interface CalibrationApi {
   calibration: Calibration | null
   /** Index (0 TL, 1 TR, 2 BR, 3 BL) of the corner the arrows nudge. */
   selectedCorner: number
-  /** Open calibration, if the current layout allows it (rabbit hole only). */
+  /**
+   * Open calibration. When it is not available yet (standard layout, menu not
+   * loaded, fallen back) the request waits up to 30s for availability, then is
+   * dropped with a warning.
+   */
   start(): void
   /** Close without saving; the previous corners come back. */
   cancel(): void

@@ -6,7 +6,6 @@ export type StageLayer =
   | 'menu'
   | 'hic'
   | 'hud'
-  | 'overlays'
   | 'calibration-grid'
 
 interface StageProps {

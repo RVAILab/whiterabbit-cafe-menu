@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react'
+import { act, render } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { vi } from 'vitest'
 import App from '../App'
@@ -97,4 +97,34 @@ export function stubLocalStorage() {
 
 export function renderProjection(path = '/projection') {
   return render(<MemoryRouter initialEntries={[path]}><App /></MemoryRouter>)
+}
+
+/**
+ * Fake the clock (timeouts, intervals, Date) but not animation frames, which
+ * route tests that care about them stub and step by hand. Pair with
+ * `advance` / `bootProjection` instead of `findBy*` (which polls on real time).
+ */
+export function fakeProjectionTimers() {
+  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date'] })
+}
+
+/**
+ * Advance the fake clock by `ms`, flushing the fetches and renders it sets off.
+ * Steps one display-control poll (2s) per act: React flushes renders when an
+ * act exits, so one long act would apply poll results only at its end.
+ */
+export async function advance(ms: number) {
+  let left = ms
+  do {
+    const step = Math.min(left, 2_000)
+    await act(async () => { await vi.advanceTimersByTimeAsync(step) })
+    left -= step
+  } while (left > 0)
+}
+
+/** Render `path` and let the first polls (menu, display control, Rova) land and the layout settle. */
+export async function bootProjection(path = '/projection') {
+  const view = renderProjection(path)
+  for (let i = 0; i < 5; i++) await advance(0)
+  return view
 }

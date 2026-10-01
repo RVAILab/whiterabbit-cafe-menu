@@ -51,7 +51,6 @@
 .rh-layer-menu { z-index: 2; }
 .rh-layer-hic { z-index: 3; }
 .rh-layer-hud { z-index: 4; }
-.rh-layer-overlays { z-index: 5; pointer-events: auto; }
 .rh-layer-calibration-grid { z-index: 6; }
 
 /* Hole variant canvas: backing store and box both at stage resolution. */
@@ -96,6 +95,9 @@
 }
 
 /* Viewport-space content (calibration handles, help card): outside the pin. */
+/* Overlays live in viewport space, outside the pin (see RabbitHoleLayout). */
+.rh-overlays { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+.rh-overlays > * { pointer-events: auto; }
 .rh-viewport { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
 .rh-viewport > * { pointer-events: auto; }
 

@@ -9,6 +9,8 @@ import './gulp.css'
 export interface Gulp extends GulpState {
   /** The one entry point for every trigger; `false` when refused. Stable identity. */
   gulp(options?: GulpOptions): boolean
+  /** The controller's state right now, ahead of the rendered `phase` (stable identity). */
+  getState(): GulpState
 }
 
 interface UseGulpOptions {
@@ -102,5 +104,5 @@ export function useGulp({ enabled, stageRef }: UseGulpOptions): Gulp {
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [enabled, controller])
 
-  return { ...state, gulp: controller.gulp }
+  return { ...state, gulp: controller.gulp, getState: controller.getState }
 }

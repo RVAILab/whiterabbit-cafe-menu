@@ -4,8 +4,9 @@ import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } fr
 import { HOLE_VARIANTS } from '../rabbitHole/holeVariants'
 import { sampleProjectedMenu } from '../test/fixtures/sampleProjectedMenu'
 import {
+  bootProjection,
   displayControlV1,
-  renderProjection,
+  fakeProjectionTimers,
   stubLocalStorage,
   stubProjectionServer,
   type ProjectionServer,
@@ -74,6 +75,7 @@ let server: ProjectionServer
 let draw: MockInstance
 
 beforeEach(() => {
+  fakeProjectionTimers()
   stubLocalStorage()
   server = { projectedMenu: structuredClone(sampleProjectedMenu), displayControl: displayControlV1() }
   stubProjectionServer(server)
@@ -91,18 +93,21 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup()
+  vi.useRealTimers()
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
 })
 
-const holeCanvas = () => screen.findByTestId('rabbit-hole-canvas')
+/** Boot `path` with every first poll landed, then return the hole canvas. */
+async function holeCanvasAt(path: string) {
+  await bootProjection(path)
+  return screen.getByTestId('rabbit-hole-canvas')
+}
 const lastPhase = () => draw.mock.calls.at(-1)![1] as number
 
 describe('the hole background on /projection?layout=rabbit-hole', () => {
   it('draws the dive variant on a stage-resolution canvas behind the plates', async () => {
-    renderProjection('/projection?layout=rabbit-hole')
-
-    const canvas = await holeCanvas()
+    const canvas = await holeCanvasAt('/projection?layout=rabbit-hole')
     expect(canvas.closest('[data-testid="rabbit-hole-layer-background"]')).toBeTruthy()
     expect(canvas.getAttribute('data-variant')).toBe('dive')
     expect((canvas as HTMLCanvasElement).width).toBe(1920)
@@ -116,8 +121,7 @@ describe('the hole background on /projection?layout=rabbit-hole', () => {
   })
 
   it('advances an accumulated phase at ?speed=, never wall-clock time', async () => {
-    renderProjection('/projection?layout=rabbit-hole&speed=0.5')
-    await holeCanvas()
+    await holeCanvasAt('/projection?layout=rabbit-hole&speed=0.5')
 
     tick(5000)
     const start = lastPhase()
@@ -127,9 +131,20 @@ describe('the hole background on /projection?layout=rabbit-hole', () => {
     expect(lastPhase() - start).toBeCloseTo(0.1, 5)
   })
 
+  it.each([
+    ['5', 0.5],
+    ['0.05', 0.005],
+  ])('allows ?speed=%s outside the display-control range, for testing', async (speed, step) => {
+    await holeCanvasAt(`/projection?layout=rabbit-hole&speed=${speed}`)
+
+    tick(5000)
+    const start = lastPhase()
+    tick(5100)
+    expect(lastPhase() - start).toBeCloseTo(step, 5)
+  })
+
   it('defaults the speed to 0.4', async () => {
-    renderProjection('/projection?layout=rabbit-hole')
-    await holeCanvas()
+    await holeCanvasAt('/projection?layout=rabbit-hole')
 
     tick(5000)
     const start = lastPhase()
@@ -141,10 +156,8 @@ describe('the hole background on /projection?layout=rabbit-hole', () => {
     server.displayControl = displayControlV1({
       desired: { overlay: 'closed', visualization: 'none', visualizationMode: 'background' },
     })
-    renderProjection('/projection?layout=rabbit-hole')
-
-    const canvas = await holeCanvas()
-    await vi.waitFor(() => expect(canvas.getAttribute('data-hole-state')).toBe('paused'))
+    const canvas = await holeCanvasAt('/projection?layout=rabbit-hole')
+    expect(canvas.getAttribute('data-hole-state')).toBe('paused')
     // The overlay animates itself, so count hole draws rather than frames.
     draw.mockClear()
     tick(1000)
@@ -153,8 +166,7 @@ describe('the hole background on /projection?layout=rabbit-hole', () => {
   })
 
   it('pauses while the tab is hidden and resumes without a jump', async () => {
-    renderProjection('/projection?layout=rabbit-hole')
-    const canvas = await holeCanvas()
+    const canvas = await holeCanvasAt('/projection?layout=rabbit-hole')
     tick(1000)
     tick(1100)
     const before = lastPhase()
@@ -171,9 +183,7 @@ describe('the hole background on /projection?layout=rabbit-hole', () => {
 
   it('holds a static frame under prefers-reduced-motion', async () => {
     stubMatchMedia(true)
-    renderProjection('/projection?layout=rabbit-hole')
-
-    const canvas = await holeCanvas()
+    const canvas = await holeCanvasAt('/projection?layout=rabbit-hole')
     expect(canvas.getAttribute('data-hole-state')).toBe('static')
     expect(draw).toHaveBeenCalledTimes(1) // one readable frame, then nothing
     expect(frames.size).toBe(0)
@@ -184,8 +194,7 @@ describe('the hole background on /projection?layout=rabbit-hole', () => {
   })
 
   it('tears down the frame loop and its listeners when the layout goes away', async () => {
-    const view = renderProjection('/projection?layout=rabbit-hole')
-    await holeCanvas()
+    const view = await bootProjection('/projection?layout=rabbit-hole')
     tick(1000)
     expect(frames.size).toBe(1)
     expect(reducedMotion.listeners.size).toBe(1)
@@ -202,8 +211,8 @@ describe('the hole background on /projection?layout=rabbit-hole', () => {
 
 describe('the standard layout', () => {
   it('has no hole canvas', async () => {
-    renderProjection('/projection')
-    expect(await screen.findByText('Noble Coffee')).toBeTruthy()
+    await bootProjection('/projection')
+    expect(screen.getByText('Noble Coffee')).toBeTruthy()
     expect(screen.queryByTestId('rabbit-hole-canvas')).toBeNull()
   })
 })

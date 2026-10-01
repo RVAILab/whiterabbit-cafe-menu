@@ -121,15 +121,16 @@ describe('/projection?layout=rabbit-hole', () => {
     expect(hud.textContent).toMatch(/^Members 15% off · \d{1,2}:\d{2}\s[AP]M$/)
   })
 
-  it('still renders overlays on top of the stage', async () => {
+  it('renders overlays in viewport space, outside the pinned (scaled) surface', async () => {
     server.displayControl = displayControlV1({
       desired: { overlay: 'closed', visualization: 'none', visualizationMode: 'background' },
     })
     renderProjection('/projection?layout=rabbit-hole')
 
-    const stage = await screen.findByTestId('rabbit-hole-stage')
-    const overlays = within(stage).getByTestId('rabbit-hole-layer-overlays')
+    await screen.findByTestId('rabbit-hole-stage')
+    const overlays = screen.getByTestId('rabbit-hole-overlays')
     await vi.waitFor(() => expect(overlays.childElementCount).toBeGreaterThan(0))
+    expect(overlays.closest('[data-testid="pinned-surface"]')).toBeNull()
   })
 })
 

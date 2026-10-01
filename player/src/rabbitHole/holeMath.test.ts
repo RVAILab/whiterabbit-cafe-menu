@@ -60,10 +60,13 @@ describe('resolveHoleSettings', () => {
     expect(resolveHoleSettings({ search: '' })).toEqual({ variant: 'dive', speed: 0.4 })
   })
 
-  it('takes ?speed= over display control, clamped to 0.2..1', () => {
+  it('takes ?speed= over display control, clamped to 0.05..5 (display control: 0.2..1)', () => {
     expect(resolveHoleSettings({ search: '?speed=0.7', desired: { speed: 0.3 } }).speed).toBe(0.7)
     expect(resolveHoleSettings({ search: '', desired: { speed: 0.3 } }).speed).toBe(0.3)
-    expect(resolveHoleSettings({ search: '?speed=5' }).speed).toBe(1)
+    expect(resolveHoleSettings({ search: '?speed=5' }).speed).toBe(5)
+    expect(resolveHoleSettings({ search: '?speed=9' }).speed).toBe(5)
+    expect(resolveHoleSettings({ search: '?speed=0.01' }).speed).toBe(0.05)
+    expect(resolveHoleSettings({ search: '', desired: { speed: 3 } }).speed).toBe(1)
     expect(resolveHoleSettings({ search: '?speed=fast' }).speed).toBe(0.4)
   })
 

@@ -127,6 +127,17 @@ describe('parseDisplayControlSnapshot (schema v2)', () => {
     warn.mockRestore()
   })
 
+  it('ignores an effect command with an unknown value, warning once, and keeps the rest', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const snapshot = withEffect({ value: 'sneeze' })
+    const parsed = parseDisplayControlSnapshot(snapshot)
+    expect(parsed).toEqual({ ...validV2, effectCommand: null })
+    parseDisplayControlSnapshot({ ...snapshot, revision: 2 })
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('sneeze'))
+    warn.mockRestore()
+  })
+
   it.each([
     ['an extra top-level key', { ...validV2, extra: true }],
     ['a missing effect command key', without(validV2, 'effectCommand')],
@@ -145,7 +156,6 @@ describe('parseDisplayControlSnapshot (schema v2)', () => {
     ['a non-boolean menu-change flag', withGulp({ onMenuChange: 1 })],
     ['a zero gulp interval', withGulp({ intervalMinutes: 0 })],
     ['an extra gulp key', withGulp({ extra: true })],
-    ['an unknown effect', withEffect({ value: 'sneeze' })],
     ['an effect without an id', withEffect({ id: '' })],
     ['a bad effect timestamp', withEffect({ issuedAt: 'now' })],
     ['an extra effect key', withEffect({ extra: true })],

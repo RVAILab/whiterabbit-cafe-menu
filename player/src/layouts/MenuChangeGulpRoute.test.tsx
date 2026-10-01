@@ -234,3 +234,30 @@ describe('menu changes in the standard layout', () => {
     expect(screen.queryAllByText(/8\.11/)).toHaveLength(0)
   })
 })
+
+describe('menu changes after the rabbit hole fell back to the standard layout', () => {
+  /** jsdom has no layout: plates are 800px tall and only a menu with the Latte at 8.22 overflows them. */
+  function stubOverflowAt822() {
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockImplementation(function (this: HTMLElement) {
+      return this.classList.contains('rh-plate') ? 800 : 0
+    })
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(function (this: HTMLElement) {
+      if (!this.classList.contains('rh-plate')) return 0
+      return this.closest('.rh-menu')?.textContent?.includes('8.22') ? 2000 : 600
+    })
+  }
+
+  it('shows a newer menu that fits at once, without gulping the overflowing one back in', async () => {
+    stubOverflowAt822()
+    await boot('/projection?layout=rabbit-hole')
+    await publishAndPoll(8.22)
+    await advance(1300) // swapped in, does not fit → standard layout
+    expect(screen.queryByTestId('rabbit-hole-stage')).toBeNull()
+    await advance(60_000) // past the gap, so a gulp would be accepted
+
+    await publishAndPoll(8.33)
+    expect(menuText()).toContain('8.33')
+    expect(menuText()).not.toContain('8.22')
+    expect(isGulping()).toBe(false)
+  })
+})

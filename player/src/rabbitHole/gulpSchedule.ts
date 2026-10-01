@@ -22,3 +22,18 @@ export function nextScheduledGulpDelayMs(intervalMinutes: number, random: () => 
   const jitter = (random() * 2 - 1) * GULP_SCHEDULE_JITTER_MS
   return Math.max(GULP_MIN_GAP_MS, Math.round(intervalMinutes * 60_000 + jitter))
 }
+
+/**
+ * The schedule to run: `?gulpEvery=<minutes>` (0 = off) wins, then display
+ * control v2 `desired.rabbitHole.gulp`, then DEFAULT_GULP_SCHEDULE.
+ */
+export function resolveGulpSchedule(
+  { search, desired }: { search: string; desired: GulpScheduleSettings | null },
+): GulpScheduleSettings {
+  const override = new URLSearchParams(search).get('gulpEvery')
+  const minutes = override === null || override.trim() === '' ? NaN : Number(override)
+  if (Number.isFinite(minutes)) {
+    return minutes > 0 ? { enabled: true, intervalMinutes: minutes } : { ...DEFAULT_GULP_SCHEDULE, enabled: false }
+  }
+  return desired ?? DEFAULT_GULP_SCHEDULE
+}

@@ -26,6 +26,7 @@ import { useGulp } from '../rabbitHole/useGulp'
 import { GulpHic } from '../rabbitHole/GulpHic'
 import { useMenuChangeGulp } from '../rabbitHole/useMenuChangeGulp'
 import { useGulpSchedule } from '../rabbitHole/useGulpSchedule'
+import { resolveGulpSchedule } from '../rabbitHole/gulpSchedule'
 import { useRemoteGulp } from '../rabbitHole/useRemoteGulp'
 import type { MenuBoard, SecondaryScreen } from '../types'
 
@@ -67,7 +68,7 @@ export function ProjectorLayout({
     search,
   })
   const holeSettings = resolveHoleSettings({ search, desired: displayControl.rabbitHole })
-  const devHoleVariant = useDevHoleVariantKeys(layout === 'rabbit-hole')
+  const devHoleVariant = useDevHoleVariantKeys(layout === 'rabbit-hole', holeSettings.variant)
   const holeVariant = devHoleVariant ?? holeSettings.variant
   // The gulp (#24). Other triggers (#25 menu change, #27 schedule/remote) call `gulp.gulp()` from hooks here.
   const stageRef = useRef<HTMLDivElement>(null)
@@ -78,14 +79,14 @@ export function ProjectorLayout({
   // Menu changes land inside the gulp (#25): the rabbit hole renders the held-back document.
   const rabbitHoleDocument = useMenuChangeGulp({
     document,
-    enabled: layout === 'rabbit-hole' && displayControl.rabbitHole?.gulp.onMenuChange !== false,
+    enabled: layout === 'rabbit-hole' && !rabbitHoleFit.fellBack && displayControl.rabbitHole?.gulp.onMenuChange !== false,
     gulp,
   })
   // #27: scheduled and remote (effectCommand) gulps.
   useGulpSchedule({
     gulp: gulp.gulp,
     active: layout === 'rabbit-hole' && !!document && !rabbitHoleFit.fellBack,
-    settings: displayControl.rabbitHole?.gulp ?? null,
+    settings: resolveGulpSchedule({ search, desired: displayControl.rabbitHole?.gulp ?? null }),
   })
   useRemoteGulp({ gulp: gulp.gulp, command: displayControl.effectCommand })
 

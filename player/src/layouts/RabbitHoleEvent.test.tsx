@@ -6,6 +6,7 @@ import { HOLE_VARIANTS, type HoleVariant, type HoleVariantId } from '../rabbitHo
 import { sampleProjectedMenu } from '../test/fixtures/sampleProjectedMenu'
 import {
   displayControlV1,
+  jsonResponse,
   renderProjection,
   rovaEvents,
   stubLocalStorage,
@@ -79,7 +80,7 @@ describe('the next event at the bottom of the rabbit hole', () => {
     await vi.waitFor(() =>
       expect(fetchMock.mock.calls.some(([url]) => String(url).includes('rova.live'))).toBe(true),
     )
-    expect(within(block).getByText('White Rabbit')).toBeTruthy()
+    await vi.waitFor(() => expect(within(block).getByText('White Rabbit')).toBeTruthy())
     expect(within(block).getByText("We're all mad here")).toBeTruthy()
     expect(within(block).queryByText('Next down the hole')).toBeNull()
   })
@@ -89,7 +90,28 @@ describe('the next event at the bottom of the rabbit hole', () => {
     renderProjection('/projection?layout=rabbit-hole')
 
     const block = await holeEvent()
-    expect(within(block).getByText("We're all mad here")).toBeTruthy()
+    await vi.waitFor(() => expect(within(block).getByText("We're all mad here")).toBeTruthy())
+  })
+
+  it('stays empty (no fallback flash) until the first Rova request settles', async () => {
+    const fetchMock = stubProjectionServer(server)
+    let answerRova: (response: Response) => void = () => {}
+    const serve = fetchMock.getMockImplementation()!
+    fetchMock.mockImplementation(async (input) =>
+      String(input).includes('rova.live')
+        ? new Promise<Response>((resolve) => { answerRova = resolve })
+        : serve(input))
+    renderProjection('/projection?layout=rabbit-hole')
+
+    const block = await holeEvent()
+    await vi.waitFor(() =>
+      expect(fetchMock.mock.calls.some(([url]) => String(url).includes('rova.live'))).toBe(true),
+    )
+    expect(block.textContent).toBe('')
+
+    answerRova(jsonResponse(server.rovaEvents))
+    await vi.waitFor(() => expect(within(block).getByText('RVAI Lab')).toBeTruthy())
+    expect(within(block).queryByText("We're all mad here")).toBeNull()
   })
 
   describe('with another registered variant', () => {

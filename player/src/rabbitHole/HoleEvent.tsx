@@ -14,19 +14,24 @@ interface HoleEventProps {
  * The next White Rabbit event at the bottom of the hole (SPEC §5), centered on
  * the variant's hole center. With no upcoming event (or Rova unreachable) it
  * reads "White Rabbit / We're all mad here", so the hole never looks empty.
+ * Until the first Rova request settles it is empty, so the fallback never
+ * flashes before a real event.
  *
  * The block carries `.rh-hole-event` (testid `rh-hole-event`) for the gulp to
  * fade it out and back in; it has no fade of its own.
  */
 export function HoleEvent({ variant }: HoleEventProps) {
   const { holeCenter: [x, y], eventLabel } = getHoleVariant(variant)
-  const { upcomingEvent } = useUpcomingEvent({
+  const { upcomingEvent, isLoading } = useUpcomingEvent({
     enabled: true,
     pollInterval: parseInt(import.meta.env.VITE_ROVA_POLL_INTERVAL || '60000', 10),
   })
 
+  const style = { left: `${x}px`, top: `${y}px` }
+  if (isLoading) return <div className="rh-hole-event" data-testid="rh-hole-event" style={style} />
+
   return (
-    <div className="rh-hole-event" data-testid="rh-hole-event" style={{ left: `${x}px`, top: `${y}px` }}>
+    <div className="rh-hole-event" data-testid="rh-hole-event" style={style}>
       <small className="rh-hole-event-label">{upcomingEvent ? eventLabel : FALLBACK_LABEL}</small>
       <strong className="rh-hole-event-title">{upcomingEvent ? upcomingEvent.title : FALLBACK_TITLE}</strong>
       {upcomingEvent && (

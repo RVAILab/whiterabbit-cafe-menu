@@ -34,9 +34,7 @@ export function useCalibrationControls({ enabled, search }: { enabled: boolean; 
   useEffect(() => {
     setAvailable(enabled)
     if (enabled && new URLSearchParams(search).get('calibrate') === '1') start()
-    // `start` changes identity after each save; only availability and the URL re-trigger this.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, search, setAvailable])
+  }, [enabled, search, setAvailable, start])
 
   useEffect(() => () => setAvailable(false), [setAvailable])
 

@@ -1,10 +1,13 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { sampleProjectedMenu } from '../test/fixtures/sampleProjectedMenu'
 import {
+  advance,
+  bootProjection,
   displayControlV1,
-  renderProjection,
+  displayControlV2,
+  fakeProjectionTimers,
   stubLocalStorage,
   stubProjectionServer,
   type ProjectionServer,
@@ -19,9 +22,11 @@ const handle = (i: number) => screen.getByTestId(`calibration-handle-${i}`)
 const handlePct = (i: number) => [parseFloat(handle(i).style.left), parseFloat(handle(i).style.top)]
 const pinTransform = () => screen.getByTestId('pinned-surface').style.transform
 const press = (key: string, init: Partial<KeyboardEventInit> = {}) =>
-  fireEvent.keyDown(document.body, { key, ...init })
+  act(() => { fireEvent.keyDown(document.body, { key, ...init }) })
+const calibrateCommand = { id: 'cmd-calibrate', value: 'calibrate', issuedAt: '2026-09-30T16:00:00.000Z' }
 
 beforeEach(() => {
+  fakeProjectionTimers()
   storage = stubLocalStorage()
   server = { projectedMenu: structuredClone(sampleProjectedMenu), displayControl: displayControlV1() }
   stubProjectionServer(server)
@@ -32,52 +37,92 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup()
+  vi.useRealTimers()
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
 })
 
 describe('projection calibration', () => {
   it('opens with ?calibrate=1 in the rabbit hole layout', async () => {
-    renderProjection('/projection?layout=rabbit-hole&calibrate=1')
+    await bootProjection('/projection?layout=rabbit-hole&calibrate=1')
 
-    expect(await screen.findByTestId('calibration-grid')).toBeTruthy()
+    expect(screen.getByTestId('calibration-grid')).toBeTruthy()
     expect(screen.getAllByTestId(/^calibration-handle-/)).toHaveLength(4)
     expect(screen.getByTestId('calibration-help').textContent).toMatch(/Enter/)
   })
 
   it('opens with the C key in the rabbit hole layout', async () => {
-    renderProjection('/projection?layout=rabbit-hole')
-    await screen.findByTestId('rabbit-hole-stage')
+    await bootProjection('/projection?layout=rabbit-hole')
     expect(screen.queryByTestId('calibration-grid')).toBeNull()
 
-    fireEvent.keyDown(document.body, { key: 'c' })
+    press('c')
 
     expect(screen.getByTestId('calibration-grid')).toBeTruthy()
     expect(screen.getAllByTestId(/^calibration-handle-/)).toHaveLength(4)
   })
 
   it('opens from a "calibrate" screen command over display control v1', async () => {
-    server.displayControl = displayControlV1({
-      revision: 2,
-      screenCommand: { id: 'cmd-calibrate', value: 'calibrate', issuedAt: '2026-09-30T16:00:00.000Z' },
-    })
-    renderProjection('/projection?layout=rabbit-hole')
+    server.displayControl = displayControlV1({ revision: 2, screenCommand: calibrateCommand })
+    await bootProjection('/projection?layout=rabbit-hole')
 
-    expect(await screen.findByTestId('calibration-grid')).toBeTruthy()
+    expect(screen.getByTestId('calibration-grid')).toBeTruthy()
+  })
+
+  it('opens from a "calibrate" screen command in the snapshot that switches to the rabbit hole', async () => {
+    server.displayControl = displayControlV2({ desired: { layout: 'rabbit-hole' }, screenCommand: calibrateCommand })
+    await bootProjection('/projection')
+
+    expect(screen.getByTestId('calibration-grid')).toBeTruthy()
+  })
+
+  it('opens from a "calibrate" screen command that lands before the menu, once the menu loads', async () => {
+    server.projectedMenu = null
+    server.displayControl = displayControlV1({ revision: 2, screenCommand: calibrateCommand })
+    await bootProjection('/projection?layout=rabbit-hole')
+    expect(screen.queryByTestId('rabbit-hole-stage')).toBeNull()
+
+    server.projectedMenu = structuredClone(sampleProjectedMenu)
+    await advance(20_000) // the next menu poll
+
+    expect(screen.getByTestId('calibration-grid')).toBeTruthy()
+  })
+
+  it('honours a "calibrate" screen command once the layout switches to the rabbit hole within 30s', async () => {
+    server.displayControl = displayControlV2({ revision: 2, screenCommand: calibrateCommand })
+    await bootProjection('/projection')
+    await advance(20_000)
+    expect(screen.queryByTestId('calibration-grid')).toBeNull()
+
+    server.displayControl = displayControlV2({ revision: 3, desired: { layout: 'rabbit-hole' }, screenCommand: calibrateCommand })
+    await advance(2_000)
+
+    expect(screen.getByTestId('calibration-grid')).toBeTruthy()
+  })
+
+  it('drops a "calibrate" screen command not honoured within 30s, with a warning', async () => {
+    server.displayControl = displayControlV2({ revision: 2, screenCommand: calibrateCommand })
+    await bootProjection('/projection')
+    await advance(30_000)
+    expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/calibrat/i))
+
+    server.displayControl = displayControlV2({ revision: 3, desired: { layout: 'rabbit-hole' }, screenCommand: calibrateCommand })
+    await advance(2_000)
+
+    expect(screen.getByTestId('rabbit-hole-stage')).toBeTruthy()
+    expect(screen.queryByTestId('calibration-grid')).toBeNull()
   })
 
   it('ignores calibration entry in the standard layout (it is not pinned)', async () => {
-    renderProjection('/projection?calibrate=1')
-    await screen.findAllByText('Noble Coffee')
+    await bootProjection('/projection?calibrate=1')
+    expect(screen.getAllByText('Noble Coffee').length).toBeGreaterThan(0)
 
-    fireEvent.keyDown(document.body, { key: 'c' })
+    press('c')
 
     expect(screen.queryByTestId('calibration-grid')).toBeNull()
   })
 
   it('nudges the selected corner 1px (Shift: 10px) with the arrows, clamped to the viewport', async () => {
-    renderProjection('/projection?layout=rabbit-hole&calibrate=1')
-    await screen.findByTestId('calibration-grid')
+    await bootProjection('/projection?layout=rabbit-hole&calibrate=1')
     expect(handlePct(0)).toEqual([0, 12.5])
 
     press('ArrowLeft')
@@ -103,8 +148,7 @@ describe('projection calibration', () => {
   })
 
   it('cancels with Esc, restoring the previous corners without saving', async () => {
-    renderProjection('/projection?layout=rabbit-hole')
-    await screen.findByTestId('rabbit-hole-stage')
+    await bootProjection('/projection?layout=rabbit-hole')
     const before = pinTransform()
 
     press('c')
@@ -118,9 +162,8 @@ describe('projection calibration', () => {
   })
 
   it('owns the keyboard while calibrating: other projector shortcuts do not fire', async () => {
-    renderProjection('/projection?layout=rabbit-hole&calibrate=1')
-    await screen.findByTestId('calibration-grid')
-    const overlays = screen.getByTestId('rabbit-hole-layer-overlays')
+    await bootProjection('/projection?layout=rabbit-hole&calibrate=1')
+    const overlays = screen.getByTestId('rabbit-hole-overlays')
 
     for (const key of ['0', '8', '9']) press(key)
 
@@ -129,8 +172,7 @@ describe('projection calibration', () => {
   })
 
   it('saves with Enter, and a remount applies the saved corners', async () => {
-    renderProjection('/projection?layout=rabbit-hole&calibrate=1')
-    await screen.findByTestId('calibration-grid')
+    await bootProjection('/projection?layout=rabbit-hole&calibrate=1')
     const defaultFit = pinTransform()
 
     press('ArrowRight', { shiftKey: true })
@@ -146,8 +188,7 @@ describe('projection calibration', () => {
     expect(calibrated).not.toBe(defaultFit)
 
     cleanup()
-    renderProjection('/projection?layout=rabbit-hole')
-    await screen.findByTestId('rabbit-hole-stage')
+    await bootProjection('/projection?layout=rabbit-hole')
     expect(pinTransform()).toBe(calibrated)
   })
 
@@ -157,8 +198,7 @@ describe('projection calibration', () => {
       corners: [[0.1, 0.2], [0.9, 0.2], [0.9, 0.8], [0.1, 0.8]],
       updatedAt: '2026-09-30T16:00:00.000Z',
     }))
-    renderProjection('/projection?layout=rabbit-hole&calibrate=1')
-    await screen.findByTestId('calibration-grid')
+    await bootProjection('/projection?layout=rabbit-hole&calibrate=1')
     expect(handlePct(0)).toEqual([10, 20])
 
     press('r')
