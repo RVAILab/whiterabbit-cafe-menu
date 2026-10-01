@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { BoardLayout } from '../components/BoardLayout'
 import { SecondaryScreenLayout } from '../components/SecondaryScreenLayout'
 import { NowPlayingWidget } from '../components/NowPlayingWidget'
@@ -22,6 +22,8 @@ import { HoleCanvas } from '../rabbitHole/HoleCanvas'
 import { HoleEvent } from '../rabbitHole/HoleEvent'
 import { resolveHoleSettings } from '../lib/holeSettings'
 import { useDevHoleVariantKeys } from '../rabbitHole/useDevHoleVariantKeys'
+import { useGulp } from '../rabbitHole/useGulp'
+import { GulpHic } from '../rabbitHole/GulpHic'
 import type { MenuBoard, SecondaryScreen } from '../types'
 
 interface ProjectorLayoutProps {
@@ -64,6 +66,12 @@ export function ProjectorLayout({
   const holeSettings = resolveHoleSettings({ search, desired: displayControl.rabbitHole })
   const devHoleVariant = useDevHoleVariantKeys(layout === 'rabbit-hole')
   const holeVariant = devHoleVariant ?? holeSettings.variant
+  // The gulp (#24). Other triggers (#25 menu change, #27 schedule/remote) call `gulp.gulp()` from hooks here.
+  const stageRef = useRef<HTMLDivElement>(null)
+  const gulp = useGulp({
+    enabled: layout === 'rabbit-hole' && !!document && !rabbitHoleFit.fellBack,
+    stageRef,
+  })
 
   // Handle screen transitions
   useEffect(() => {
@@ -91,9 +99,12 @@ export function ProjectorLayout({
       <div className="projector-layout">
         <RabbitHoleLayout
           document={document}
-          background={<HoleCanvas {...holeSettings} variant={holeVariant} />}
+          background={<HoleCanvas {...holeSettings} variant={holeVariant} speedTarget={gulp.speedTarget} />}
           holeEvent={<HoleEvent variant={holeVariant} />}
           overlays={<ProjectorOverlays />}
+          stageRef={stageRef}
+          stageClassName={gulp.gulping ? 'gulping' : undefined}
+          hic={<GulpHic />}
           onDoesNotFit={rabbitHoleFit.reportDoesNotFit}
           corners={calibration.corners}
           calibrationGrid={calibration.isCalibrating && <CalibrationGrid />}
