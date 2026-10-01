@@ -12,9 +12,11 @@ import { useKeyboardControls } from '../hooks/useKeyboardControls'
 import { useVisualizationControls } from '../hooks/useVisualizationControls'
 import { useSleepModeControls } from '../hooks/useSleepModeControls'
 import { useDisplayControl } from '../hooks/useDisplayControl'
+import { useCalibrationControls } from '../hooks/useCalibrationControls'
 import { resolveEffectiveLayout } from '../lib/effectiveLayout'
 import type { ProjectedMenuDocument } from '../lib/projectedMenu'
 import { RabbitHoleLayout } from '../rabbitHole/RabbitHoleLayout'
+import { CalibrationGrid, CalibrationHandles } from '../rabbitHole/Calibration'
 import type { MenuBoard, SecondaryScreen } from '../types'
 
 interface ProjectorLayoutProps {
@@ -49,6 +51,7 @@ export function ProjectorLayout({
   useVisualizationControls()
   useSleepModeControls()
   useDisplayControl()
+  const calibration = useCalibrationControls({ enabled: layout === 'rabbit-hole' && !!document, search })
 
   // Handle screen transitions
   useEffect(() => {
@@ -74,7 +77,20 @@ export function ProjectorLayout({
   if (layout === 'rabbit-hole' && document) {
     return (
       <div className="projector-layout">
-        <RabbitHoleLayout document={document} overlays={<ProjectorOverlays />} />
+        <RabbitHoleLayout
+          document={document}
+          overlays={<ProjectorOverlays />}
+          corners={calibration.corners}
+          calibrationGrid={calibration.isCalibrating && <CalibrationGrid />}
+          viewport={calibration.isCalibrating && calibration.corners && (
+            <CalibrationHandles
+              corners={calibration.corners}
+              selectedCorner={calibration.selectedCorner}
+              onSelect={calibration.selectCorner}
+              onMove={calibration.setCorner}
+            />
+          )}
+        />
       </div>
     )
   }

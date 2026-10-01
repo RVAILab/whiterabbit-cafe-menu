@@ -179,3 +179,56 @@
   color: var(--wr-lav);
   font-variant-numeric: tabular-nums;
 }
+
+/* Calibration (SPEC §3.3). The grid is in stage px and warps with the pin;
+   handles and help live in viewport space. */
+.rh-root:has(.rh-calibration) { user-select: none; -webkit-user-select: none; cursor: default; }
+.rh-calgrid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(155, 233, 255, 0.35) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(155, 233, 255, 0.35) 2px, transparent 2px);
+  background-size: 120px 120px;
+  box-shadow: inset 0 0 0 6px var(--wr-cyan);
+}
+.rh-calgrid-circle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 240px;
+  height: 240px;
+  margin: -120px;
+  box-sizing: border-box;
+  border: 4px solid var(--wr-cyan);
+  border-radius: 50%;
+}
+.rh-calibration { position: absolute; inset: 0; }
+.rh-calhandle {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  margin: -22px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 4px solid var(--wr-cyan);
+  background: rgba(155, 233, 255, 0.25);
+  cursor: grab;
+  touch-action: none;
+}
+.rh-calhandle-selected { background: var(--wr-cyan); }
+.rh-calhelp {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 560px;
+  font: 600 15px/1.5 system-ui, sans-serif;
+  color: #000;
+  background: var(--wr-cyan);
+  padding: 12px 18px;
+  border-radius: 12px;
+  pointer-events: none;
+}
+.rh-calhelp p, .rh-calhelp ol { margin: 0.25em 0; }
+.rh-calhelp ol { padding-left: 1.4em; }
