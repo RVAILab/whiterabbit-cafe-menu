@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useScreenContext } from '../context/ScreenContext'
+import { useCalibration } from '../context/calibrationContext'
 import { useSleepMode } from '../context/SleepModeContext'
 import { useVisualization } from '../context/VisualizationContext'
 import {
@@ -127,7 +128,9 @@ export function useDisplayControl(
   const { setSleepMode, setClosedMode, setMassageMode } = useSleepMode()
   const { setVisualization, setFullscreen } = useVisualization()
   const { showScreen, returnToPrimary, keyMap } = useScreenContext()
+  const { start: startCalibration } = useCalibration()
   const handlersRef = useRef({
+    startCalibration,
     setSleepMode,
     setClosedMode,
     setMassageMode,
@@ -164,6 +167,7 @@ export function useDisplayControl(
   // disallowed by React's refs rule, so synchronize it after commit.
   useEffect(() => {
     handlersRef.current = {
+      startCalibration,
       setSleepMode,
       setClosedMode,
       setMassageMode,
@@ -173,7 +177,7 @@ export function useDisplayControl(
       returnToPrimary,
       keyMap,
     }
-  }, [keyMap, returnToPrimary, setClosedMode, setFullscreen, setMassageMode, setSleepMode, setVisualization, showScreen])
+  }, [keyMap, returnToPrimary, startCalibration, setClosedMode, setFullscreen, setMassageMode, setSleepMode, setVisualization, showScreen])
 
   useEffect(() => {
     let disposed = false
@@ -209,6 +213,12 @@ export function useDisplayControl(
 
       if (command.value === 'primary') {
         handlers.returnToPrimary()
+        return
+      }
+
+      // Calibration mode (rabbit hole only; a no-op elsewhere), not a screen key.
+      if (command.value === 'calibrate') {
+        handlers.startCalibration()
         return
       }
 
