@@ -70,7 +70,8 @@ export interface ProjectedMenuDocumentV2 {
 
 export type ProjectedMenuDocument = ProjectedMenuDocumentV1 | ProjectedMenuDocumentV2
 
-const SIDES: readonly MetaCategory[] = ['drink-me', 'eat-me']
+/** Every side WR-POS may send, in wall order; any other value is rejected. */
+const SIDES: readonly MetaCategory[] = ['drink-me', 'eat-me', 'bar']
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)

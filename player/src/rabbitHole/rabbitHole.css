@@ -176,6 +176,21 @@
   overflow: hidden;
 }
 
+/* Column 3 with the bar on: the eat-me plate, the Bar title and the bar
+   plate, each at its content's height. The stack, not its plates, is what
+   overflows, so auto-fit measures it too. */
+.rh-stack {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.rh-stack > .rh-plate { flex: none; }
+.rh-stack > .rh-title {
+  margin: 0.2em 0 14px;
+}
+
 .rh-section-heading {
   font-weight: 700;
   font-size: max(var(--rh-min-text), 0.62em);

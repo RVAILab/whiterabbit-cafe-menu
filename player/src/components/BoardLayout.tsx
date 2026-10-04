@@ -14,6 +14,7 @@ export function BoardLayout({ board, announcementBar, ignoreStockLevels }: Board
 
   // Safety check: ensure sections is an array
   const safeSections = sections || []
+  const hasBar = safeSections.some(s => s.metaCategory === 'bar')
 
   // Debug logging
   console.log('🎨 BoardLayout render:', {
@@ -62,13 +63,35 @@ export function BoardLayout({ board, announcementBar, ignoreStockLevels }: Board
             columnCount={drinkMeColumns}
           />
 
-          {/* Right Side: EAT ME */}
-          <MetaCategoryGroup
-            metaCategory="eat-me"
-            sections={safeSections}
-            ignoreStockLevels={ignoreStockLevels}
-            columnCount={eatMeColumns}
-          />
+          {/* Right Side: EAT ME, then BAR beneath it when there are bar sections */}
+          {hasBar ? (
+            <div className="flex flex-col" style={{ height: '100%', gap: '2rem', overflow: 'hidden' }}>
+              {/* Unsized wrappers let each group take its content's height */}
+              <div>
+                <MetaCategoryGroup
+                  metaCategory="eat-me"
+                  sections={safeSections}
+                  ignoreStockLevels={ignoreStockLevels}
+                  columnCount={eatMeColumns}
+                />
+              </div>
+              <div>
+                <MetaCategoryGroup
+                  metaCategory="bar"
+                  sections={safeSections}
+                  ignoreStockLevels={ignoreStockLevels}
+                  columnCount={eatMeColumns}
+                />
+              </div>
+            </div>
+          ) : (
+            <MetaCategoryGroup
+              metaCategory="eat-me"
+              sections={safeSections}
+              ignoreStockLevels={ignoreStockLevels}
+              columnCount={eatMeColumns}
+            />
+          )}
         </div>
       </main>
 

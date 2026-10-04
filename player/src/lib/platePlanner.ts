@@ -5,8 +5,11 @@ import {
 } from './projectedMenu'
 
 export type PlateSection = ProjectedMenuSectionV2
-/** Plates 1 and 2 hold drink-me, plate 3 holds eat-me. */
-export type Plates = [PlateSection[], PlateSection[], PlateSection[]]
+/**
+ * Plates 1 and 2 hold drink-me, plate 3 holds eat-me, and plate 4 holds the
+ * bar. Plate 4 has no column of its own: it stacks under plate 3.
+ */
+export type Plates = [PlateSection[], PlateSection[], PlateSection[], PlateSection[]]
 
 /**
  * Estimated rendered lines for a section: the reference player's heuristic.
@@ -62,6 +65,7 @@ export function planPlates(document: ProjectedMenuDocument): Plates {
   const sections = toV2Sections(document)
     .filter((section) => section.items.length > 0)
     .sort((left, right) => left.position - right.position)
-  const [plate1, plate2] = splitTwo(sections.filter((section) => section.side === 'drink-me'))
-  return [plate1, plate2, sections.filter((section) => section.side === 'eat-me')]
+  const side = (name: PlateSection['side']) => sections.filter((section) => section.side === name)
+  const [plate1, plate2] = splitTwo(side('drink-me'))
+  return [plate1, plate2, side('eat-me'), side('bar')]
 }

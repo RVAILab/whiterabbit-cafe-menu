@@ -24,6 +24,7 @@ export function PrintLayout({
 
   const drinkSections = safeSections.filter(s => s.metaCategory === 'drink-me')
   const eatSections = safeSections.filter(s => s.metaCategory === 'eat-me')
+  const barSections = safeSections.filter(s => s.metaCategory === 'bar')
 
   return (
     <div className={`print-page${theme === 'light' ? ' print-page-light' : ''}`}>
@@ -60,7 +61,7 @@ export function PrintLayout({
               </div>
             </div>
 
-            {/* Column 3: Eat Me */}
+            {/* Column 3: Eat Me, then Bar */}
             <div className="print-column print-column-eat">
               <h2 className="print-meta-header">Eat Me</h2>
               <div className="print-sections">
@@ -68,6 +69,16 @@ export function PrintLayout({
                   <PrintSection key={`eat-${i}`} section={section} />
                 ))}
               </div>
+              {barSections.length > 0 && (
+                <>
+                  <h2 className="print-meta-header">Bar</h2>
+                  <div className="print-sections">
+                    {barSections.map((section, i) => (
+                      <PrintSection key={`bar-${i}`} section={section} />
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Column 4: Grab & Go (hardcoded) */}
