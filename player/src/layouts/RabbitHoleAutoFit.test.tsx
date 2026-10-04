@@ -74,4 +74,40 @@ describe('rabbit hole auto-fit', () => {
     expect(screen.queryByTestId('rabbit-hole-stage')).toBeNull()
     expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/does not fit .*26px/))
   })
+
+  describe('with a bar stacked under eat-me', () => {
+    const withBar = () => {
+      const menu = structuredClone(sampleProjectedMenu)
+      const alcohol = { ...menu.sections.find((section) => section.id === 'sweet')!, id: 'alcohol', name: 'Alcohol', side: 'bar' as const, position: 0 }
+      return { ...menu, sections: [...menu.sections, alcohol] }
+    }
+
+    it('stacks the eat-me plate, the Bar title and the bar plate in column 3', async () => {
+      stubProjectionServer({ projectedMenu: withBar(), displayControl: displayControlV1() })
+      renderProjection('/projection?layout=rabbit-hole')
+      const stack = await screen.findByTestId('rabbit-hole-stack')
+
+      expect([...stack.children].map((child) => child.getAttribute('data-testid') ?? child.textContent)).toEqual([
+        'rabbit-hole-plate-3',
+        'Bar',
+        'rabbit-hole-plate-bar',
+      ])
+      expect(screen.getByTestId('rabbit-hole-plate-bar').textContent).toContain('Alcohol')
+    })
+
+    it('steps the type down until the stack fits, though its plates never overflow', async () => {
+      // Plates stay within their boxes; only the stack (800px) overflows, needing 900px at 32px.
+      vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockImplementation(function (this: HTMLElement) {
+        return this.classList.contains('rh-stack') ? PLATE_HEIGHT : 0
+      })
+      vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(function (this: HTMLElement) {
+        return this.classList.contains('rh-stack') ? Math.round((900 * baseSizeOf(this)) / 32) : 0
+      })
+      stubProjectionServer({ projectedMenu: withBar(), displayControl: displayControlV1() })
+      renderProjection('/projection?layout=rabbit-hole')
+      await screen.findByTestId('rabbit-hole-stack')
+
+      expect(menuBaseSize()).toBe('28px')
+    })
+  })
 })

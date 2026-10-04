@@ -253,6 +253,23 @@ describe('projected menu v2', () => {
     ])
   })
 
+  it('accepts the bar side and renders it after eat-me', () => {
+    const sections = toProjectedMenuSections(parseProjectedMenuDocument({
+      ...responseV2,
+      sections: [
+        { id: 'alcohol', name: 'Alcohol', side: 'bar', position: 0, items: [item(9, 'Cider')] },
+        ...responseV2.sections,
+      ],
+    }))
+
+    expect(sections.map(({ heading, metaCategory }) => [heading, metaCategory])).toEqual([
+      ['Noble Coffee', 'drink-me'],
+      ['Autumn Specials', 'drink-me'],
+      ['Eat Me', 'eat-me'],
+      ['Alcohol', 'bar'],
+    ])
+  })
+
   it('omits an empty section', () => {
     const sections = toProjectedMenuSections(parseProjectedMenuDocument({
       ...responseV2,
@@ -275,6 +292,7 @@ describe('projected menu v2', () => {
     ['an over-long id', { ...responseV2, sections: [{ ...section, id: 'a'.repeat(65) }] }],
     ['an empty name', { ...responseV2, sections: [{ ...section, name: '' }] }],
     ['an unknown side', { ...responseV2, sections: [{ ...section, side: 'sip-me' }] }],
+    ['a capitalized side', { ...responseV2, sections: [{ ...section, side: 'Bar' }] }],
     ['a fractional position', { ...responseV2, sections: [{ ...section, position: 1.5 }] }],
     ['a negative position', { ...responseV2, sections: [{ ...section, position: -1 }] }],
     ['a string position', { ...responseV2, sections: [{ ...section, position: '1' }] }],

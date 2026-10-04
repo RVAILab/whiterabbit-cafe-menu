@@ -11,7 +11,8 @@ interface MetaCategoryGroupProps {
 
 const META_CATEGORY_LABELS: Record<MetaCategory, string> = {
   'drink-me': 'DRINK ME',
-  'eat-me': 'EAT ME'
+  'eat-me': 'EAT ME',
+  'bar': 'BAR'
 }
 
 export function MetaCategoryGroup({

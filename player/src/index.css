@@ -569,6 +569,11 @@ body {
   z-index: 1;
 }
 
+/* A second group in a column (Bar under Eat Me) */
+.print-sections + .print-meta-header {
+  margin-top: 20pt;
+}
+
 /* Individual Section */
 .print-section {
   break-inside: avoid;

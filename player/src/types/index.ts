@@ -4,7 +4,7 @@ export type DietaryTag = 'VE' | 'V' | 'GF' | 'N' | 'ALC'
 
 export type AvailabilityOverride = 'use-inventory' | 'always-available' | 'force-unavailable'
 
-export type MetaCategory = 'drink-me' | 'eat-me'
+export type MetaCategory = 'drink-me' | 'eat-me' | 'bar'
 
 export type DisplayStyle = 'inline' | 'list'
 

@@ -45,6 +45,7 @@ describe('planPlates', () => {
       ['noble-coffee', 'chocolates'],
       ['tea-time', 'zi-spice-chai'],
       ['savory', 'sweet'],
+      [],
     ])
   })
 
@@ -56,7 +57,7 @@ describe('planPlates', () => {
       section('first', 'drink-me', 0, 3),
     ]))
 
-    expect(ids(plates)).toEqual([['first'], ['second'], ['savory', 'sweet']])
+    expect(ids(plates)).toEqual([['first'], ['second'], ['savory', 'sweet'], []])
   })
 
   it('chooses the split that minimizes the taller column', () => {
@@ -66,7 +67,7 @@ describe('planPlates', () => {
       section('b', 'drink-me', 1, 1),
       section('c', 'drink-me', 2, 1),
       section('d', 'drink-me', 3, 8),
-    ])))).toEqual([['a', 'b', 'c'], ['d'], []])
+    ])))).toEqual([['a', 'b', 'c'], ['d'], [], []])
 
     // Lines: 9.4, 2.4, 2.4, 2.4. The big one goes alone on plate 1.
     expect(ids(planPlates(doc([
@@ -74,7 +75,7 @@ describe('planPlates', () => {
       section('b', 'drink-me', 1, 1),
       section('c', 'drink-me', 2, 1),
       section('d', 'drink-me', 3, 1),
-    ])))).toEqual([['a'], ['b', 'c', 'd'], []])
+    ])))).toEqual([['a'], ['b', 'c', 'd'], [], []])
   })
 
   it('counts long names and variant groups as taller items', () => {
@@ -99,7 +100,7 @@ describe('planPlates', () => {
       { ...section('a', 'drink-me', 0, 0), items: [long(1), long(2), long(3)] },
       { ...section('b', 'drink-me', 1, 0), items: [sized(), sized()] },
       { ...section('c', 'drink-me', 2, 0), items: [teas()] },
-    ])))).toEqual([['a'], ['b', 'c'], []])
+    ])))).toEqual([['a'], ['b', 'c'], [], []])
   })
 
   it('drops empty sections', () => {
@@ -111,7 +112,7 @@ describe('planPlates', () => {
       section('c', 'eat-me', 1, 2),
     ]))
 
-    expect(ids(plates)).toEqual([['a'], ['b'], ['c']])
+    expect(ids(plates)).toEqual([['a'], ['b'], ['c'], []])
   })
 
   it('flows a new drink-me section in after the existing ones', () => {
@@ -124,7 +125,33 @@ describe('planPlates', () => {
       ['noble-coffee', 'chocolates'],
       ['tea-time', 'zi-spice-chai', 'cold-drinks'],
       ['savory', 'sweet'],
+      [],
     ])
+  })
+
+  it('puts bar sections on plate 4 by position, leaving the drink-me split alone', () => {
+    const withBar = doc([
+      section('wine', 'bar', 1, 2),
+      ...sampleProjectedMenu.sections,
+      section('beer', 'bar', 0, 3),
+      section('empty-bar', 'bar', 2, 0),
+    ])
+
+    expect(ids(planPlates(withBar))).toEqual([
+      ['noble-coffee', 'chocolates'],
+      ['tea-time', 'zi-spice-chai'],
+      ['savory', 'sweet'],
+      ['beer', 'wine'],
+    ])
+  })
+
+  it('leaves plate 3 empty when only the bar is beside the drinks', () => {
+    const barOnly = doc([
+      ...sampleProjectedMenu.sections.filter((s) => s.side === 'drink-me'),
+      section('alcohol', 'bar', 0, 5),
+    ])
+
+    expect(ids(planPlates(barOnly)).slice(2)).toEqual([[], ['alcohol']])
   })
 
   it('leaves plate 3 empty when the eat-me side is empty', () => {
@@ -145,6 +172,6 @@ describe('planPlates', () => {
       ],
     }
 
-    expect(ids(planPlates(v1))).toEqual([['noble-coffee'], ['tea-time'], ['eat-me']])
+    expect(ids(planPlates(v1))).toEqual([['noble-coffee'], ['tea-time'], ['eat-me'], []])
   })
 })
