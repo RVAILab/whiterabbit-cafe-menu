@@ -22,6 +22,8 @@ export interface RabbitHoleLayoutProps {
   background?: ReactNode
   /** Next event at the hole center (z 1). */
   holeEvent?: ReactNode
+  /** At the bottom of the menu's column 3 (the clubhouse notice). */
+  menuFooter?: ReactNode
   /** Gulp "*hic*" (z 3). */
   hic?: ReactNode
   /**
@@ -47,6 +49,7 @@ export function RabbitHoleLayout({
   calibration,
   background,
   holeEvent,
+  menuFooter,
   hic,
   overlays,
   stageClassName,
@@ -72,7 +75,7 @@ export function RabbitHoleLayout({
       <Stage ref={stageRef} className={stageClassName}>
         <StageLayer layer="background">{background}</StageLayer>
         <StageLayer layer="hole-event">{holeEvent}</StageLayer>
-        <StageLayer layer="menu"><RabbitHoleMenu plates={plates} onDoesNotFit={onDoesNotFit} /></StageLayer>
+        <StageLayer layer="menu"><RabbitHoleMenu plates={plates} footer={menuFooter} onDoesNotFit={onDoesNotFit} /></StageLayer>
         <StageLayer layer="hic">{hic}</StageLayer>
         <StageLayer layer="hud"><RabbitHoleHud /></StageLayer>
         <StageLayer layer="calibration-grid">{calibrating && <CalibrationGrid />}</StageLayer>

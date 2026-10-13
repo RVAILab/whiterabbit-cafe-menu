@@ -86,9 +86,8 @@ export function ProjectorLayout({
           background={
             <HoleCanvas variant={rabbitHole.variant} speed={rabbitHole.speed} speedTarget={rabbitHole.speedTarget} />
           }
-          holeEvent={isClubhouseMode
-            ? <ClubhouseNotice variant={rabbitHole.variant} />
-            : <HoleEvent variant={rabbitHole.variant} />}
+          holeEvent={<HoleEvent variant={rabbitHole.variant} />}
+          menuFooter={isClubhouseMode && <ClubhouseNotice />}
           overlays={<ProjectorOverlays />}
           stageRef={rabbitHole.stageRef}
           stageClassName={[rabbitHole.gulping && 'gulping', isClubhouseMode && 'clubhouse'].filter(Boolean).join(' ') || undefined}
