@@ -9,11 +9,12 @@ import { useSleepMode } from '../context/SleepModeContext'
  * - 0: Toggle sleep mode (barista away)
  * - 9: Toggle closed mode (cafe closed for the day)
  * - 8: Toggle massage mode (cafe closed for a few days)
+ * - 7: Toggle clubhouse mode (cafe closed, clubhouse open; the menu stays up)
  */
 export function useSleepModeControls() {
   const {
-    isSleepMode, isClosedMode, isMassageMode,
-    toggleSleepMode, toggleClosedMode, toggleMassageMode,
+    isSleepMode, isClosedMode, isMassageMode, isClubhouseMode,
+    toggleSleepMode, toggleClosedMode, toggleMassageMode, toggleClubhouseMode,
   } = useSleepMode()
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
@@ -31,9 +32,14 @@ export function useSleepModeControls() {
       event.preventDefault()
       toggleMassageMode()
     }
-  }, [toggleSleepMode, toggleClosedMode, toggleMassageMode])
+
+    if (event.key === '7') {
+      event.preventDefault()
+      toggleClubhouseMode()
+    }
+  }, [toggleSleepMode, toggleClosedMode, toggleMassageMode, toggleClubhouseMode])
 
   useProjectorKeys(handleKeyDown)
 
-  return { isSleepMode, isClosedMode, isMassageMode }
+  return { isSleepMode, isClosedMode, isMassageMode, isClubhouseMode }
 }

@@ -26,7 +26,7 @@ describe('parseDisplayControlSnapshot', () => {
     })
   })
 
-  it.each(['none', 'sleep', 'closed', 'massage'])('accepts the %s overlay', (overlay) => {
+  it.each(['none', 'sleep', 'closed', 'massage', 'clubhouse'])('accepts the %s overlay', (overlay) => {
     const snapshot = { ...validSnapshot, desired: { ...validSnapshot.desired, overlay } }
     expect(parseDisplayControlSnapshot(snapshot)).toEqual(snapshot)
   })
