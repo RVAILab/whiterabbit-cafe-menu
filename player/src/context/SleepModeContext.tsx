@@ -1,18 +1,22 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
 
-type OverlayMode = 'none' | 'sleep' | 'closed' | 'massage'
+export type OverlayMode = 'none' | 'sleep' | 'closed' | 'massage' | 'clubhouse'
 
 interface SleepModeContextValue {
   isSleepMode: boolean
   isClosedMode: boolean
   isMassageMode: boolean
+  /** The café is closed but the clubhouse is open: the menu stays up with the café hours. */
+  isClubhouseMode: boolean
   overlayMode: OverlayMode
   toggleSleepMode: () => void
   toggleClosedMode: () => void
   toggleMassageMode: () => void
+  toggleClubhouseMode: () => void
   setSleepMode: (active: boolean) => void
   setClosedMode: (active: boolean) => void
   setMassageMode: (active: boolean) => void
+  setClubhouseMode: (active: boolean) => void
 }
 
 const SleepModeContext = createContext<SleepModeContextValue | null>(null)
@@ -27,6 +31,7 @@ export function SleepModeProvider({ children }: SleepModeProviderProps) {
   const isSleepMode = overlayMode === 'sleep'
   const isClosedMode = overlayMode === 'closed'
   const isMassageMode = overlayMode === 'massage'
+  const isClubhouseMode = overlayMode === 'clubhouse'
 
   const toggleSleepMode = useCallback(() => {
     setOverlayMode(current => {
@@ -52,6 +57,14 @@ export function SleepModeProvider({ children }: SleepModeProviderProps) {
     })
   }, [])
 
+  const toggleClubhouseMode = useCallback(() => {
+    setOverlayMode(current => {
+      const newMode = current === 'clubhouse' ? 'none' : 'clubhouse'
+      console.log(`🏠 Clubhouse mode: ${newMode === 'clubhouse' ? 'ON' : 'OFF'}`)
+      return newMode
+    })
+  }, [])
+
   const setSleepMode = useCallback((active: boolean) => {
     setOverlayMode(active ? 'sleep' : 'none')
     console.log(`😴 Sleep mode set to: ${active ? 'ON' : 'OFF'}`)
@@ -67,11 +80,16 @@ export function SleepModeProvider({ children }: SleepModeProviderProps) {
     console.log(`💆 Massage mode set to: ${active ? 'ON' : 'OFF'}`)
   }, [])
 
+  const setClubhouseMode = useCallback((active: boolean) => {
+    setOverlayMode(active ? 'clubhouse' : 'none')
+    console.log(`🏠 Clubhouse mode set to: ${active ? 'ON' : 'OFF'}`)
+  }, [])
+
   return (
     <SleepModeContext.Provider value={{
-      isSleepMode, isClosedMode, isMassageMode, overlayMode,
-      toggleSleepMode, toggleClosedMode, toggleMassageMode,
-      setSleepMode, setClosedMode, setMassageMode,
+      isSleepMode, isClosedMode, isMassageMode, isClubhouseMode, overlayMode,
+      toggleSleepMode, toggleClosedMode, toggleMassageMode, toggleClubhouseMode,
+      setSleepMode, setClosedMode, setMassageMode, setClubhouseMode,
     }}>
       {children}
     </SleepModeContext.Provider>

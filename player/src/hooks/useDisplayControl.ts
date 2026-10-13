@@ -89,7 +89,7 @@ export function useDisplayControl(
 ): DisplayControlExtras {
   const [initialCache] = useState(restoreDisplayControl)
   const [extras, setExtras] = useState(() => cachedExtras(initialCache))
-  const { setSleepMode, setClosedMode, setMassageMode } = useSleepMode()
+  const { setSleepMode, setClosedMode, setMassageMode, setClubhouseMode } = useSleepMode()
   const { setVisualization, setFullscreen } = useVisualization()
   const { showScreen, returnToPrimary, keyMap } = useScreenContext()
   const { start: startCalibration } = useCalibration()
@@ -98,6 +98,7 @@ export function useDisplayControl(
     setSleepMode,
     setClosedMode,
     setMassageMode,
+    setClubhouseMode,
     setVisualization,
     setFullscreen,
     showScreen,
@@ -113,6 +114,8 @@ export function useDisplayControl(
       handlers.setClosedMode(true)
     } else if (snapshot.desired.overlay === 'massage') {
       handlers.setMassageMode(true)
+    } else if (snapshot.desired.overlay === 'clubhouse') {
+      handlers.setClubhouseMode(true)
     } else {
       handlers.setSleepMode(false)
     }
@@ -135,13 +138,14 @@ export function useDisplayControl(
       setSleepMode,
       setClosedMode,
       setMassageMode,
+      setClubhouseMode,
       setVisualization,
       setFullscreen,
       showScreen,
       returnToPrimary,
       keyMap,
     }
-  }, [keyMap, returnToPrimary, startCalibration, setClosedMode, setFullscreen, setMassageMode, setSleepMode, setVisualization, showScreen])
+  }, [keyMap, returnToPrimary, startCalibration, setClosedMode, setClubhouseMode, setFullscreen, setMassageMode, setSleepMode, setVisualization, showScreen])
 
   useEffect(() => {
     let disposed = false

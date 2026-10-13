@@ -14,6 +14,7 @@ const handlers = vi.hoisted(() => ({
   setSleepMode: vi.fn(),
   setClosedMode: vi.fn(),
   setMassageMode: vi.fn(),
+  setClubhouseMode: vi.fn(),
   setVisualization: vi.fn(),
   setFullscreen: vi.fn(),
   showScreen: vi.fn(),
@@ -26,6 +27,7 @@ vi.mock('../context/SleepModeContext', () => ({
     setSleepMode: handlers.setSleepMode,
     setClosedMode: handlers.setClosedMode,
     setMassageMode: handlers.setMassageMode,
+    setClubhouseMode: handlers.setClubhouseMode,
   }),
 }))
 vi.mock('../context/VisualizationContext', () => ({
@@ -191,6 +193,19 @@ describe('useDisplayControl', () => {
     expect(handlers.setMassageMode).toHaveBeenCalledWith(true)
     expect(handlers.setSleepMode).not.toHaveBeenCalled()
     expect(handlers.setClosedMode).not.toHaveBeenCalled()
+  })
+
+  it('applies the clubhouse overlay from a snapshot', async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(response(snapshot(3, {
+      desired: { overlay: 'clubhouse', visualization: 'none', visualizationMode: 'background' },
+    })))
+    vi.stubGlobal('fetch', fetchMock)
+
+    render(<Harness interval={0} />)
+    await flushRequest()
+
+    expect(handlers.setClubhouseMode).toHaveBeenCalledWith(true)
+    expect(handlers.setSleepMode).not.toHaveBeenCalled()
   })
 
   it('ignores stale and equal revisions', async () => {

@@ -1,7 +1,7 @@
 import type { VisualizationType } from '../context/VisualizationContext'
 import type { ProjectionLayout } from './effectiveLayout'
 
-export type DisplayOverlay = 'none' | 'sleep' | 'closed' | 'massage'
+export type DisplayOverlay = 'none' | 'sleep' | 'closed' | 'massage' | 'clubhouse'
 export type DisplayVisualizationMode = 'background' | 'fullscreen'
 
 export interface DisplayControlDesiredV1 {
@@ -138,6 +138,7 @@ const hasValidDesiredV1Values = (value: Record<string, unknown>) =>
     || value.overlay === 'sleep'
     || value.overlay === 'closed'
     || value.overlay === 'massage'
+    || value.overlay === 'clubhouse'
   )
   && (
     value.visualization === 'none'

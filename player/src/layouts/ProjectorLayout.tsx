@@ -12,10 +12,13 @@ import { useKeyboardControls } from '../hooks/useKeyboardControls'
 import { useVisualizationControls } from '../hooks/useVisualizationControls'
 import { useSleepModeControls } from '../hooks/useSleepModeControls'
 import { useDisplayControl } from '../hooks/useDisplayControl'
+import { useSleepMode } from '../context/SleepModeContext'
 import type { ProjectedMenuDocument } from '../lib/projectedMenu'
+import { CAFE_HOURS, CLUBHOUSE_HOURS, cafeHeadline } from '../lib/cafeHours'
 import { RabbitHoleLayout } from '../rabbitHole/RabbitHoleLayout'
 import { HoleCanvas } from '../rabbitHole/HoleCanvas'
 import { HoleEvent } from '../rabbitHole/HoleEvent'
+import { ClubhouseNotice } from '../rabbitHole/ClubhouseNotice'
 import { GulpHic } from '../rabbitHole/GulpHic'
 import { useRabbitHole } from '../rabbitHole/useRabbitHole'
 import type { MenuBoard, SecondaryScreen } from '../types'
@@ -50,6 +53,7 @@ export function ProjectorLayout({
   useKeyboardControls()
   useVisualizationControls()
   useSleepModeControls()
+  const { isClubhouseMode } = useSleepMode()
   const displayControl = useDisplayControl()
   const rabbitHole = useRabbitHole({ document, search, displayControl })
 
@@ -82,10 +86,12 @@ export function ProjectorLayout({
           background={
             <HoleCanvas variant={rabbitHole.variant} speed={rabbitHole.speed} speedTarget={rabbitHole.speedTarget} />
           }
-          holeEvent={<HoleEvent variant={rabbitHole.variant} />}
+          holeEvent={isClubhouseMode
+            ? <ClubhouseNotice variant={rabbitHole.variant} />
+            : <HoleEvent variant={rabbitHole.variant} />}
           overlays={<ProjectorOverlays />}
           stageRef={rabbitHole.stageRef}
-          stageClassName={rabbitHole.gulping ? 'gulping' : undefined}
+          stageClassName={[rabbitHole.gulping && 'gulping', isClubhouseMode && 'clubhouse'].filter(Boolean).join(' ') || undefined}
           hic={<GulpHic />}
           onDoesNotFit={rabbitHole.onDoesNotFit}
           calibration={rabbitHole.calibration}
@@ -115,7 +121,9 @@ export function ProjectorLayout({
       >
         <BoardLayout
           board={board}
-          announcementBar={announcementBar}
+          announcementBar={isClubhouseMode
+            ? `Clubhouse open · ${cafeHeadline(new Date())} · Café ${CAFE_HOURS} · Clubhouse ${CLUBHOUSE_HOURS}`
+            : announcementBar}
           ignoreStockLevels={ignoreStockLevels}
         />
       </div>

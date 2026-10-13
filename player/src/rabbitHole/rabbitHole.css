@@ -116,6 +116,61 @@
   color: var(--wr-pink);
 }
 
+/* Clubhouse overlay (café closed, clubhouse open): the notice sits on its
+   own plate at the hole, in place of the next event. The menu stays up with
+   its text dimmed (plates stay opaque), so it reads as "what we serve"
+   rather than "order now". */
+.rh-stage.clubhouse .rh-title,
+.rh-stage.clubhouse .rh-plate > section { opacity: 0.5; }
+.rh-clubhouse {
+  position: absolute;
+  width: 500px;
+  box-sizing: border-box;
+  transform: translate(-50%, -50%);
+  padding: 30px 36px 34px;
+  background: var(--wr-plate);
+  border: 3px solid var(--wr-gold);
+  border-radius: 26px;
+  text-align: center;
+}
+.rh-clubhouse-label {
+  display: block;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--wr-gold);
+}
+.rh-clubhouse-title {
+  display: block;
+  font-weight: 800;
+  font-size: 60px;
+  line-height: 1.05;
+  text-wrap: balance;
+  margin: 0.15em 0 0.45em;
+}
+.rh-clubhouse-hours {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 0;
+  padding-top: 24px;
+  border-top: 2px solid var(--wr-plate-line);
+}
+.rh-clubhouse-hours dt {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--wr-pink);
+}
+.rh-clubhouse-hours dd {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 /* Viewport-space content (calibration handles, help card): outside the pin. */
 /* Overlays live in viewport space, outside the pin (see RabbitHoleLayout). */
 .rh-overlays { position: absolute; inset: 0; z-index: 5; pointer-events: none; }

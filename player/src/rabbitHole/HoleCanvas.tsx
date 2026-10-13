@@ -64,7 +64,8 @@ export function HoleCanvas({ variant, speed, speedTarget = 1, paused = false }: 
       variant: getHoleVariant(variant),
       speed,
       speedTarget,
-      paused: paused || hidden || overlayMode !== 'none',
+      // The clubhouse overlay keeps the menu up, so the hole keeps turning.
+      paused: paused || hidden || (overlayMode !== 'none' && overlayMode !== 'clubhouse'),
       reducedMotion,
     })
   }, [variant, speed, speedTarget, paused, hidden, overlayMode, reducedMotion])
