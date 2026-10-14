@@ -116,18 +116,24 @@
   color: var(--wr-pink);
 }
 
-/* Clubhouse overlay (café closed, clubhouse open): the notice sits on its
-   own plate at the hole, in place of the next event. The menu stays up with
-   its text dimmed (plates stay opaque), so it reads as "what we serve"
-   rather than "order now". */
+/* Clubhouse overlay (café closed, clubhouse open): the notice is a plate at
+   the bottom of column 3, under that column's plates, which shrink to make
+   room. The rest of the menu stays up with its text dimmed (plates stay
+   opaque), so it reads as "what we serve" rather than "order now". */
 .rh-stage.clubhouse .rh-title,
 .rh-stage.clubhouse .rh-plate > section { opacity: 0.5; }
+.rh-col3 {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.rh-col3 > .rh-plate,
+.rh-col3 > .rh-stack { flex: 1 1 auto; min-height: 0; }
 .rh-clubhouse {
-  position: absolute;
-  width: 500px;
-  box-sizing: border-box;
-  transform: translate(-50%, -50%);
-  padding: 30px 36px 34px;
+  flex: none;
+  margin-top: 18px;
+  padding: 22px 24px 24px;
   background: var(--wr-plate);
   border: 3px solid var(--wr-gold);
   border-radius: 26px;
@@ -135,7 +141,7 @@
 }
 .rh-clubhouse-label {
   display: block;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -144,17 +150,17 @@
 .rh-clubhouse-title {
   display: block;
   font-weight: 800;
-  font-size: 60px;
+  font-size: 44px;
   line-height: 1.05;
   text-wrap: balance;
-  margin: 0.15em 0 0.45em;
+  margin: 0.15em 0 0.4em;
 }
 .rh-clubhouse-hours {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 10px;
   margin: 0;
-  padding-top: 24px;
+  padding-top: 16px;
   border-top: 2px solid var(--wr-plate-line);
 }
 .rh-clubhouse-hours dt {
@@ -166,7 +172,7 @@
 }
 .rh-clubhouse-hours dd {
   margin: 0;
-  font-size: 34px;
+  font-size: 28px;
   font-weight: 600;
   white-space: nowrap;
 }

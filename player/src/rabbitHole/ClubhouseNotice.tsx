@@ -1,21 +1,15 @@
 import { useEffect, useState } from 'react'
 import { CAFE_HOURS, CLUBHOUSE_HOURS, cafeHeadline } from '../lib/cafeHours'
-import { getHoleVariant } from './holeVariants'
 
 const REFRESH_MS = 60_000
 
-interface ClubhouseNoticeProps {
-  /** The active hole variant id; its `holeCenter` places the notice. */
-  variant: string
-}
-
 /**
  * The clubhouse overlay in the rabbit hole: the café is closed, the clubhouse
- * is open. Takes the hole event's place at the hole center, inside the pinned
- * stage, while the menu stays up (dimmed by the stage's `clubhouse` class).
+ * is open. A plate at the bottom of the menu's column 3, inside the pinned
+ * stage, while the rest of the menu stays up (dimmed by the stage's
+ * `clubhouse` class).
  */
-export function ClubhouseNotice({ variant }: ClubhouseNoticeProps) {
-  const { holeCenter: [x, y] } = getHoleVariant(variant)
+export function ClubhouseNotice() {
   const [now, setNow] = useState(() => new Date())
 
   useEffect(() => {
@@ -24,7 +18,7 @@ export function ClubhouseNotice({ variant }: ClubhouseNoticeProps) {
   }, [])
 
   return (
-    <div className="rh-clubhouse" data-testid="rh-clubhouse" style={{ left: `${x}px`, top: `${y}px` }}>
+    <div className="rh-clubhouse" data-testid="rh-clubhouse">
       <small className="rh-clubhouse-label">Clubhouse open</small>
       <strong className="rh-clubhouse-title">{cafeHeadline(now)}</strong>
       <dl className="rh-clubhouse-hours">

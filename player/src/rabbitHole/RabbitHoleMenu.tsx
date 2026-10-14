@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useMemo, useRef, type ReactNode } from 'react'
 import type { PlateSection, Plates } from '../lib/platePlanner'
 import { RabbitHoleItem } from './RabbitHoleItem'
 import { useAutoFit } from './useAutoFit'
@@ -29,13 +29,33 @@ const barTitle = (order: number) => (
  * and plates carry `rh-gulp-target` and `data-gulp-order` (titles 0, plates by
  * index, the stacked Bar title and plate 3) for the gulp to animate.
  * Auto-fits `--fs` to the plates; `onDoesNotFit` fires when even 26px overflows.
+ * A `footer` (the clubhouse notice) sits at the bottom of column 3, under its
+ * plates, which give up the height it takes; auto-fit re-runs when it appears.
  */
-export function RabbitHoleMenu({ plates, onDoesNotFit }: { plates: Plates; onDoesNotFit?: () => void }) {
+export function RabbitHoleMenu({ plates, footer, onDoesNotFit }: {
+  plates: Plates
+  footer?: ReactNode
+  onDoesNotFit?: () => void
+}) {
   const menuRef = useRef<HTMLDivElement>(null)
-  useAutoFit(menuRef, plates, onDoesNotFit)
+  const hasFooter = Boolean(footer)
+  const fitContent = useMemo(() => ({ plates, hasFooter }), [plates, hasFooter])
+  useAutoFit(menuRef, fitContent, onDoesNotFit)
   const [drink1, drink2, eat, bar] = plates
   const barOnly = bar.length > 0 && eat.length === 0
   const stacked = bar.length > 0 && eat.length > 0
+
+  const column3 = stacked ? (
+    <div className="rh-stack" data-testid="rabbit-hole-stack">
+      <Plate sections={eat} order={2} testId="rabbit-hole-plate-3" />
+      {barTitle(3)}
+      <Plate sections={bar} order={3} testId="rabbit-hole-plate-bar" />
+    </div>
+  ) : barOnly ? (
+    <Plate sections={bar} order={2} testId="rabbit-hole-plate-bar" />
+  ) : (
+    <Plate sections={eat} order={2} testId="rabbit-hole-plate-3" />
+  )
 
   return (
     <div ref={menuRef} className="rh-menu" data-testid="rabbit-hole-menu">
@@ -52,17 +72,12 @@ export function RabbitHoleMenu({ plates, onDoesNotFit }: { plates: Plates; onDoe
       <div className="rh-plates">
         <Plate sections={drink1} order={0} testId="rabbit-hole-plate-1" />
         <Plate sections={drink2} order={1} testId="rabbit-hole-plate-2" />
-        {stacked ? (
-          <div className="rh-stack" data-testid="rabbit-hole-stack">
-            <Plate sections={eat} order={2} testId="rabbit-hole-plate-3" />
-            {barTitle(3)}
-            <Plate sections={bar} order={3} testId="rabbit-hole-plate-bar" />
+        {footer ? (
+          <div className="rh-col3" data-testid="rabbit-hole-col3">
+            {column3}
+            {footer}
           </div>
-        ) : barOnly ? (
-          <Plate sections={bar} order={2} testId="rabbit-hole-plate-bar" />
-        ) : (
-          <Plate sections={eat} order={2} testId="rabbit-hole-plate-3" />
-        )}
+        ) : column3}
       </div>
     </div>
   )
