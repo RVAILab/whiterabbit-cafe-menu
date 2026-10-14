@@ -13,6 +13,7 @@ import { useVisualizationControls } from '../hooks/useVisualizationControls'
 import { useSleepModeControls } from '../hooks/useSleepModeControls'
 import { useDisplayControl } from '../hooks/useDisplayControl'
 import { useSleepMode } from '../context/SleepModeContext'
+import { useBeforeCafeOpens } from '../hooks/useBeforeCafeOpens'
 import type { ProjectedMenuDocument } from '../lib/projectedMenu'
 import { CAFE_HOURS, CLUBHOUSE_HOURS, cafeHeadline } from '../lib/cafeHours'
 import { RabbitHoleLayout } from '../rabbitHole/RabbitHoleLayout'
@@ -53,7 +54,10 @@ export function ProjectorLayout({
   useKeyboardControls()
   useVisualizationControls()
   useSleepModeControls()
-  const { isClubhouseMode } = useSleepMode()
+  const { isClubhouseMode: clubhouseChosen, overlayMode } = useSleepMode()
+  const beforeCafeOpens = useBeforeCafeOpens()
+  // Before the café opens the clubhouse notice is the default; any overlay staff choose wins.
+  const isClubhouseMode = clubhouseChosen || (overlayMode === 'none' && beforeCafeOpens)
   const displayControl = useDisplayControl()
   const rabbitHole = useRabbitHole({ document, search, displayControl })
 

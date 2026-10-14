@@ -3,7 +3,10 @@ import { act, cleanup, fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { sampleProjectedMenu } from '../test/fixtures/sampleProjectedMenu'
 import {
+  advance,
+  bootProjection,
   displayControlV2,
+  fakeProjectionTimers,
   renderProjection,
   rovaEvents,
   stubLocalStorage,
@@ -62,5 +65,42 @@ describe('the clubhouse overlay in the rabbit hole', () => {
     expect(screen.queryByTestId('rh-clubhouse')).toBeNull()
     expect(screen.queryByTestId('rabbit-hole-col3')).toBeNull()
     expect(screen.getByTestId('rabbit-hole-stage').classList.contains('clubhouse')).toBe(false)
+  })
+})
+
+describe('the clubhouse notice before the café opens', () => {
+  const noOverlay = () => displayControlV2({ desired: { overlay: 'none', layout: 'rabbit-hole' } })
+
+  it('shows by default before 10am Pacific and goes away by itself at 10', async () => {
+    server.displayControl = noOverlay()
+    fakeProjectionTimers()
+    vi.setSystemTime(new Date('2026-10-12T16:59:00Z')) // Monday 9:59am PDT
+    await bootProjection('/projection')
+
+    expect(screen.getByTestId('rh-clubhouse')).toBeTruthy()
+    expect(within(screen.getByTestId('rh-clubhouse')).getByText('Café opens at 10am')).toBeTruthy()
+
+    await advance(61_000)
+
+    expect(screen.queryByTestId('rh-clubhouse')).toBeNull()
+    vi.useRealTimers()
+  })
+
+  it('stays off after 10am when staff chose no overlay', async () => {
+    server.displayControl = noOverlay()
+    renderProjection('/projection')
+    await screen.findByTestId('rabbit-hole-menu')
+
+    expect(screen.queryByTestId('rh-clubhouse')).toBeNull()
+  })
+
+  it('gives way to an overlay staff chose, such as sleep', async () => {
+    server.displayControl = displayControlV2({ desired: { overlay: 'sleep', layout: 'rabbit-hole' } })
+    fakeProjectionTimers()
+    vi.setSystemTime(new Date('2026-10-12T15:00:00Z')) // Monday 8am PDT
+    await bootProjection('/projection')
+
+    expect(screen.queryByTestId('rh-clubhouse')).toBeNull()
+    vi.useRealTimers()
   })
 })
