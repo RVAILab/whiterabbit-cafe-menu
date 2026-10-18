@@ -121,6 +121,11 @@ describe('choosing the hole variant', () => {
     expect(activeVariant()).toBe('vortex')
   })
 
+  it('selects portal from ?variant= alone', async () => {
+    await bootProjection('/projection?layout=rabbit-hole&variant=portal')
+    expect(activeVariant()).toBe('portal')
+  })
+
   it('falls back to dive, with a warning, for an unknown ?variant=', async () => {
     await bootProjection('/projection?layout=rabbit-hole&variant=wormhole')
     expect(activeVariant()).toBe('dive')
@@ -157,7 +162,7 @@ describe('choosing the hole speed', () => {
   })
 })
 
-describe('Shift+1 / Shift+2 (dev builds only)', () => {
+describe('Shift+1 / Shift+2 / Shift+3 (dev builds only)', () => {
   it('switch the variant locally in dev', async () => {
     await bootProjection('/projection?layout=rabbit-hole')
     const canvas = holeCanvas()
@@ -165,6 +170,8 @@ describe('Shift+1 / Shift+2 (dev builds only)', () => {
 
     press('@', { shiftKey: true })
     expect(canvas.getAttribute('data-variant')).toBe('vortex')
+    press('#', { shiftKey: true })
+    expect(canvas.getAttribute('data-variant')).toBe('portal')
     press('!', { shiftKey: true })
     expect(canvas.getAttribute('data-variant')).toBe('dive')
   })

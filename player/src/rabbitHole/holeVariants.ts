@@ -1,4 +1,5 @@
 import { drawDive } from './variants/dive'
+import { drawPortal } from './variants/portal'
 import { drawVortex } from './variants/vortex'
 
 /**
@@ -8,13 +9,13 @@ import { drawVortex } from './variants/vortex'
  * Adding one (later burrow/clocks/shaft/doors): write a pure
  * `draw` in `variants/`, add its id to `HoleVariantId`, register it below.
  */
-export type HoleVariantId = 'dive' | 'vortex'
+export type HoleVariantId = 'dive' | 'vortex' | 'portal'
 
 export interface HoleVariant {
   id: HoleVariantId
   /** Shown in the POS picker. */
   label: string
-  /** Stage px. Both v1 variants use (300, 520). */
+  /** Stage px. Every variant so far uses (300, 520). */
   holeCenter: [number, number]
   /** Over the next event at the hole. */
   eventLabel: string
@@ -41,6 +42,13 @@ export const HOLE_VARIANTS: Record<HoleVariantId, HoleVariant> = {
     holeCenter: [300, 520],
     eventLabel: 'Get sucked into',
     draw: drawVortex,
+  },
+  portal: {
+    id: 'portal',
+    label: 'Portal',
+    holeCenter: [300, 520],
+    eventLabel: 'Next event',
+    draw: drawPortal,
   },
 }
 
