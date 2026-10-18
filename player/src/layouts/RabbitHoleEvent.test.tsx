@@ -114,6 +114,25 @@ describe('the next event at the bottom of the rabbit hole', () => {
     expect(within(block).queryByText("We're all mad here")).toBeNull()
   })
 
+  it('shows a long title in full, shrunk to fit the hole', async () => {
+    const longTitle = 'An Evening of Improvised Tea Ceremony and Mad Hatter Riddles'
+    server.rovaEvents = rovaEvents({ title: longTitle, startsAt: tomorrowAtSix() })
+    stubProjectionServer(server)
+    // jsdom has no layout: give the title 60 chars' worth of lines at its --title-fs.
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockImplementation(function (this: HTMLElement) {
+      const fs = parseFloat(this.style.getPropertyValue('--title-fs')) || 0
+      if (!fs) return 0
+      return Math.ceil((this.textContent ?? '').length / Math.floor(360 / (fs * 0.55))) * fs * 1.05
+    })
+    renderProjection('/projection?layout=rabbit-hole')
+
+    const block = await holeEvent()
+    const title = await within(block).findByText(longTitle)
+    expect(title.textContent).toBe(longTitle)
+    await vi.waitFor(() => expect(title.style.getPropertyValue('--title-fs')).toBe('30px'))
+    expect(title.dataset.fit).toBeUndefined()
+  })
+
   describe('with another registered variant', () => {
     const id = 'vortex' as HoleVariantId
     let original: HoleVariant | undefined

@@ -1,6 +1,8 @@
+import { useRef } from 'react'
 import { useUpcomingEvent } from '../hooks/useUpcomingEvent'
 import { formatRelativeEventTime } from '../lib/eventTime'
 import { getHoleVariant } from './holeVariants'
+import { useEventTitleFit } from './useEventTitleFit'
 
 const FALLBACK_LABEL = 'White Rabbit'
 const FALLBACK_TITLE = "We're all mad here"
@@ -15,7 +17,8 @@ interface HoleEventProps {
  * the variant's hole center. With no upcoming event (or Rova unreachable) it
  * reads "White Rabbit / We're all mad here", so the hole never looks empty.
  * Until the first Rova request settles it is empty, so the fallback never
- * flashes before a real event.
+ * flashes before a real event. The title is never truncated: it shrinks to
+ * fit the hole (`useEventTitleFit`).
  *
  * The block carries `.rh-hole-event` (testid `rh-hole-event`) for the gulp to
  * fade it out and back in; it has no fade of its own.
@@ -26,6 +29,9 @@ export function HoleEvent({ variant }: HoleEventProps) {
     enabled: true,
     pollInterval: parseInt(import.meta.env.VITE_ROVA_POLL_INTERVAL || '60000', 10),
   })
+  const titleRef = useRef<HTMLElement>(null)
+  const title = isLoading ? null : upcomingEvent ? upcomingEvent.title : FALLBACK_TITLE
+  useEventTitleFit(titleRef, title)
 
   const style = { left: `${x}px`, top: `${y}px` }
   if (isLoading) return <div className="rh-hole-event" data-testid="rh-hole-event" style={style} />
@@ -33,7 +39,7 @@ export function HoleEvent({ variant }: HoleEventProps) {
   return (
     <div className="rh-hole-event" data-testid="rh-hole-event" data-variant={id} style={style}>
       <small className="rh-hole-event-label">{upcomingEvent ? eventLabel : FALLBACK_LABEL}</small>
-      <strong className="rh-hole-event-title">{upcomingEvent ? upcomingEvent.title : FALLBACK_TITLE}</strong>
+      <strong ref={titleRef} className="rh-hole-event-title">{title}</strong>
       {upcomingEvent && (
         <span className="rh-hole-event-time">{formatRelativeEventTime(upcomingEvent.startsAt)}</span>
       )}

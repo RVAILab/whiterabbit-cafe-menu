@@ -38,3 +38,33 @@ export function fitBaseSize(
 export function menuFitSignature(document: ProjectedMenuDocument): string {
   return JSON.stringify({ ...document, generatedAt: undefined })
 }
+
+/** Next event title sizes (stage px) the hole tries, largest first; 26 matches the menu's floor. */
+export const EVENT_TITLE_SIZES = [58, 54, 50, 46, 42, 38, 34, 30, 26] as const
+
+/** The title's height budget: two lines at 58px × 1.05, the block's footprint in the hole. */
+export const EVENT_TITLE_MAX_HEIGHT = 122
+
+/** The title's measured box at one size. */
+export interface TitleBox {
+  height: number
+  scrollWidth: number
+  clientWidth: number
+}
+
+/**
+ * Pick the largest title size at which the whole title fits the hole: no
+ * taller than `maxHeight`, and no single word wider than the block. Returns
+ * `fits: false` at the floor; the title then shows in full anyway, taller.
+ */
+export function fitEventTitle(
+  measureAt: (fs: number) => TitleBox,
+  sizes: readonly number[] = EVENT_TITLE_SIZES,
+  maxHeight = EVENT_TITLE_MAX_HEIGHT,
+): FitResult {
+  for (const fs of sizes) {
+    const { height, scrollWidth, clientWidth } = measureAt(fs)
+    if (height <= maxHeight + 1 && scrollWidth <= clientWidth + 1) return { fits: true, fs }
+  }
+  return { fits: false, fs: sizes[sizes.length - 1] }
+}
