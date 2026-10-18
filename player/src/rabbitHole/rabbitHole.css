@@ -100,17 +100,16 @@
   text-transform: uppercase;
   color: var(--wr-gold);
 }
+/* Never clamped: useEventTitleFit shrinks --title-fs (58 → 26) until the whole
+   title fits two 58px lines' height. */
 .rh-hole-event-title {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  display: block;
   font-weight: 800;
-  font-size: 58px;
+  font-size: var(--title-fs, 58px);
   line-height: 1.05;
   margin: 0.08em 0;
 }
+.rh-hole-event-title[data-fit='floor'] { overflow-wrap: anywhere; }
 .rh-hole-event-time {
   font-size: 26px;
   color: var(--wr-pink);
