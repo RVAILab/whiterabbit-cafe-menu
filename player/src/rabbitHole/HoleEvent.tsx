@@ -21,7 +21,7 @@ interface HoleEventProps {
  * fade it out and back in; it has no fade of its own.
  */
 export function HoleEvent({ variant }: HoleEventProps) {
-  const { holeCenter: [x, y], eventLabel } = getHoleVariant(variant)
+  const { id, holeCenter: [x, y], eventLabel } = getHoleVariant(variant)
   const { upcomingEvent, isLoading } = useUpcomingEvent({
     enabled: true,
     pollInterval: parseInt(import.meta.env.VITE_ROVA_POLL_INTERVAL || '60000', 10),
@@ -31,7 +31,7 @@ export function HoleEvent({ variant }: HoleEventProps) {
   if (isLoading) return <div className="rh-hole-event" data-testid="rh-hole-event" style={style} />
 
   return (
-    <div className="rh-hole-event" data-testid="rh-hole-event" style={style}>
+    <div className="rh-hole-event" data-testid="rh-hole-event" data-variant={id} style={style}>
       <small className="rh-hole-event-label">{upcomingEvent ? eventLabel : FALLBACK_LABEL}</small>
       <strong className="rh-hole-event-title">{upcomingEvent ? upcomingEvent.title : FALLBACK_TITLE}</strong>
       {upcomingEvent && (

@@ -115,6 +115,14 @@
   font-size: 26px;
   color: var(--wr-pink);
 }
+/* Dive rings sweep right through the text: a dark halo keeps the strokes legible. */
+.rh-hole-event[data-variant='dive'] {
+  text-shadow:
+    0 0 4px #000,
+    0 0 10px #000,
+    0 0 18px rgba(0, 0, 0, 0.85),
+    0 2px 4px #000;
+}
 
 /* Clubhouse overlay (café closed, clubhouse open): the notice is a plate at
    the bottom of column 3, under that column's plates, which shrink to make
