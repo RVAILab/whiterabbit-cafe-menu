@@ -47,8 +47,8 @@ describe('the clubhouse overlay in the rabbit hole', () => {
     expect(column3?.lastElementChild).toBe(notice)
     expect(column3?.closest('[data-testid="rabbit-hole-menu"]')).toBeTruthy()
     expect(within(notice).getByText('Clubhouse open')).toBeTruthy()
-    expect(within(notice).getByText('10am–6pm · Mon–Sat')).toBeTruthy()
-    expect(within(notice).getByText('from 9am')).toBeTruthy()
+    expect(within(notice).getByText('Mon–Fri 10am–6pm · Sat 10am–5pm')).toBeTruthy()
+    expect(within(notice).getByText('Mon–Fri 9am–6pm · Sat 10am–5pm')).toBeTruthy()
     expect(await screen.findByTestId('rh-hole-event')).toBeTruthy()
 
     expect(screen.getByTestId('rabbit-hole-menu')).toBeTruthy()

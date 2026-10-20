@@ -4,8 +4,8 @@
  * projector's default (`beforeCafeOpens`). Times are the café's, Pacific,
  * whatever zone the player's machine is set to.
  */
-export const CAFE_HOURS = '10am–6pm · Mon–Sat'
-export const CLUBHOUSE_HOURS = 'from 9am'
+export const CAFE_HOURS = 'Mon–Fri 10am–6pm · Sat 10am–5pm'
+export const CLUBHOUSE_HOURS = 'Mon–Fri 9am–6pm · Sat 10am–5pm'
 
 const CAFE_OPENS_HOUR = 10
 const CAFE_TIME_ZONE = 'America/Los_Angeles'

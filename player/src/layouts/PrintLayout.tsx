@@ -42,8 +42,8 @@ export function PrintLayout({
           </div>
           <div className="print-brand-bottom">
             <div className="print-hours">
-              <p className="print-hours-line">Mon–Fri &nbsp; 9am–5pm</p>
-              <p className="print-hours-line">Sat &nbsp; 9am–5pm</p>
+              <p className="print-hours-line">Mon–Fri &nbsp; 10am–6pm</p>
+              <p className="print-hours-line">Sat &nbsp; 10am–5pm</p>
             </div>
           </div>
         </div>
