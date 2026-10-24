@@ -114,8 +114,9 @@
   font-size: 26px;
   color: var(--wr-pink);
 }
-/* Dive rings sweep right through the text: a dark halo keeps the strokes legible. */
-.rh-hole-event[data-variant='dive'] {
+/* Dive rings and the Upside Down's storm run behind the text: a dark halo keeps the strokes legible. */
+.rh-hole-event[data-variant='dive'],
+.rh-hole-event[data-variant='upside-down'] {
   text-shadow:
     0 0 4px #000,
     0 0 10px #000,

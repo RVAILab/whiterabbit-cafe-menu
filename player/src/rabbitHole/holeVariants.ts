@@ -1,5 +1,6 @@
 import { drawDive } from './variants/dive'
 import { drawPortal } from './variants/portal'
+import { drawUpsideDown } from './variants/upsideDown'
 import { drawVortex } from './variants/vortex'
 
 /**
@@ -9,7 +10,7 @@ import { drawVortex } from './variants/vortex'
  * Adding one (later burrow/clocks/shaft/doors): write a pure
  * `draw` in `variants/`, add its id to `HoleVariantId`, register it below.
  */
-export type HoleVariantId = 'dive' | 'vortex' | 'portal'
+export type HoleVariantId = 'dive' | 'vortex' | 'portal' | 'upside-down'
 
 export interface HoleVariant {
   id: HoleVariantId
@@ -49,6 +50,13 @@ export const HOLE_VARIANTS: Record<HoleVariantId, HoleVariant> = {
     holeCenter: [300, 520],
     eventLabel: 'Next event',
     draw: drawPortal,
+  },
+  'upside-down': {
+    id: 'upside-down',
+    label: 'Upside Down',
+    holeCenter: [300, 520],
+    eventLabel: "Something's coming",
+    draw: drawUpsideDown,
   },
 }
 

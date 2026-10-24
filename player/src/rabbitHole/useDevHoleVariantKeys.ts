@@ -3,17 +3,18 @@ import { useProjectorKeys } from '../hooks/useProjectorKeys'
 import type { HoleVariantId } from './holeVariants'
 
 /**
- * Shift+1 / Shift+2 / Shift+3 arrive as `!` / `@` / `#`, so they never collide
+ * Shift+1 / Shift+2 / Shift+3 / Shift+4 arrive as `!` / `@` / `#` / `$`, so they never collide
  * with the visualization keys 1–3 (SPEC §9).
  */
 const DEV_VARIANT_KEYS: Record<string, HoleVariantId> = {
   '!': 'dive',
   '@': 'vortex',
   '#': 'portal',
+  $: 'upside-down',
 }
 
 /**
- * Dev builds only: Shift+1 / Shift+2 / Shift+3 switch the hole variant locally. Returns
+ * Dev builds only: Shift+1 to Shift+4 switch the hole variant locally. Returns
  * the local choice, or `null`. It wins over URL and display control until
  * `baseVariant` (the URL / display-control variant) changes, then gives way.
  * Bubble phase, so calibration's capture listener swallows these keys while
