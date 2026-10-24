@@ -1,6 +1,7 @@
 import { drawDive } from './variants/dive'
 import { drawPortal } from './variants/portal'
 import { drawUpsideDown } from './variants/upsideDown'
+import { drawFrankFog } from './variants/frankFog'
 import { drawVortex } from './variants/vortex'
 
 /**
@@ -10,13 +11,13 @@ import { drawVortex } from './variants/vortex'
  * Adding one (later burrow/clocks/shaft/doors): write a pure
  * `draw` in `variants/`, add its id to `HoleVariantId`, register it below.
  */
-export type HoleVariantId = 'dive' | 'vortex' | 'portal' | 'upside-down'
+export type HoleVariantId = 'dive' | 'vortex' | 'portal' | 'upside-down' | 'frank-fog'
 
 export interface HoleVariant {
   id: HoleVariantId
   /** Shown in the POS picker. */
   label: string
-  /** Stage px. Every variant so far uses (300, 520). */
+  /** Stage px. Every variant uses (300, 520) but Frank in the Fog, at (300, 640). */
   holeCenter: [number, number]
   /** Over the next event at the hole. */
   eventLabel: string
@@ -57,6 +58,14 @@ export const HOLE_VARIANTS: Record<HoleVariantId, HoleVariant> = {
     holeCenter: [300, 520],
     eventLabel: "Something's coming",
     draw: drawUpsideDown,
+  },
+  // Lower than the rest: Frank's head fills the space above the event.
+  'frank-fog': {
+    id: 'frank-fog',
+    label: 'Frank in the Fog',
+    holeCenter: [300, 640],
+    eventLabel: 'Next event',
+    draw: drawFrankFog,
   },
 }
 
