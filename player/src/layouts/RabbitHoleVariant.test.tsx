@@ -131,6 +131,11 @@ describe('choosing the hole variant', () => {
     expect(activeVariant()).toBe('upside-down')
   })
 
+  it('selects frank-fog from ?variant= alone', async () => {
+    await bootProjection('/projection?layout=rabbit-hole&variant=frank-fog')
+    expect(activeVariant()).toBe('frank-fog')
+  })
+
   it('falls back to dive, with a warning, for an unknown ?variant=', async () => {
     await bootProjection('/projection?layout=rabbit-hole&variant=wormhole')
     expect(activeVariant()).toBe('dive')

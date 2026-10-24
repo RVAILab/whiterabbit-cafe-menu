@@ -114,9 +114,10 @@
   font-size: 26px;
   color: var(--wr-pink);
 }
-/* Dive rings and the Upside Down's storm run behind the text: a dark halo keeps the strokes legible. */
+/* Dive rings, the Upside Down's storm and Frank's fog run behind the text: a dark halo keeps the strokes legible. */
 .rh-hole-event[data-variant='dive'],
-.rh-hole-event[data-variant='upside-down'] {
+.rh-hole-event[data-variant='upside-down'],
+.rh-hole-event[data-variant='frank-fog'] {
   text-shadow:
     0 0 4px #000,
     0 0 10px #000,

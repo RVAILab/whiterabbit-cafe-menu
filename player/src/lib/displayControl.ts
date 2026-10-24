@@ -26,9 +26,9 @@ export interface DisplayControlSnapshotV1 {
 
 // ---- Schema v2 (SPEC §8; the contract shared with WR-POS) ----
 
-export type HoleVariantId = 'dive' | 'vortex' | 'portal' | 'upside-down'
+export type HoleVariantId = 'dive' | 'vortex' | 'portal' | 'upside-down' | 'frank-fog'
 
-export const HOLE_VARIANT_IDS: readonly HoleVariantId[] = ['dive', 'vortex', 'portal', 'upside-down']
+export const HOLE_VARIANT_IDS: readonly HoleVariantId[] = ['dive', 'vortex', 'portal', 'upside-down', 'frank-fog']
 export const RABBIT_HOLE_SPEED_MIN = 0.2
 export const RABBIT_HOLE_SPEED_MAX = 1
 
