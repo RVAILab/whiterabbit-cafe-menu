@@ -36,11 +36,18 @@ export const FRANK_FOG = {
   blinkEvery: 7,
 }
 
-/** The design's head: skull, then the two prongs rising from it. */
+/**
+ * The design's head: skull, the two ears rising from it, and their bases. Filled one at a
+ * time: as one path, each ear's overlap with the skull winds the other way
+ * and cancels, cutting the ears off at the base.
+ */
 const HEAD_PATHS = [
   'M284 198Q300 199 316 198Q331 197 346 201Q362 205 371 218Q381 230 386 247Q391 264 394 282Q397 300 397 316Q397 332 392 349Q388 367 381 384Q374 401 366 416Q358 430 346 440Q335 451 317 456Q300 462 283 456Q265 451 254 440Q242 430 234 416Q226 401 219 384Q212 367 208 349Q203 332 203 316Q203 300 206 282Q209 264 214 247Q219 230 229 218Q238 205 254 201Q269 197 284 198Z',
   'M252 219Q273 212 262 181Q251 151 241 120Q231 89 219 61Q208 32 196 12Q185 -8 177 -14Q169 -20 162 -15Q156 -11 158 -3Q161 5 168 26Q175 46 185 74Q195 101 204 132Q212 163 221 195Q230 226 252 219Z',
   'M348 217Q370 225 379 198Q388 171 398 147Q408 123 417 106Q427 90 438 81Q450 72 457 70Q465 69 471 74Q478 80 481 78Q484 75 478 65Q472 54 457 50Q442 46 422 56Q402 65 388 85Q374 105 362 130Q351 155 339 182Q327 208 348 217Z',
+  // Each ear's base widened into the skull, so the ears grow out of the head instead of pinching to a point.
+  'M214 176L262 178Q272 200 268 216Q246 232 228 230Q214 208 214 176Z',
+  'M338 178L388 174Q388 210 372 230Q352 232 332 216Q328 196 338 178Z',
 ]
 
 const frac = (x: number) => x - Math.floor(x)
@@ -73,7 +80,7 @@ interface Assets {
   mask: HTMLCanvasElement
   work: HTMLCanvasElement
   w: CanvasRenderingContext2D
-  head: Path2D
+  head: Path2D[]
 }
 
 const WORK_SCALE = 0.5
@@ -145,7 +152,7 @@ function getAssets(hole: [number, number]): Assets | null {
   const fog = fogTexture(27, FRANK_FOG.fog, 2.4, -0.95)
   const haze = fogTexture(8, FRANK_FOG.haze, 2, -0.85)
   const mask = reachMask(hole)
-  const head = typeof Path2D === 'undefined' ? null : new Path2D(HEAD_PATHS.join(' '))
+  const head = typeof Path2D === 'undefined' ? null : HEAD_PATHS.map(d => new Path2D(d))
   assets = work && fog && haze && mask && head ? { fog, haze, mask, work: work.canvas, w: work.ctx, head } : null
   return assets
 }
@@ -199,7 +206,7 @@ function drawFog(a: Assets, t: number, hole: [number, number]) {
   w.setTransform(WORK_SCALE, 0, 0, WORK_SCALE, -5000, 0)
   headTransform(w, hole, t)
   w.fillStyle = '#000'
-  w.fill(a.head)
+  for (const part of a.head) w.fill(part)
   w.restore()
 
   w.globalAlpha = 0.35
