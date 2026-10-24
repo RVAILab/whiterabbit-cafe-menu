@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import { useProjectedMenu } from './hooks/useProjectedMenu'
+import { useReloadOnNewDeploy } from './hooks/useReloadOnNewDeploy'
 import { ScreenProvider } from './context/ScreenContext'
 import { VisualizationProvider } from './context/VisualizationContext'
 import { SleepModeProvider } from './context/SleepModeContext'
@@ -22,6 +23,7 @@ function toMenuBoard(document: NonNullable<ReturnType<typeof useProjectedMenu>['
 }
 
 function App() {
+  useReloadOnNewDeploy(import.meta.env.PROD)
   const projectedMenu = useProjectedMenu()
   const board = projectedMenu.document ? toMenuBoard(projectedMenu.document) : null
 
