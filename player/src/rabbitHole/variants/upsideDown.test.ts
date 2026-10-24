@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { UPSIDE_DOWN, boltPoints, drawUpsideDown, legPose, lightningAt, sporeAt, stormNoise } from './upsideDown'
+import { UPSIDE_DOWN, boltPoints, drawUpsideDown, heartAt, legPose, lightningAt, sporeAt, stormNoise } from './upsideDown'
+import { STAGE_WIDTH } from '../../lib/homography'
 
 describe('stormNoise', () => {
   it('stays in [0, 1] and wraps horizontally, so the drifting storm has no seam', () => {
@@ -56,7 +57,41 @@ describe('sporeAt', () => {
   })
 })
 
+describe('heartAt', () => {
+  const hole: [number, number] = [300, 520]
+
+  it('starts where the heart always was, then roams across the storm and back', () => {
+    expect(heartAt(0, hole)).toEqual([300 + UPSIDE_DOWN.heart[0], 520 + UPSIDE_DOWN.heart[1]])
+    const xs = Array.from({ length: 400 }, (_, i) => heartAt(i, hole)[0])
+    expect(Math.max(...xs) - Math.min(...xs)).toBeGreaterThan(600)
+  })
+
+  it('stays inside the faded stage edges and above the black under the event', () => {
+    for (let t = 0; t < 2000; t += 0.5) {
+      const [x, y] = heartAt(t, hole)
+      expect(x).toBeGreaterThanOrEqual(UPSIDE_DOWN.edgeFade)
+      expect(x).toBeLessThanOrEqual(STAGE_WIDTH - UPSIDE_DOWN.edgeFade)
+      expect(y).toBeGreaterThanOrEqual(UPSIDE_DOWN.edgeFade - 40)
+      expect(y).toBeLessThan(520 - UPSIDE_DOWN.occluder)
+    }
+  })
+
+  it('moves slowly: no more than a few dozen px per second of phase', () => {
+    for (let t = 1; t < 200; t++) {
+      const [x0, y0] = heartAt(t - 1, hole), [x1, y1] = heartAt(t, hole)
+      expect(Math.hypot(x1 - x0, y1 - y0)).toBeLessThan(60)
+    }
+  })
+})
+
 describe('legPose', () => {
+  it('trails the legs behind the way the heart is moving', () => {
+    const still = legPose(0, 5, [0, 0])
+    const movingRight = legPose(0, 5, [0, 0], [30, 0])
+    expect(movingRight.tip[0]).toBeLessThan(still.tip[0])
+    expect(movingRight.ctrl[0]).toBeLessThan(still.ctrl[0])
+  })
+
   it('sways each leg around its rest pose, a few dozen px at most', () => {
     UPSIDE_DOWN.legs.forEach(([, [tdx, tdy]], i) => {
       for (const t of [0, 5, 40]) {

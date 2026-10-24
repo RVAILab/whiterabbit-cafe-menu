@@ -3,7 +3,8 @@ import { TAU } from './canvas'
 
 /**
  * `upside-down` (Halloween): a red storm boils above the hole, a Mind
- * Flayer's shadow spreads its legs through the clouds and out under the menu,
+ * Flayer's shadow roams the storm, its legs trailing through the clouds and
+ * out under the menu,
  * lightning cracks above the event now and then, and ash drifts up the wall.
  *
  * A projector only adds light, so the dark legs are holes cut in the storm:
@@ -24,6 +25,13 @@ export const UPSIDE_DOWN = {
   storm: [[110, 6, 10], [255, 74, 52]] as [number, number, number][],
   /** Where the glow and the legs gather, from the hole center (above the event). */
   heart: [0, -308] as [number, number],
+  /**
+   * The heart wanders from there: right across the storm and back over `period[0]`
+   * seconds of phase (to `span[0]` px, with a `wobble` px side sway every
+   * `period[2]`), and up and down `span[1]` px every `period[1]`. Kept left of
+   * where the storm thins out, and above the black under the event.
+   */
+  roam: { span: [700, 70], wobble: 120, period: [97, 53, 41], trail: 3 },
   glowRadius: 430,
   /** The storm's reach from just above the hole. */
   reach: 1350,
@@ -126,12 +134,26 @@ export function sporeAt(i: number, t: number): Spore {
   }
 }
 
-/** Leg `i`'s control point and tip at phase `t`, in stage px: a slow, uneven reach. */
-export function legPose(i: number, t: number, [hx, hy]: [number, number]) {
+/** The heart (body, glow and the legs' root) at phase `t`, in stage px, for a hole at (cx, cy). */
+export function heartAt(t: number, [cx, cy]: [number, number]): [number, number] {
+  const { heart: [dx, dy], roam: { span, wobble, period } } = UPSIDE_DOWN
+  return [
+    cx + dx + (span[0] * (1 - Math.cos((t * TAU) / period[0]))) / 2 + wobble * Math.sin((t * TAU) / period[2]),
+    cy + dy + span[1] * Math.sin((t * TAU) / period[1]),
+  ]
+}
+
+/**
+ * Leg `i`'s control point and tip at phase `t`, in stage px: a slow, uneven
+ * reach, dragged back against `velocity` (stage px per second of phase) so the
+ * legs trail as the heart moves.
+ */
+export function legPose(i: number, t: number, [hx, hy]: [number, number], [vx, vy]: [number, number] = [0, 0]) {
   const [[cdx, cdy], [tdx, tdy]] = UPSIDE_DOWN.legs[i]
   const phase = t * 0.13 * (1 + i * 0.17) + i * 1.7
   const reach = 1 + 0.04 * Math.sin((t * TAU) / 23)
-  const sx = Math.sin(phase) * 40, sy = Math.cos(phase) * 25
+  const trail = UPSIDE_DOWN.roam.trail
+  const sx = Math.sin(phase) * 40 - vx * trail, sy = Math.cos(phase) * 25 - vy * trail
   return {
     ctrl: [hx + cdx * reach + sx / 2, hy + cdy * reach + sy / 2] as [number, number],
     tip: [hx + tdx * reach + sx, hy + tdy * reach + sy] as [number, number],
@@ -247,7 +269,7 @@ function drawWrapped(c: CanvasRenderingContext2D, texture: HTMLCanvasElement, of
 }
 
 /** The storm, its glow and the legs cut through them, on the half-res work canvas. */
-function drawStorm(a: Assets, t: number, flash: number, [hx, hy]: [number, number]) {
+function drawStorm(a: Assets, t: number, flash: number, [hx, hy]: [number, number], velocity: [number, number]) {
   const w = a.w
   w.setTransform(1, 0, 0, 1, 0, 0)
   w.globalCompositeOperation = 'source-over'
@@ -288,7 +310,7 @@ function drawStorm(a: Assets, t: number, flash: number, [hx, hy]: [number, numbe
   w.quadraticCurveTo(hx, hy + 86, hx - 26, hy + 56)
   w.quadraticCurveTo(hx - 44, hy - 60, hx, hy - 190)
   for (let i = 0; i < UPSIDE_DOWN.legs.length; i++) {
-    const { ctrl: [qx, qy], tip: [tx, ty] } = legPose(i, t, [hx, hy])
+    const { ctrl: [qx, qy], tip: [tx, ty] } = legPose(i, t, [hx, hy], velocity)
     w.moveTo(hx - 26, hy - 14)
     w.quadraticCurveTo(qx, qy, tx, ty)
     w.quadraticCurveTo(qx + 40, qy + 58, hx + 26, hy + 22)
@@ -330,7 +352,8 @@ function drawBolt(c: CanvasRenderingContext2D, strike: Strike, hole: [number, nu
 
 export function drawUpsideDown(c: CanvasRenderingContext2D, t: number, [cx, cy]: [number, number]) {
   const hole: [number, number] = [cx, cy]
-  const heart: [number, number] = [cx + UPSIDE_DOWN.heart[0], cy + UPSIDE_DOWN.heart[1]]
+  const heart = heartAt(t, hole)
+  const before = heartAt(t - 1, hole)
   const strike = lightningAt(t)
   const flash = strike?.intensity ?? 0
 
@@ -339,7 +362,7 @@ export function drawUpsideDown(c: CanvasRenderingContext2D, t: number, [cx, cy]:
 
   const a = getAssets(hole)
   if (a) {
-    drawStorm(a, t, flash, heart)
+    drawStorm(a, t, flash, heart, [heart[0] - before[0], heart[1] - before[1]])
     c.drawImage(a.work, 0, 0, STAGE_WIDTH, STAGE_HEIGHT)
   }
 
