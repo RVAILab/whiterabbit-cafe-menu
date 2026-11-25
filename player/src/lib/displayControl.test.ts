@@ -102,6 +102,12 @@ describe('parseDisplayControlSnapshot (schema v2)', () => {
     expect(parseDisplayControlSnapshot(validV2)).toEqual(validV2)
   })
 
+  it('accepts the featured layout', () => {
+    const snapshot = withDesired({ layout: 'featured' })
+    expect(parseDisplayControlSnapshot(snapshot)).toEqual(snapshot)
+    expect(displayControlExtras(parseDisplayControlSnapshot(snapshot)).layout).toBe('featured')
+  })
+
   it('accepts the standard layout, null extras and a null calibration timestamp', () => {
     const snapshot = {
       ...withDesired({ layout: 'standard' }),

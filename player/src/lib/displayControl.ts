@@ -175,7 +175,7 @@ const isDesiredV2 = (value: unknown): value is DisplayControlDesiredV2 =>
   isRecord(value)
   && hasExactlyKeys(value, [...DESIRED_V1_KEYS, 'layout', 'rabbitHole'])
   && hasValidDesiredV1Values(value)
-  && (value.layout === 'standard' || value.layout === 'rabbit-hole')
+  && (value.layout === 'standard' || value.layout === 'rabbit-hole' || value.layout === 'featured')
   && isRabbitHole(value.rabbitHole)
 
 const isScreenCommand = (value: unknown): value is DisplayScreenCommandV1 =>

@@ -52,13 +52,20 @@ export interface ProjectedMenuDocumentV1 {
   sections: ProjectedMenuSectionV1[]
 }
 
+export interface ProjectedMenuItemV2 extends ProjectedMenuItemV1 {
+  /** Optional photo path (e.g. `/api/projected-menu/image/196?v=abc`), relative to the projected-menu URL. */
+  imageUrl?: string | null
+}
+
 /** v2 sections are defined by WR-POS; items arrive already in wall order. */
 export interface ProjectedMenuSectionV2 {
   id: string
   name: string
   side: MetaCategory
   position: number
-  items: ProjectedMenuItemV1[]
+  items: ProjectedMenuItemV2[]
+  /** Optional: the id of the item the featured layout pictures. */
+  featuredItemId?: string | null
 }
 
 export interface ProjectedMenuDocumentV2 {
@@ -181,7 +188,22 @@ export function parseProjectedMenuDocument(value: unknown): ProjectedMenuDocumen
     throw new Error('Projected menu response does not match schema version 1 or 2')
   }
 
-  return value as unknown as ProjectedMenuDocument
+  if (value.schemaVersion !== 2) return value as unknown as ProjectedMenuDocument
+  return {
+    ...value,
+    sections: (value.sections as Record<string, unknown>[]).map((section) => ({
+      ...withoutInvalidOptional(section, 'featuredItemId'),
+      items: (section.items as Record<string, unknown>[]).map((item) => withoutInvalidOptional(item, 'imageUrl')),
+    })),
+  } as unknown as ProjectedMenuDocumentV2
+}
+
+/** Optional v2 fields are lenient: a present value that is not a string or null is dropped, not rejected. */
+function withoutInvalidOptional(record: Record<string, unknown>, key: string): Record<string, unknown> {
+  if (!(key in record) || typeof record[key] === 'string' || record[key] === null) return record
+  const copy = { ...record }
+  delete copy[key]
+  return copy
 }
 
 export function toMenuItem(item: ProjectedMenuItemV1): MenuItem | MenuItemGroup {

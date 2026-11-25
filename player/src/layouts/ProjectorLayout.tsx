@@ -22,6 +22,7 @@ import { HoleEvent } from '../rabbitHole/HoleEvent'
 import { ClubhouseNotice } from '../rabbitHole/ClubhouseNotice'
 import { GulpHic } from '../rabbitHole/GulpHic'
 import { useRabbitHole } from '../rabbitHole/useRabbitHole'
+import { FeaturedLayout } from '../featured/FeaturedLayout'
 import type { MenuBoard, SecondaryScreen } from '../types'
 
 interface ProjectorLayoutProps {
@@ -98,6 +99,21 @@ export function ProjectorLayout({
           hic={<GulpHic />}
           onDoesNotFit={rabbitHole.onDoesNotFit}
           calibration={rabbitHole.calibration}
+        />
+      </div>
+    )
+  }
+
+  if (rabbitHole.featured) {
+    return (
+      <div className="projector-layout">
+        <FeaturedLayout
+          document={rabbitHole.featured}
+          calibration={rabbitHole.calibration}
+          footer={isClubhouseMode && <ClubhouseNotice />}
+          overlays={<ProjectorOverlays />}
+          stageClassName={isClubhouseMode ? 'clubhouse' : undefined}
+          onDoesNotFit={rabbitHole.onFeaturedDoesNotFit}
         />
       </div>
     )

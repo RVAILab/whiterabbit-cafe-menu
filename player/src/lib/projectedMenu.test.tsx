@@ -270,6 +270,25 @@ describe('projected menu v2', () => {
     ])
   })
 
+  it('keeps the optional featuredItemId and imageUrl when they are strings or null, and drops other values', () => {
+    const [noble, autumn] = responseV2.sections
+    const parsed = parseProjectedMenuDocument({
+      ...responseV2,
+      sections: [
+        { ...noble, featuredItemId: noble.items[1].id, items: [{ ...noble.items[0], imageUrl: '/api/projected-menu/image/1?v=a' }, { ...noble.items[1], imageUrl: null }, ...noble.items.slice(2)] },
+        { ...autumn, featuredItemId: 42, items: autumn.items.map((i) => ({ ...i, imageUrl: { src: 'x' } })) },
+        ...responseV2.sections.slice(2),
+      ],
+    })
+    if (parsed.schemaVersion !== 2) throw new Error('expected v2')
+
+    expect(parsed.sections[0].featuredItemId).toBe(noble.items[1].id)
+    expect(parsed.sections[0].items[0].imageUrl).toBe('/api/projected-menu/image/1?v=a')
+    expect(parsed.sections[0].items[1].imageUrl).toBeNull()
+    expect('featuredItemId' in parsed.sections[1]).toBe(false)
+    expect(parsed.sections[1].items.every((i) => !('imageUrl' in i))).toBe(true)
+  })
+
   it('omits an empty section', () => {
     const sections = toProjectedMenuSections(parseProjectedMenuDocument({
       ...responseV2,

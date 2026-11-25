@@ -1,0 +1,217 @@
+/* Featured layout: stage px throughout (the pin does the scaling), after the
+   approved Portholes-HD mockup. Builds on rabbitHole.css (.rh-root/.rh-pin/
+   .rh-stage/.rh-layer and the clubhouse notice). */
+
+.rh-stage.ft-stage {
+  background: #141310;
+  color: #f7f4ed;
+  /* The body is Light (300); the mockup's text is regular weight, which resolves to the Medium cut here. */
+  font-weight: 400;
+}
+
+@keyframes ftTunnel {
+  0% { transform: translate(-50%, -50%) scale(0.15); opacity: 0; }
+  12% { opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(2.4); opacity: 0; }
+}
+@keyframes ftSwirl {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.ft-tunnel {
+  position: absolute;
+  left: 760px;
+  top: 540px;
+  width: 0;
+  height: 0;
+  opacity: 0.3;
+}
+.ft-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 760px;
+  height: 740px;
+  border: 4px solid #85a06a;
+  border-radius: 49% 51% 47% 53% / 52% 48% 52% 48%;
+  animation: ftTunnel 13s linear infinite;
+}
+.ft-swirl {
+  transform-origin: 50px 50px;
+  animation: ftSwirl 40s linear infinite;
+}
+
+.ft-lbl {
+  font-weight: 600;
+  font-size: calc(18px * var(--ft-s, 1));
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #9db084;
+}
+.ft-li {
+  display: flex;
+  align-items: baseline;
+  gap: calc(12px * var(--ft-s, 1));
+  font-size: calc(28px * var(--ft-s, 1));
+  line-height: 1.15;
+}
+.ft-hero {
+  display: flex;
+  align-items: baseline;
+  gap: calc(12px * var(--ft-s, 1));
+  font-weight: 700;
+  font-size: calc(34px * var(--ft-s, 1));
+  line-height: 1.04;
+}
+.ft-nm { flex: 1; }
+.ft-pr {
+  font-weight: 600;
+  color: #bcc8a5;
+  font-variant-numeric: tabular-nums;
+}
+.ft-hero .ft-pr { font-weight: 700; }
+
+.ft-pic {
+  display: block;
+  flex: none;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* "What's next", tilted at the top left. */
+.ft-next {
+  position: absolute;
+  left: 22px;
+  top: 26px;
+  width: 310px;
+  height: 300px;
+  transform: rotate(-6deg);
+  background: #2b381f;
+  border-radius: 28px;
+  padding: 26px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: calc(10px * var(--ft-s, 1));
+  overflow: hidden;
+}
+.ft-next-lbl { color: #ef8d95; }
+/* shortcut: long event titles clamp at four lines; fit them like the hole's useEventTitleFit if that bites. */
+.ft-next-title {
+  font-weight: 600;
+  font-size: calc(32px * var(--ft-s, 1));
+  line-height: 1.05;
+  max-width: 180px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+}
+.ft-next-time {
+  font-size: calc(21px * var(--ft-s, 1));
+  color: #cfc6b2;
+  max-width: 180px;
+}
+
+/* Lead drink block: the column gives up height to a footer (clubhouse notice). */
+.ft-left {
+  position: absolute;
+  left: 160px;
+  top: 220px;
+  width: 600px;
+  height: 824px;
+  display: flex;
+  flex-direction: column;
+}
+.ft-lead {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: calc(16px * var(--ft-s, 1));
+}
+.ft-lead-head {
+  display: flex;
+  gap: calc(28px * var(--ft-s, 1));
+  align-items: center;
+}
+.ft-lead-title {
+  display: flex;
+  flex-direction: column;
+  gap: calc(8px * var(--ft-s, 1));
+}
+.ft-lead-title .ft-hero { font-size: calc(42px * var(--ft-s, 1)); }
+.ft-lead-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  column-gap: 44px;
+  row-gap: calc(16px * var(--ft-s, 1));
+  margin-top: calc(18px * var(--ft-s, 1));
+  padding-top: calc(22px * var(--ft-s, 1));
+  border-top: 2px solid #2b381f;
+}
+
+/* The 2×2 grid of drink blocks. */
+.ft-grid {
+  position: absolute;
+  left: 820px;
+  top: 36px;
+  width: 640px;
+  height: 1010px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 44px;
+}
+.ft-grid-col {
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: calc(26px * var(--ft-s, 1));
+}
+.ft-block {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: calc(10px * var(--ft-s, 1));
+}
+
+/* Food in a tall capsule on the right. */
+.ft-food {
+  position: absolute;
+  left: 1500px;
+  top: 36px;
+  width: 386px;
+  height: 1008px;
+  background: #23211c;
+  border: 3px solid #6e8b55;
+  border-radius: 193px;
+  padding: 64px 44px 90px;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: calc(14px * var(--ft-s, 1));
+}
+.ft-food-section {
+  display: flex;
+  flex-direction: column;
+  gap: calc(14px * var(--ft-s, 1));
+}
+.ft-food-section + .ft-food-section { margin-top: calc(16px * var(--ft-s, 1)); }
+.ft-food-section > .ft-pic { align-self: center; margin-bottom: 8px; }
+.ft-food .ft-hero { font-size: calc(32px * var(--ft-s, 1)); }
+.ft-food .ft-li { font-size: calc(25px * var(--ft-s, 1)); }
+
+/* Clubhouse: the menu stays up, dimmed, as in the rabbit hole. */
+.rh-stage.clubhouse .ft-dim { opacity: 0.5; }
+/* A compact notice: every px it takes comes out of the lead block. */
+.ft-left .rh-clubhouse { margin-top: 20px; padding: 14px 20px 16px; }
+.ft-left .rh-clubhouse-title { font-size: 34px; margin: 0.1em 0 0.3em; }
+.ft-left .rh-clubhouse-hours { gap: 4px; padding-top: 10px; }
+.ft-left .rh-clubhouse-hours dd { font-size: calc(24px * var(--ft-s, 1)); }
