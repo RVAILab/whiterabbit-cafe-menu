@@ -16,7 +16,7 @@ const ARROWS: Record<string, [number, number]> = {
 /**
  * Calibration entry and keys for the projector (SPEC §3.3).
  *
- * `enabled` is true only in the rabbit hole layout: the standard layout is not
+ * `enabled` is true only in the pinned layouts (rabbit hole, featured): the standard layout is not
  * pinned in v1, so there C stays an ordinary (secondary-screen) key and
  * `?calibrate=1` / the `calibrate` screen command are ignored.
  *

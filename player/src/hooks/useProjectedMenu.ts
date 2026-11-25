@@ -12,7 +12,8 @@ function configuredProjectedMenuUrl(): string {
   throw new Error('VITE_PROJECTED_MENU_URL is required in production')
 }
 
-const DEFAULT_PROJECTED_MENU_URL = configuredProjectedMenuUrl()
+/** Relative image paths in the document (`imageUrl`) resolve against this. */
+export const DEFAULT_PROJECTED_MENU_URL = configuredProjectedMenuUrl()
 const DEFAULT_REFRESH_INTERVAL_MS = 20_000
 const REQUEST_TIMEOUT_MS = 10_000
 

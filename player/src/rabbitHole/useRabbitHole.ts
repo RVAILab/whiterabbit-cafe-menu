@@ -4,7 +4,7 @@ import { useCalibrationControls } from '../hooks/useCalibrationControls'
 import type { DisplayControlExtras } from '../lib/displayControl'
 import { resolveEffectiveLayout } from '../lib/effectiveLayout'
 import { resolveHoleSettings } from '../lib/holeSettings'
-import type { ProjectedMenuDocument } from '../lib/projectedMenu'
+import type { ProjectedMenuDocument, ProjectedMenuDocumentV2 } from '../lib/projectedMenu'
 import { resolveGulpSchedule } from './gulpSchedule'
 import type { HoleVariantId } from './holeVariants'
 import { useDevHoleVariantKeys } from './useDevHoleVariantKeys'
@@ -37,6 +37,10 @@ export interface RabbitHole {
   calibration: CalibrationApi
   /** The menu overflows its plates even at the smallest type: fall back to the standard layout. */
   onDoesNotFit(): void
+  /** The menu for the featured layout when it is selected, the menu is v2 and it fits; else null. */
+  featured: ProjectedMenuDocumentV2 | null
+  /** A featured block overflows: fall back to the standard layout for this menu. */
+  onFeaturedDoesNotFit(): void
 }
 
 /**
@@ -50,8 +54,11 @@ export function useRabbitHole({ document, search, displayControl }: UseRabbitHol
   const layout = resolveEffectiveLayout({ search, desiredLayout: displayControl.layout })
   const fit = useRabbitHoleFallback(document)
   const active = layout === 'rabbit-hole' && !!document && !fit.fellBack
+  // The featured layout shares the pin and calibration; it needs v2 sections (side, position).
+  const featuredFit = useRabbitHoleFallback(document)
+  const featured = layout === 'featured' && document?.schemaVersion === 2 && !featuredFit.fellBack ? document : null
 
-  const calibration = useCalibrationControls({ enabled: active, search })
+  const calibration = useCalibrationControls({ enabled: active || !!featured, search })
   const holeSettings = resolveHoleSettings({ search, desired: displayControl.rabbitHole })
   const devVariant = useDevHoleVariantKeys(layout === 'rabbit-hole', holeSettings.variant)
 
@@ -79,5 +86,7 @@ export function useRabbitHole({ document, search, displayControl }: UseRabbitHol
     stageRef,
     calibration,
     onDoesNotFit: () => fit.reportDoesNotFit(shownDocument),
+    featured,
+    onFeaturedDoesNotFit: () => featuredFit.reportDoesNotFit(document),
   }
 }

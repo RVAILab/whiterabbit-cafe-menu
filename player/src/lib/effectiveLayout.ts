@@ -1,7 +1,7 @@
-export type ProjectionLayout = 'standard' | 'rabbit-hole'
+export type ProjectionLayout = 'standard' | 'rabbit-hole' | 'featured'
 
 const isProjectionLayout = (value: unknown): value is ProjectionLayout =>
-  value === 'standard' || value === 'rabbit-hole'
+  value === 'standard' || value === 'rabbit-hole' || value === 'featured'
 
 export interface EffectiveLayoutInputs {
   /** `location.search`; `?layout=` overrides everything. */
