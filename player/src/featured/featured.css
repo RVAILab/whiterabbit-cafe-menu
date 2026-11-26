@@ -212,6 +212,9 @@
   margin-top: calc(-4px * var(--ft-s, 1));
 }
 .ft-lead-title .ft-desc { font-size: calc(26px * var(--ft-s, 1)); }
+.ft-runner-up { display: flex; flex-direction: column; gap: inherit; margin-top: calc(14px * var(--ft-s, 1)); }
+.ft-lead-title .ft-runner-up .ft-hero { font-size: calc(34px * var(--ft-s, 1)); }
+.ft-lead-title .ft-runner-up .ft-desc { font-size: calc(22px * var(--ft-s, 1)); }
 
 /* The photos turn slowly, one revolution per 90s (SPIN_SECONDS in FeaturedLayout). */
 .ft-spin { animation: ftSwirl 90s linear infinite; }

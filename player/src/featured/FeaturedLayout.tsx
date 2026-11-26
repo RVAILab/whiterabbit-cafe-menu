@@ -88,6 +88,7 @@ function LeadBlock({ block }: { block: FeaturedBlock }) {
         <div className="ft-lead-title">
           <div className="ft-lbl">{block.label}</div>
           {block.featured && <Hero item={block.featured} />}
+          {block.runnerUp && <div className="ft-runner-up"><Hero item={block.runnerUp} /></div>}
         </div>
       </div>
       {block.items.length > 0 && (
