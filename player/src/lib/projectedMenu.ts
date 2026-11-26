@@ -55,6 +55,8 @@ export interface ProjectedMenuDocumentV1 {
 export interface ProjectedMenuItemV2 extends ProjectedMenuItemV1 {
   /** Optional photo path (e.g. `/api/projected-menu/image/196?v=abc`), relative to the projected-menu URL. */
   imageUrl?: string | null
+  /** Optional one-line description, sent for a section's featured item. */
+  description?: string | null
 }
 
 /** v2 sections are defined by WR-POS; items arrive already in wall order. */
@@ -193,7 +195,7 @@ export function parseProjectedMenuDocument(value: unknown): ProjectedMenuDocumen
     ...value,
     sections: (value.sections as Record<string, unknown>[]).map((section) => ({
       ...withoutInvalidOptional(section, 'featuredItemId'),
-      items: (section.items as Record<string, unknown>[]).map((item) => withoutInvalidOptional(item, 'imageUrl')),
+      items: (section.items as Record<string, unknown>[]).map((item) => withoutInvalidOptional(withoutInvalidOptional(item, 'imageUrl'), 'description')),
     })),
   } as unknown as ProjectedMenuDocumentV2
 }

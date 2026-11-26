@@ -74,7 +74,10 @@ const Line = ({ item }: { item: ProjectedMenuItemV2 }) => (
 )
 
 const Hero = ({ item }: { item: ProjectedMenuItemV2 }) => (
-  <div className="ft-hero"><span className="ft-nm">{item.name}</span><span className="ft-pr">{itemPrice(item)}</span></div>
+  <>
+    <div className="ft-hero"><span className="ft-nm">{item.name}</span><span className="ft-pr">{itemPrice(item)}</span></div>
+    {item.description && <div className="ft-desc">{item.description}</div>}
+  </>
 )
 
 function LeadBlock({ block }: { block: FeaturedBlock }) {
@@ -121,9 +124,9 @@ function FoodCapsule({ blocks }: { blocks: FeaturedBlock[] }) {
 }
 
 /** "What's next": the real next event from Rova; a quiet house line when there is none, nothing while loading. */
-// The card's title room: kept above the cup handle; shrinks until every word fits its width.
+// The card's title room: shrinks until the whole title fits and every word fits the card's width.
 const NEXT_TITLE_SIZES = [32, 30, 28, 26, 24, 22, 20, 18] as const
-const NEXT_TITLE_MAX_HEIGHT = 104
+const NEXT_TITLE_MAX_HEIGHT = 150
 
 function WhatsNext() {
   const { upcomingEvent, isLoading } = useUpcomingEvent({
@@ -147,8 +150,10 @@ function WhatsNext() {
  * Report overflow: after each layout (and once web fonts load), any block box
  * whose content overflows it means the menu does not fit this wall.
  */
-/** Text scales auto-fit tries, largest first; 0.82 keeps list text at the rabbit hole's ~23px floor. */
-const FIT_SCALES = [1, 0.94, 0.88, 0.82] as const
+/** Drink text scales auto-fit tries, largest first. Above 0.88 names wrap in these columns; 0.82 keeps list text at the rabbit hole's ~23px floor. */
+const FIT_SCALES = [0.88, 0.82] as const
+/** The food capsule fits on its own scale, so a long food list never shrinks the drinks; it may go a little smaller. */
+const FOOD_FIT_SCALES = [1, 0.94, 0.88, 0.82, 0.76, 0.7] as const
 
 function useOverflowCheck(content: unknown, onDoesNotFit?: () => void) {
   const ref = useRef<HTMLDivElement>(null)
@@ -161,15 +166,25 @@ function useOverflowCheck(content: unknown, onDoesNotFit?: () => void) {
     const check = () => {
       const menu = ref.current
       if (disposed || !menu) return
-      const boxes = [...menu.querySelectorAll<HTMLElement>('[data-ft-box]')]
+      const food = menu.querySelector<HTMLElement>('.ft-food')
+      const boxes = [...menu.querySelectorAll<HTMLElement>('[data-ft-box]')].filter((box) => box !== food)
+      const measure = (box: HTMLElement) => ({ scrollHeight: box.scrollHeight, clientHeight: box.clientHeight })
       // Shrink the text (never the pictures) step by step, as the rabbit hole does, before giving up.
-      const result = fitBaseSize((scale) => {
+      const drinks = fitBaseSize((scale) => {
         menu.style.setProperty('--ft-s', String(scale))
-        return boxes.map(({ scrollHeight, clientHeight }) => ({ scrollHeight, clientHeight }))
+        return boxes.map(measure)
       }, FIT_SCALES)
-      menu.style.setProperty('--ft-s', String(result.fs))
-      if (result.fits) return
-      const over = boxes.filter((box) => box.scrollHeight > box.clientHeight + 1)
+      menu.style.setProperty('--ft-s', String(drinks.fs))
+      food?.style.removeProperty('--ft-s')
+      const foodFit = food
+        ? fitBaseSize((scale) => {
+          food.style.setProperty('--ft-s', String(scale))
+          return [measure(food)]
+        }, FOOD_FIT_SCALES)
+        : { fits: true, fs: 1 }
+      food?.style.setProperty('--ft-s', String(foodFit.fs))
+      if (drinks.fits && foodFit.fits) return
+      const over = [...boxes, ...(food ? [food] : [])].filter((box) => box.scrollHeight > box.clientHeight + 1)
       const names = over.map((box) => `${box.getAttribute('aria-label')} (${box.scrollHeight}/${box.clientHeight}px)`)
       console.warn(`Menu does not fit the featured layout (${names.join(', ')}); falling back to the standard layout.`)
       onDoesNotFitRef.current?.()
@@ -198,8 +213,8 @@ export interface FeaturedLayoutProps {
 
 /**
  * The featured wall: a 1920×1080 stage on the pinned surface. Tunnel rings
- * behind the drinks, "What's next" tilted top-left, the first drink section
- * as the lead block, the next four in a 2×2 grid, food in a capsule on the right.
+ * behind the drinks, the first drink section as the lead block top-left with
+ * "What's next" tilted under it (or the clubhouse notice in its place), the next four in a 2×2 grid, food in a capsule on the right.
  */
 export function FeaturedLayout({ document, calibration, footer, overlays, stageClassName, onDoesNotFit }: FeaturedLayoutProps) {
   const plan = useMemo(() => planFeatured(document), [document])
@@ -229,10 +244,11 @@ export function FeaturedLayout({ document, calibration, footer, overlays, stageC
             ))}
           </div>
         </StageLayer>
-        <StageLayer layer="hole-event"><WhatsNext /></StageLayer>
+        {/* The clubhouse notice takes What's next's place under the lead block. */}
+        <StageLayer layer="hole-event">{!hasFooter && <WhatsNext />}</StageLayer>
         <StageLayer layer="menu">
           <div ref={menuRef} className="ft-menu" data-testid="featured-menu">
-            <div className="ft-left">
+            <div className={hasFooter ? 'ft-left with-footer' : 'ft-left'}>
               {lead && <LeadBlock block={lead} />}
               {footer}
             </div>
