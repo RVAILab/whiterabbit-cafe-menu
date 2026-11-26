@@ -38,7 +38,7 @@ export function useAutoFit(
       menu.style.setProperty('--fs', `${result.fs}px`)
       if (!result.fits) {
         console.warn(
-          `Menu does not fit the rabbit hole layout at ${result.fs}px; falling back to the standard layout.`,
+          `Menu does not fit the rabbit hole layout at ${result.fs}px; falling back to the featured layout.`,
         )
         onDoesNotFitRef.current?.()
       }

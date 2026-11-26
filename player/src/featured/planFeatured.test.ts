@@ -68,7 +68,7 @@ describe('planFeatured', () => {
     }
   })
 
-  it('orders drink blocks by position, food blocks likewise, pictures only the first food section and ignores the bar', () => {
+  it('orders drink blocks by position (bar after the café drinks), food blocks likewise, pictures only the first food section', () => {
     const plan = planFeatured(doc(
       section('Sweet', 'eat-me', 1),
       section('Chai', 'drink-me', 2),
@@ -79,11 +79,18 @@ describe('planFeatured', () => {
       section('Empty', 'drink-me', 3, { items: [] }),
     ))
 
-    expect(plan.drinks.map(({ label }) => label)).toEqual(['Coffee', 'Matcha', 'Chai'])
+    expect(plan.drinks.map(({ label }) => label)).toEqual(['Coffee', 'Matcha', 'Chai', 'Beer'])
     expect(plan.food.map(({ label }) => label)).toEqual(['Savory', 'Sweet'])
     expect(plan.food[0].featured?.name).toBe('Savory A')
     expect(plan.food[1].featured).toBeUndefined()
     expect(plan.food[1].items).toHaveLength(3)
+  })
+
+  it('lays out a bar-only menu with bar sections as the drinks, the first as the lead', () => {
+    const plan = planFeatured(doc(section('Wine', 'bar', 1), section('Beer', 'bar', 0)))
+    expect(plan.drinks.map(({ label }) => label)).toEqual(['Beer', 'Wine'])
+    expect(plan.drinks[0].featured?.name).toBe('Beer A')
+    expect(plan.food).toEqual([])
   })
 
   it('shows at most five drink sections', () => {

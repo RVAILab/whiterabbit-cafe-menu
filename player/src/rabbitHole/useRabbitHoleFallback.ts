@@ -3,7 +3,7 @@ import { menuFitSignature } from '../lib/autoFit'
 import type { ProjectedMenuDocument } from '../lib/projectedMenu'
 
 /**
- * Fallback from the rabbit hole to the standard layout. `reportDoesNotFit`
+ * Fallback from the rabbit hole to the featured layout. `reportDoesNotFit`
  * marks the current menu as too large; `fellBack` stays true for that menu
  * (and re-polls of the same content) until a different menu arrives, which
  * gets a fresh try. Pass the document that was measured when it differs from
