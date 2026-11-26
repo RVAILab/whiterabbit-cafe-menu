@@ -204,6 +204,9 @@
   gap: calc(14px * var(--ft-s, 1));
 }
 .ft-food-section + .ft-food-section { margin-top: calc(16px * var(--ft-s, 1)); }
+/* The photos turn slowly, one revolution per 90s (SPIN_SECONDS in FeaturedLayout). */
+.ft-spin { animation: ftSwirl 90s linear infinite; }
+
 .ft-food-section > .ft-pic { align-self: center; margin-bottom: 8px; }
 .ft-food .ft-hero { font-size: calc(32px * var(--ft-s, 1)); }
 .ft-food .ft-li { font-size: calc(25px * var(--ft-s, 1)); }
