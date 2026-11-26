@@ -1,8 +1,9 @@
 import { STAGE_HEIGHT, STAGE_WIDTH } from '../lib/homography'
+import { SNOWFLAKE_DESIGNS, strokeSnowflake } from './snowflakes'
 
 /**
  * The featured wall's backdrop: soft green and pink glows drifting, with a
- * steady snowfall of six-armed flakes drifting down in front of them. A flake
+ * steady snowfall of Nordic flakes (snowflakes.ts) drifting down on the wind in front of them. A flake
  * fades as it passes behind the menu's text (`textFade`), so words stay
  * clean; the stage-edge fade is the .ft-backdrop mask, so nothing meets a
  * hard edge.
@@ -19,32 +20,60 @@ export const BACKDROP = {
   lineAlpha: 0.45,
 } as const
 
+const TAU = Math.PI * 2
+
 /** Deterministic per-flake constants (no Math.random: the same wall every load). */
 const FLAKES = Array.from({ length: BACKDROP.flakes }, (_, i) => {
   const h = (n: number) => ((Math.sin(i * 12.9898 + n * 78.233) * 43758.5453) % 1 + 1) % 1
   return {
     x: 60 + h(1) * 1380,
-    size: 15 + h(2) * 22,
-    fall: 18 + h(3) * 22,
+    size: 18 + h(2) * 22,
+    fall: 16 + h(3) * 20,
     offset: h(4) * (STAGE_HEIGHT + 240),
-    sway: 18 + h(5) * 26,
-    swayPeriod: 8 + h(6) * 7,
-    spin: (h(7) - 0.5) * 0.25,
+    sway: 14 + h(5) * 22,
+    swayPeriod: 7 + h(6) * 8,
+    /** Mean turn (rad/s), and a slow wobble on it that can stall or reverse the turn. */
+    spin: (h(7) - 0.5) * 0.3,
+    spinWobble: 0.6 + h(8) * 0.9,
+    spinPeriod: 11 + h(9) * 14,
+    /** Tumble: the flake tips on an axis in its own plane, so it squashes and recovers. */
+    tumblePeriod: 9 + h(10) * 12,
+    tumbleAxis: h(11) * Math.PI,
+    phase: h(12) * TAU,
+    design: Math.floor(h(13) * SNOWFLAKE_DESIGNS.length),
     color: i % 2 ? '255,196,226' : '206,230,186',
   }
 })
 
-export interface FlakePose { x: number; y: number; size: number; angle: number; color: string }
+/** The wind every flake shares: slow gusts back and forth across the wall (stage px). */
+export function windShift(t: number): number {
+  return 110 * Math.sin((TAU * t) / 61) + 45 * Math.sin((TAU * t) / 29 + 1)
+}
 
-/** Flake `i` at phase `t`: falling, swaying and turning, looping from above the top to below the bottom. */
+export interface FlakePose {
+  x: number
+  y: number
+  size: number
+  angle: number
+  /** 1 face-on, down to 0.6 when tipped furthest (never edge-on). */
+  squash: number
+  tumbleAxis: number
+  design: number
+  color: string
+}
+
+/** Flake `i` at phase `t`: drifting down on the wind, swaying, turning and tumbling, looping top to bottom. */
 export function flakePose(i: number, t: number): FlakePose {
   const f = FLAKES[i]
   const span = STAGE_HEIGHT + 240
   return {
-    x: f.x + Math.sin((t / f.swayPeriod) * Math.PI * 2 + i) * f.sway,
-    y: ((t * f.fall + f.offset) % span) - 120,
+    x: f.x + windShift(t + f.phase) + Math.sin((TAU * t) / f.swayPeriod + f.phase) * f.sway,
+    y: ((t * f.fall + f.offset) % span) - 120 + Math.sin((TAU * t) / 3.7 + f.phase) * 5,
     size: f.size,
-    angle: t * f.spin + i,
+    angle: f.phase + t * f.spin + f.spinWobble * Math.sin((TAU * t) / f.spinPeriod + f.phase),
+    squash: 0.8 + 0.2 * Math.cos((TAU * t) / f.tumblePeriod + f.phase),
+    tumbleAxis: f.tumbleAxis + 0.3 * Math.sin((TAU * t) / 40 + f.phase),
+    design: f.design,
     color: f.color,
   }
 }
@@ -64,26 +93,13 @@ export function textFade(x: number, y: number, size: number, rects: readonly Tex
   return k * k * (3 - 2 * k)
 }
 
-function strokeFlake(c: CanvasRenderingContext2D, { x, y, size, angle }: FlakePose) {
+function drawFlake(c: CanvasRenderingContext2D, p: FlakePose) {
   c.save()
-  c.translate(x, y)
-  c.rotate(angle)
-  c.beginPath()
-  for (let k = 0; k < 6; k++) {
-    const a = (k * Math.PI) / 3
-    const ux = Math.cos(a)
-    const uy = Math.sin(a)
-    c.moveTo(0, 0)
-    c.lineTo(ux * size, uy * size)
-    for (const side of [-1, 1]) {
-      const bx = ux * size * 0.55
-      const by = uy * size * 0.55
-      const ba = a + side * (Math.PI / 3)
-      c.moveTo(bx, by)
-      c.lineTo(bx + Math.cos(ba) * size * 0.3, by + Math.sin(ba) * size * 0.3)
-    }
-  }
-  c.stroke()
+  c.translate(p.x, p.y)
+  c.rotate(p.tumbleAxis)
+  c.scale(p.squash, 1)
+  c.rotate(p.angle - p.tumbleAxis)
+  strokeSnowflake(c, p.design, p.size)
   c.restore()
 }
 
@@ -108,7 +124,7 @@ export function drawBackdrop(c: CanvasRenderingContext2D, t: number, text: reado
     const alpha = BACKDROP.lineAlpha * textFade(p.x, p.y, p.size, text)
     if (alpha < 0.01) continue
     c.strokeStyle = `rgba(${p.color},${alpha})`
-    c.lineWidth = 1.6 + p.size * 0.05
-    strokeFlake(c, p)
+    c.fillStyle = `rgba(${p.color},${alpha})`
+    drawFlake(c, p)
   }
 }
