@@ -20,7 +20,7 @@ export interface FeaturedPlan {
 /** The lead block plus the 2×2 grid. */
 const MAX_DRINK_BLOCKS = 5
 
-function sectionsOn(document: ProjectedMenuDocumentV2, side: 'drink-me' | 'eat-me') {
+function sectionsOn(document: ProjectedMenuDocumentV2, side: 'drink-me' | 'eat-me' | 'bar') {
   return document.sections
     .filter((section) => section.side === side && section.items.length > 0)
     .sort((left, right) => left.position - right.position)
@@ -33,13 +33,15 @@ function pictured(section: ProjectedMenuDocumentV2['sections'][number]): Feature
 
 /**
  * Assign the v2 sections to the featured wall. Drink sections by position:
- * the first is the lead block, the next four the grid. Bar sections are not
- * shown. shortcut: drink sections past the fifth are dropped silently; give
+ * the first is the lead block, the next four the grid; bar sections follow the
+ * café's drinks (a Bar menu is only bar sections). shortcut: drink sections past the fifth are dropped silently; give
  * the wall a sixth slot (or fall back) if the menu ever grows that far.
  */
 export function planFeatured(document: ProjectedMenuDocumentV2): FeaturedPlan {
   const [firstFood, ...laterFood] = sectionsOn(document, 'eat-me')
-  const [lead, ...grid] = sectionsOn(document, 'drink-me').slice(0, MAX_DRINK_BLOCKS).map(pictured)
+  // Bar sections are drinks too, after the café's (a Bar menu has only them, so they lead).
+  const drinkSections = [...sectionsOn(document, 'drink-me'), ...sectionsOn(document, 'bar')]
+  const [lead, ...grid] = drinkSections.slice(0, MAX_DRINK_BLOCKS).map(pictured)
   // The lead block has room for a second big item beside its cup: the first in its list (set by order in Back office).
   const drinks = lead ? [{ ...lead, runnerUp: lead.items[0], items: lead.items.slice(1) }, ...grid] : []
   return {
