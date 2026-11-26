@@ -212,10 +212,10 @@ describe('menu changes in the rabbit hole', () => {
     await publishAndPoll(8.22)
     expect(isGulping()).toBe(true)
 
-    // Switch to standard before the swap point, then back.
+    // Switch to standard (featured) before the swap point, then back.
     server.displayControl = displayControlV2({ revision: 2, desired: { layout: 'standard' } })
     await advance(MENU_POLL_MS) // the display-control poll lands within this
-    expect(screen.queryByTestId('rabbit-hole-stage')).toBeNull()
+    expect(screen.queryByTestId('rabbit-hole-menu')).toBeNull()
     expect(screen.getAllByText(/8\.22/).length).toBeGreaterThan(0)
 
     server.displayControl = displayControlV2({ revision: 3, desired: { layout: 'rabbit-hole' } })
@@ -225,7 +225,7 @@ describe('menu changes in the rabbit hole', () => {
   })
 })
 
-describe('menu changes in the standard layout', () => {
+describe('menu changes in the featured layout', () => {
   it('apply as soon as the poll lands', async () => {
     await boot('/projection')
     expect(screen.getAllByText(/8\.11/).length).toBeGreaterThan(0)
@@ -235,7 +235,7 @@ describe('menu changes in the standard layout', () => {
   })
 })
 
-describe('menu changes after the rabbit hole fell back to the standard layout', () => {
+describe('menu changes after the rabbit hole fell back to the featured layout', () => {
   /** jsdom has no layout: plates are 800px tall and only a menu with the Latte at 8.22 overflows them. */
   function stubOverflowAt822() {
     vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockImplementation(function (this: HTMLElement) {
@@ -251,8 +251,8 @@ describe('menu changes after the rabbit hole fell back to the standard layout', 
     stubOverflowAt822()
     await boot('/projection?layout=rabbit-hole')
     await publishAndPoll(8.22)
-    await advance(1300) // swapped in, does not fit → standard layout
-    expect(screen.queryByTestId('rabbit-hole-stage')).toBeNull()
+    await advance(1300) // swapped in, does not fit → featured layout
+    expect(screen.queryByTestId('rabbit-hole-menu')).toBeNull()
     await advance(60_000) // past the gap, so a gulp would be accepted
 
     await publishAndPoll(8.33)

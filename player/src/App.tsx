@@ -120,7 +120,6 @@ function App() {
             path="/projection"
             element={
               <ProjectorLayout
-                board={board}
                 document={projectedMenu.document}
               />
             }

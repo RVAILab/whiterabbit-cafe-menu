@@ -66,12 +66,12 @@ describe('rabbit hole auto-fit', () => {
     expect(menuBaseSize()).toBe('28px')
   })
 
-  it('falls back to the standard layout and warns when the menu overflows at 26px', async () => {
+  it('falls back to the featured layout and warns when the menu overflows at 26px', async () => {
     contentAt32 = 1100
     renderProjection('/projection?layout=rabbit-hole')
 
-    expect(await screen.findByText('Noble Coffee')).toBeTruthy()
-    expect(screen.queryByTestId('rabbit-hole-stage')).toBeNull()
+    expect(await screen.findByTestId('featured-menu')).toBeTruthy()
+    expect(screen.queryByTestId('rabbit-hole-menu')).toBeNull()
     expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/does not fit .*26px/))
   })
 

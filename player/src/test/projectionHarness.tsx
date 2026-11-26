@@ -2,6 +2,8 @@ import { act, render } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { vi } from 'vitest'
 import App from '../App'
+import { PROJECTED_MENU_SECTIONS } from '../lib/projectedMenu'
+import { sampleProjectedMenu } from './fixtures/sampleProjectedMenu'
 
 /**
  * Route-level harness for `/projection`: the whole App behind a MemoryRouter,
@@ -93,6 +95,17 @@ export function stubLocalStorage() {
     setItem: (key: string, value: string) => { values.set(key, String(value)) },
   } satisfies Storage)
   return values
+}
+
+/** The sample menu as a v1 document (fixed sections, no side/position): the featured wall cannot plan it. */
+export function projectedMenuV1() {
+  return {
+    ...structuredClone(sampleProjectedMenu),
+    schemaVersion: 1,
+    sections: sampleProjectedMenu.sections
+      .filter((section) => PROJECTED_MENU_SECTIONS.some(({ id }) => id === section.id))
+      .map(({ id, name, items }) => ({ id, name, items: structuredClone(items) })),
+  }
 }
 
 export function renderProjection(path = '/projection') {

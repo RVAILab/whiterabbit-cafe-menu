@@ -220,14 +220,14 @@ describe('scheduled gulps', () => {
     expect(gulpCount()).toBe(1)
   })
 
-  it('does not fire in the standard layout', async () => {
+  it('does not fire in the featured layout', async () => {
     revision += 1
     server.displayControl = displayControlV2({ revision })
     renderProjection('/projection')
     for (let i = 0; i < 5; i++) await advance(0)
     await advance(10 * MINUTE)
     expect(document.querySelector('.gulping')).toBeNull()
-    expect(screen.queryByTestId('rabbit-hole-stage')).toBeNull()
+    expect(screen.queryByTestId('rabbit-hole-menu')).toBeNull()
   })
 
   it('uses the spec default (on, every 15 minutes) when only the URL picks the rabbit hole over v1', async () => {

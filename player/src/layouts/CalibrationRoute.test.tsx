@@ -8,6 +8,7 @@ import {
   displayControlV1,
   displayControlV2,
   fakeProjectionTimers,
+  projectedMenuV1,
   stubLocalStorage,
   stubProjectionServer,
   type ProjectionServer,
@@ -79,7 +80,7 @@ describe('projection calibration', () => {
     server.projectedMenu = null
     server.displayControl = displayControlV1({ revision: 2, screenCommand: calibrateCommand })
     await bootProjection('/projection?layout=rabbit-hole')
-    expect(screen.queryByTestId('rabbit-hole-stage')).toBeNull()
+    expect(screen.queryByTestId('rabbit-hole-menu')).toBeNull()
 
     server.projectedMenu = structuredClone(sampleProjectedMenu)
     await advance(20_000) // the next menu poll
@@ -88,6 +89,7 @@ describe('projection calibration', () => {
   })
 
   it('honours a "calibrate" screen command once the layout switches to the rabbit hole within 30s', async () => {
+    server.projectedMenu = projectedMenuV1() // the empty stage: nothing pinned to calibrate
     server.displayControl = displayControlV2({ revision: 2, screenCommand: calibrateCommand })
     await bootProjection('/projection')
     await advance(20_000)
@@ -100,6 +102,7 @@ describe('projection calibration', () => {
   })
 
   it('drops a "calibrate" screen command not honoured within 30s, with a warning', async () => {
+    server.projectedMenu = projectedMenuV1()
     server.displayControl = displayControlV2({ revision: 2, screenCommand: calibrateCommand })
     await bootProjection('/projection')
     await advance(30_000)
@@ -108,13 +111,21 @@ describe('projection calibration', () => {
     server.displayControl = displayControlV2({ revision: 3, desired: { layout: 'rabbit-hole' }, screenCommand: calibrateCommand })
     await advance(2_000)
 
-    expect(screen.getByTestId('rabbit-hole-stage')).toBeTruthy()
+    expect(screen.getByTestId('rabbit-hole-menu')).toBeTruthy()
     expect(screen.queryByTestId('calibration-grid')).toBeNull()
   })
 
-  it('ignores calibration entry in the standard layout (it is not pinned)', async () => {
+  it('opens with ?calibrate=1 on the featured wall (the default layout)', async () => {
     await bootProjection('/projection?calibrate=1')
-    expect(screen.getAllByText('Noble Coffee').length).toBeGreaterThan(0)
+
+    expect(screen.getByTestId('featured-menu')).toBeTruthy()
+    expect(screen.getByTestId('calibration-grid')).toBeTruthy()
+  })
+
+  it('ignores calibration entry on the empty stage (it is not pinned)', async () => {
+    server.projectedMenu = projectedMenuV1()
+    await bootProjection('/projection?calibrate=1')
+    expect(screen.getByTestId('projector-empty')).toBeTruthy()
 
     press('c')
 

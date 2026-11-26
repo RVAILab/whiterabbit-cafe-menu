@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { UpcomingWidget } from '../components/UpcomingWidget'
 import { HOLE_VARIANTS, type HoleVariant, type HoleVariantId } from '../rabbitHole/holeVariants'
 import { sampleProjectedMenu } from '../test/fixtures/sampleProjectedMenu'
 import {
@@ -165,16 +164,10 @@ describe('the next event at the bottom of the rabbit hole', () => {
   })
 })
 
-describe('the standard layout', () => {
+describe('the default layout', () => {
   it('has no hole event', async () => {
     renderProjection('/projection')
-    expect(await screen.findByText('Noble Coffee')).toBeTruthy()
+    expect(await screen.findByTestId('featured-menu')).toBeTruthy()
     expect(screen.queryByTestId('rh-hole-event')).toBeNull()
-  })
-
-  it('keeps the Upcoming card format ("Tomorrow at 6:00 PM")', async () => {
-    render(<UpcomingWidget visible />)
-    expect(await screen.findByText('RVAI Lab')).toBeTruthy()
-    expect(screen.getByText('Tomorrow at 6:00 PM')).toBeTruthy()
   })
 })

@@ -24,11 +24,11 @@ document. Run the WR-POS API locally when developing against live menu data.
 
 ## Display controls
 
-The projector retains its sleep, closed, and massage overlays plus the bubbles, geometric,
-and waveforms visualizations. It polls `GET /api/display-control` every two
-seconds (or `VITE_DISPLAY_CONTROL_URL`) for desired overlay and visualization
-state. One-shot `primary` screen commands work; unknown secondary-screen keys are
-ignored safely. The last validated desired state, revision, and ETag are cached
+The projector shows the rabbit hole when it is selected and fits, and the
+featured wall otherwise (layout `standard` included). It keeps its sleep,
+closed, massage and clubhouse overlays. It polls `GET /api/display-control`
+every two seconds (or `VITE_DISPLAY_CONTROL_URL`) for the desired layout and
+overlay. The last validated desired state, revision, and ETag are cached
 and restored before paint after a restart; cached one-shot screen commands are
 never replayed. Production builds also require an explicit
 `VITE_DISPLAY_CONTROL_URL`. Announcements and secondary-screen content are
@@ -45,9 +45,6 @@ Local projector keyboard controls remain available:
 - `0`: toggle sleep overlay
 - `9`: toggle closed overlay
 - `8`: toggle massage overlay (closed for a few days)
-- `1`, `2`, `3`: toggle bubbles, geometric, or waveforms
-- `F`: toggle visualization fullscreen mode
-- `Escape` or `Backspace`: return to the primary screen
 
 ## Routes
 

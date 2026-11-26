@@ -22,7 +22,7 @@ interface UseRabbitHoleOptions {
   displayControl: DisplayControlExtras
 }
 
-/** Everything the rabbit hole layout needs to render; `active` false means show the standard layout. */
+/** Everything the rabbit hole layout needs to render; `active` false means show the featured layout. */
 export interface RabbitHole {
   /** The rabbit hole is selected, the menu is loaded, and it has not fallen back (did not fit). */
   active: boolean
@@ -35,12 +35,10 @@ export interface RabbitHole {
   gulping: boolean
   stageRef: RefObject<HTMLDivElement | null>
   calibration: CalibrationApi
-  /** The menu overflows its plates even at the smallest type: fall back to the standard layout. */
+  /** The menu overflows its plates even at the smallest type: fall back to the featured layout. */
   onDoesNotFit(): void
-  /** The menu for the featured layout when it is selected, the menu is v2 and it fits; else null. */
+  /** The menu for the featured layout (the default and the fallback) when the rabbit hole is not showing and the menu is v2; else null. */
   featured: ProjectedMenuDocumentV2 | null
-  /** A featured block overflows: fall back to the standard layout for this menu. */
-  onFeaturedDoesNotFit(): void
 }
 
 /**
@@ -48,15 +46,14 @@ export interface RabbitHole {
  * auto-fit fallback, calibration keys, hole variant/speed (URL, display
  * control, dev keys), the gulp and its triggers (G key, menu changes,
  * schedule, remote effect command). Call it once, unconditionally; it is
- * inert while the standard layout shows.
+ * inert while the featured layout shows.
  */
 export function useRabbitHole({ document, search, displayControl }: UseRabbitHoleOptions): RabbitHole {
   const layout = resolveEffectiveLayout({ search, desiredLayout: displayControl.layout })
   const fit = useRabbitHoleFallback(document)
   const active = layout === 'rabbit-hole' && !!document && !fit.fellBack
-  // The featured layout shares the pin and calibration; it needs v2 sections (side, position).
-  const featuredFit = useRabbitHoleFallback(document)
-  const featured = layout === 'featured' && document?.schemaVersion === 2 && !featuredFit.fellBack ? document : null
+  // Featured is every other case (standard, featured, a rabbit hole that does not fit); it needs v2 sections (side, position).
+  const featured = !active && document?.schemaVersion === 2 ? document : null
 
   const calibration = useCalibrationControls({ enabled: active || !!featured, search })
   const holeSettings = resolveHoleSettings({ search, desired: displayControl.rabbitHole })
@@ -87,6 +84,5 @@ export function useRabbitHole({ document, search, displayControl }: UseRabbitHol
     calibration,
     onDoesNotFit: () => fit.reportDoesNotFit(shownDocument),
     featured,
-    onFeaturedDoesNotFit: () => featuredFit.reportDoesNotFit(document),
   }
 }
