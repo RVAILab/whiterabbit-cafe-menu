@@ -24,12 +24,21 @@ function imageSrc(imageUrl: string | null | undefined): string | null {
   }
 }
 
+const SPIN_SECONDS = 90
+
 /** The 240px picture: the item's photo, else (or if it fails to load) a drawn top-down cup, or a plate for food. */
 function Picture({ item, color, plate = false }: { item: ProjectedMenuItemV2; color?: string; plate?: boolean }) {
   const src = imageSrc(item.imageUrl)
   const [failedSrc, setFailedSrc] = useState<string | null>(null)
   if (src && src !== failedSrc) {
-    return <img className="ft-pic" src={src} alt={item.name} onError={() => setFailedSrc(src)} />
+    return <img
+        className="ft-pic ft-spin"
+        src={src}
+        alt={item.name}
+        // Each photo starts at its own angle so the cups don't turn in lockstep.
+        style={{ animationDelay: `-${((item.templateId * 0.618) % 1) * SPIN_SECONDS}s` }}
+        onError={() => setFailedSrc(src)}
+      />
   }
   return (
     <svg className="ft-pic" viewBox="0 0 100 100" aria-hidden="true">
