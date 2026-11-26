@@ -136,7 +136,8 @@
 .ft-lead-head {
   display: flex;
   gap: calc(28px * var(--ft-s, 1));
-  align-items: center;
+  /* Top-aligned, so the lead's label sits on the same line as the grid's top labels (both at the stage's 36px). */
+  align-items: flex-start;
 }
 .ft-lead-title {
   display: flex;
