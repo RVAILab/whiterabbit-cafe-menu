@@ -5,6 +5,8 @@ export interface FeaturedBlock {
   id: string
   label: string
   featured?: ProjectedMenuItemV2
+  /** Lead block only: the next item, shown big (name, price, description) under the featured one. */
+  runnerUp?: ProjectedMenuItemV2
   items: ProjectedMenuItemV2[]
 }
 
@@ -37,8 +39,11 @@ function pictured(section: ProjectedMenuDocumentV2['sections'][number]): Feature
  */
 export function planFeatured(document: ProjectedMenuDocumentV2): FeaturedPlan {
   const [firstFood, ...laterFood] = sectionsOn(document, 'eat-me')
+  const [lead, ...grid] = sectionsOn(document, 'drink-me').slice(0, MAX_DRINK_BLOCKS).map(pictured)
+  // The lead block has room for a second big item beside its cup: the first in its list (set by order in Back office).
+  const drinks = lead ? [{ ...lead, runnerUp: lead.items[0], items: lead.items.slice(1) }, ...grid] : []
   return {
-    drinks: sectionsOn(document, 'drink-me').slice(0, MAX_DRINK_BLOCKS).map(pictured),
+    drinks,
     food: firstFood
       ? [pictured(firstFood), ...laterFood.map((s) => ({ id: s.id, label: s.name, items: s.items }))]
       : [],

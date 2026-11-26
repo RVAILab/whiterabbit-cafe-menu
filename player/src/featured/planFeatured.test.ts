@@ -46,14 +46,25 @@ describe('planFeatured', () => {
     const plan = planFeatured(doc({ ...coffee, featuredItemId: coffee.items[1].id }))
 
     expect(plan.drinks[0].featured?.name).toBe('Coffee B')
-    expect(plan.drinks[0].items.map(({ name }) => name)).toEqual(['Coffee A', 'Coffee C'])
+    expect(plan.drinks[0].runnerUp?.name).toBe('Coffee A')
+    expect(plan.drinks[0].items.map(({ name }) => name)).toEqual(['Coffee C'])
+  })
+
+  it('shows the lead block\'s next item big under the featured one, and only in the lead', () => {
+    const coffee = section('Coffee', 'drink-me', 0)
+    const tea = section('Tea', 'drink-me', 1)
+    const plan = planFeatured(doc(coffee, tea))
+    expect(plan.drinks[0].featured?.name).toBe('Coffee A')
+    expect(plan.drinks[0].runnerUp?.name).toBe('Coffee B')
+    expect(plan.drinks[0].items.map((item) => item.name)).not.toContain('Coffee B')
+    expect(plan.drinks[1].runnerUp).toBeUndefined()
   })
 
   it('falls back to the first item when featuredItemId is absent, null or unknown', () => {
     for (const featuredItemId of [undefined, null, 'template-999']) {
       const plan = planFeatured(doc(section('Coffee', 'drink-me', 0, { featuredItemId })))
       expect(plan.drinks[0].featured?.name).toBe('Coffee A')
-      expect(plan.drinks[0].items.map(({ name }) => name)).toEqual(['Coffee B', 'Coffee C'])
+      expect([plan.drinks[0].runnerUp?.name, ...plan.drinks[0].items.map(({ name }) => name)]).toEqual(['Coffee B', 'Coffee C'])
     }
   })
 
