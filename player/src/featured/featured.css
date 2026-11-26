@@ -9,33 +9,16 @@
   font-weight: 400;
 }
 
-@keyframes ftTunnel {
-  0% { transform: translate(-50%, -50%) scale(0.15); opacity: 0; }
-  12% { opacity: 1; }
-  100% { transform: translate(-50%, -50%) scale(2.4); opacity: 0; }
-}
 @keyframes ftSwirl {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
 
-.ft-tunnel {
-  position: absolute;
-  left: 760px;
-  top: 540px;
-  width: 0;
-  height: 0;
-  opacity: 0.3;
-}
-.ft-ring {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 760px;
-  height: 740px;
-  border: 4px solid #85a06a;
-  border-radius: 49% 51% 47% 53% / 52% 48% 52% 48%;
-  animation: ftTunnel 13s linear infinite;
+/* The rabbit hole's Dive rings (rings.ts), softened further toward the stage edges. */
+.ft-rings {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  -webkit-mask-image: radial-gradient(ellipse 62% 70% at 40% 50%, #000 45%, transparent 100%);
+  mask-image: radial-gradient(ellipse 62% 70% at 40% 50%, #000 45%, transparent 100%);
 }
 .ft-swirl {
   transform-origin: 50px 50px;
@@ -216,15 +199,15 @@
 .ft-lead-title .ft-runner-up .ft-desc { font-size: calc(22px * var(--ft-s, 1)); }
 
 /* The bottom strip: the members message centred, the time under the food capsule. */
-.ft-foot { position: absolute; left: 0; right: 0; top: 1004px; height: 56px; }
+.ft-foot { position: absolute; left: 0; right: 0; top: 1010px; height: 50px; }
 .ft-foot-msg {
   position: absolute; left: 50%; top: 0; transform: translateX(-50%);
-  white-space: nowrap; font-size: 30px; font-weight: 600; color: #f7f4ed;
+  white-space: nowrap; font-size: 24px; font-weight: 400; color: #f7f4ed;
 }
 .ft-foot-msg em { font-style: normal; color: #ff3d9a; }
 .ft-clock {
   position: absolute; left: 1500px; width: 386px; top: 0; text-align: center;
-  font-size: 34px; font-weight: 600; color: #cfc6b2; font-variant-numeric: tabular-nums;
+  font-size: 26px; font-weight: 400; color: #cfc6b2; font-variant-numeric: tabular-nums;
 }
 
 /* The photos turn slowly, one revolution per 90s (SPIN_SECONDS in FeaturedLayout). */

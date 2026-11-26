@@ -10,6 +10,7 @@ import { PinnedSurface } from '../rabbitHole/PinnedSurface'
 import { useEventTitleFit } from '../rabbitHole/useEventTitleFit'
 import { Stage, StageLayer } from '../rabbitHole/Stage'
 import { formatClock } from './clock'
+import { FeaturedRings } from './FeaturedRings'
 import { itemPrice, planFeatured, type FeaturedBlock } from './planFeatured'
 import '../rabbitHole/rabbitHole.css'
 import './featured.css'
@@ -251,11 +252,7 @@ export function FeaturedLayout({ document, calibration, footer, overlays, stageC
     >
       <Stage className={['ft-stage', stageClassName].filter(Boolean).join(' ')}>
         <StageLayer layer="background">
-          <div className="ft-tunnel" aria-hidden="true">
-            {[0, -2.2, -4.4, -6.6, -8.8, -11].map((delay) => (
-              <div key={delay} className="ft-ring" style={{ animationDelay: `${delay}s` }} />
-            ))}
-          </div>
+          <FeaturedRings />
         </StageLayer>
         {/* The clubhouse notice takes What's next's place under the lead block. */}
         <StageLayer layer="hole-event">{!hasFooter && <WhatsNext />}</StageLayer>
