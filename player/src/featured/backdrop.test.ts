@@ -1,18 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { BACKDROP, flakePose, snowAmount } from './backdrop'
-
-describe('snowAmount', () => {
-  it('is glows only most of the cycle, eases into snow, holds, eases out', () => {
-    expect(snowAmount(0)).toBe(0)
-    expect(snowAmount(60)).toBe(0)
-    expect(snowAmount(90)).toBeGreaterThan(0.3)
-    expect(snowAmount(90)).toBeLessThan(0.7)
-    expect(snowAmount(110)).toBe(1)
-    expect(snowAmount(135)).toBeGreaterThan(0.3)
-    expect(snowAmount(146)).toBe(0)
-    expect(snowAmount(110 + BACKDROP.cycle)).toBe(1)
-  })
-})
+import { flakePose, textFade } from './backdrop'
 
 describe('flakePose', () => {
   it('falls downward and loops from above the stage to below it', () => {
@@ -24,5 +11,17 @@ describe('flakePose', () => {
       expect(y).toBeGreaterThanOrEqual(-120)
       expect(y).toBeLessThan(1080 + 120)
     }
+  })
+})
+
+describe('textFade', () => {
+  const rect = { x: 100, y: 100, w: 200, h: 30 }
+  it('hides a flake behind text, eases it back in, full strength in open space', () => {
+    expect(textFade(200, 115, 20, [rect])).toBe(0)
+    const near = textFade(200, 145, 20, [rect])
+    expect(near).toBeGreaterThan(0)
+    expect(near).toBeLessThan(1)
+    expect(textFade(200, 300, 20, [rect])).toBe(1)
+    expect(textFade(200, 115, 20, [])).toBe(1)
   })
 })
