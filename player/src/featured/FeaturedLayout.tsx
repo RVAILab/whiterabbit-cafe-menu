@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { CalibrationApi } from '../context/calibrationContext'
 import { DEFAULT_PROJECTED_MENU_URL } from '../hooks/useProjectedMenu'
 import { useUpcomingEvent } from '../hooks/useUpcomingEvent'
@@ -9,6 +9,7 @@ import { CalibrationGrid, CalibrationHandles } from '../rabbitHole/Calibration'
 import { PinnedSurface } from '../rabbitHole/PinnedSurface'
 import { useEventTitleFit } from '../rabbitHole/useEventTitleFit'
 import { Stage, StageLayer } from '../rabbitHole/Stage'
+import { formatClock } from './clock'
 import { itemPrice, planFeatured, type FeaturedBlock } from './planFeatured'
 import '../rabbitHole/rabbitHole.css'
 import './featured.css'
@@ -147,6 +148,23 @@ function WhatsNext() {
   )
 }
 
+function Clock() {
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 5_000)
+    return () => clearInterval(timer)
+  }, [])
+  return <div className="ft-clock" data-testid="ft-clock">{formatClock(now)}</div>
+}
+
+// shortcut: the members message is fixed here; make it editable in Back office if it needs to change often.
+const FooterStrip = () => (
+  <div className="ft-foot">
+    <div className="ft-foot-msg"><em>15% discount</em> for members</div>
+    <Clock />
+  </div>
+)
+
 /** Drink text scales auto-fit tries, largest first. Above 0.88 names wrap in these columns. */
 const FIT_SCALES = [0.88, 0.82, 0.76, 0.7] as const
 /** The food capsule fits on its own scale, so a long food list never shrinks the drinks; it may go a little smaller. */
@@ -258,6 +276,7 @@ export function FeaturedLayout({ document, calibration, footer, overlays, stageC
               ))}
             </div>
             {plan.food.length > 0 && <FoodCapsule blocks={plan.food} />}
+            <FooterStrip />
           </div>
         </StageLayer>
         <StageLayer layer="calibration-grid">{calibration?.isCalibrating && <CalibrationGrid />}</StageLayer>
