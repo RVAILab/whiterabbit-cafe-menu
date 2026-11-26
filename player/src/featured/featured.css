@@ -44,10 +44,10 @@
 
 .ft-lbl {
   font-weight: 600;
-  font-size: calc(18px * var(--ft-s, 1));
+  font-size: calc(26px * var(--ft-s, 1));
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #9db084;
+  color: #ff3d9a;
 }
 .ft-li {
   display: flex;
@@ -98,7 +98,7 @@
   gap: calc(10px * var(--ft-s, 1));
   overflow: hidden;
 }
-.ft-next-lbl { color: #ef8d95; }
+.ft-next-lbl { font-size: calc(18px * var(--ft-s, 1)); }
 /* Never clamped: useEventTitleFit shrinks --title-fs (32 → 18) until the whole
    title fits the room above the cup handle and no word is wider than the column. */
 .ft-next-title {
