@@ -67,11 +67,10 @@
 }
 .ft-nm { flex: 1; }
 .ft-pr {
-  font-weight: 600;
+  font-weight: 400; /* regular, like the item names in the lists — even beside a bold hero name */
   color: #bcc8a5;
   font-variant-numeric: tabular-nums;
 }
-.ft-hero .ft-pr { font-weight: 700; }
 
 .ft-pic {
   display: block;
