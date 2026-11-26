@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { STAGE_HEIGHT, STAGE_WIDTH } from '../lib/homography'
 import { drawFeaturedRings } from './rings'
 
-/** Phase seconds per wall second: the rabbit hole's default calm speed. */
+/** Phase seconds per wall second: the rabbit hole's default calm speed, as Portal looks on the wall. */
 const SPEED = 0.4
 
 /** The featured wall's background rings, drawn every frame (one still frame under reduced motion). */

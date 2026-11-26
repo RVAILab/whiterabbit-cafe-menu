@@ -203,13 +203,17 @@ function strokeLayer(
   c.restore()
 }
 
-export function drawPortal(c: CanvasRenderingContext2D, t: number, [cx, cy]: [number, number]) {
+/** Just the outlines (both layers) at phase `t`, on whatever is already drawn; the featured wall uses this too. */
+export function strokePortalOutlines(c: CanvasRenderingContext2D, t: number, [cx, cy]: [number, number]) {
   requestOutlines()
-  c.clearRect(0, 0, STAGE_WIDTH, STAGE_HEIGHT)
-
   const pose = portalPose(t)
   strokeLayer(c, outlines.bands, PORTAL.bands, cx + pose.dx, cy + pose.dy, pose.bands)
   strokeLayer(c, outlines.rings, PORTAL.rings, cx + pose.dx, cy + pose.dy, pose.rings)
+}
+
+export function drawPortal(c: CanvasRenderingContext2D, t: number, [cx, cy]: [number, number]) {
+  c.clearRect(0, 0, STAGE_WIDTH, STAGE_HEIGHT)
+  strokePortalOutlines(c, t, [cx, cy])
 
   const g = c.createRadialGradient(cx, cy, 0, cx, cy, PORTAL.occluder)
   g.addColorStop(0, 'rgba(0,0,0,1)')
