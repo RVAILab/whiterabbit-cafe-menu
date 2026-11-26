@@ -1,12 +1,9 @@
 import { useEffect, useRef } from 'react'
 import { STAGE_HEIGHT, STAGE_WIDTH } from '../lib/homography'
-import { drawFeaturedRings } from './rings'
+import { drawBackdrop } from './backdrop'
 
-/** Phase seconds per wall second: the rabbit hole's default calm speed, as Portal looks on the wall. */
-const SPEED = 0.4
-
-/** The featured wall's background rings, drawn every frame (one still frame under reduced motion). */
-export function FeaturedRings() {
+/** The featured wall's glows-and-snow backdrop (backdrop.ts); one still frame under reduced motion. */
+export function FeaturedBackdrop() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   useEffect(() => {
     const ctx = canvasRef.current?.getContext('2d')
@@ -15,11 +12,11 @@ export function FeaturedRings() {
     const start = performance.now()
     let frame = 0
     const draw = (now: number) => {
-      drawFeaturedRings(ctx, ((now - start) / 1000) * SPEED + 6)
+      drawBackdrop(ctx, (now - start) / 1000)
       if (!still) frame = requestAnimationFrame(draw)
     }
     frame = requestAnimationFrame(draw)
     return () => cancelAnimationFrame(frame)
   }, [])
-  return <canvas ref={canvasRef} className="ft-rings" width={STAGE_WIDTH} height={STAGE_HEIGHT} aria-hidden="true" />
+  return <canvas ref={canvasRef} className="ft-backdrop" width={STAGE_WIDTH} height={STAGE_HEIGHT} aria-hidden="true" />
 }
