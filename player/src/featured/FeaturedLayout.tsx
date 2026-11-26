@@ -7,6 +7,7 @@ import { formatRelativeEventTime } from '../lib/eventTime'
 import type { ProjectedMenuDocumentV2, ProjectedMenuItemV2 } from '../lib/projectedMenu'
 import { CalibrationGrid, CalibrationHandles } from '../rabbitHole/Calibration'
 import { PinnedSurface } from '../rabbitHole/PinnedSurface'
+import { useEventTitleFit } from '../rabbitHole/useEventTitleFit'
 import { Stage, StageLayer } from '../rabbitHole/Stage'
 import { itemPrice, planFeatured, type FeaturedBlock } from './planFeatured'
 import '../rabbitHole/rabbitHole.css'
@@ -120,16 +121,23 @@ function FoodCapsule({ blocks }: { blocks: FeaturedBlock[] }) {
 }
 
 /** "What's next": the real next event from Rova; a quiet house line when there is none, nothing while loading. */
+// The card's title room: kept above the cup handle; shrinks until every word fits its width.
+const NEXT_TITLE_SIZES = [32, 30, 28, 26, 24, 22, 20, 18] as const
+const NEXT_TITLE_MAX_HEIGHT = 104
+
 function WhatsNext() {
   const { upcomingEvent, isLoading } = useUpcomingEvent({
     enabled: true,
     pollInterval: parseInt(import.meta.env.VITE_ROVA_POLL_INTERVAL || '60000', 10),
   })
+  const titleRef = useRef<HTMLDivElement>(null)
+  const title = isLoading ? null : upcomingEvent ? upcomingEvent.title : "We're all mad here"
+  useEventTitleFit(titleRef, title, NEXT_TITLE_SIZES, NEXT_TITLE_MAX_HEIGHT)
   if (isLoading) return null
   return (
     <section className="ft-next" aria-label="What's next" data-testid="ft-next">
       <div className="ft-lbl ft-next-lbl">{upcomingEvent ? "What's next" : 'White Rabbit'}</div>
-      <div className="ft-next-title">{upcomingEvent ? upcomingEvent.title : "We're all mad here"}</div>
+      <div ref={titleRef} className="ft-next-title">{title}</div>
       {upcomingEvent && <div className="ft-next-time">{formatRelativeEventTime(upcomingEvent.startsAt)}</div>}
     </section>
   )

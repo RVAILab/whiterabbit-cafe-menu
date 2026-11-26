@@ -99,21 +99,19 @@
   overflow: hidden;
 }
 .ft-next-lbl { color: #ef8d95; }
-/* shortcut: long event titles clamp at four lines; fit them like the hole's useEventTitleFit if that bites. */
+/* Never clamped: useEventTitleFit shrinks --title-fs (32 → 18) until the whole
+   title fits the room above the cup handle and no word is wider than the column. */
 .ft-next-title {
   font-weight: 600;
-  font-size: calc(32px * var(--ft-s, 1));
+  font-size: var(--title-fs, 32px);
   line-height: 1.05;
   max-width: 180px;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
-  overflow: hidden;
 }
+.ft-next-title[data-fit='floor'] { overflow-wrap: anywhere; }
 .ft-next-time {
   font-size: calc(21px * var(--ft-s, 1));
   color: #cfc6b2;
-  max-width: 180px;
+  white-space: nowrap;
 }
 
 /* Lead drink block: the column gives up height to a footer (clubhouse notice). */
