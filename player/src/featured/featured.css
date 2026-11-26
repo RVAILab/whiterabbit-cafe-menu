@@ -44,8 +44,9 @@
 
 .ft-lbl {
   font-weight: 600;
-  font-size: calc(26px * var(--ft-s, 1));
-  letter-spacing: 0.14em;
+  /* Tighter tracking keeps the longest label ("Chocolates & More") on one line in a grid column. */
+  font-size: 24px; /* fixed: section labels don't shrink with the text */
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #ff3d9a;
 }
@@ -84,11 +85,11 @@
 /* "What's next", tilted at the top left. */
 .ft-next {
   position: absolute;
-  left: 22px;
-  top: 26px;
-  width: 310px;
-  height: 300px;
-  transform: rotate(-6deg);
+  left: 170px;
+  top: 730px;
+  width: 360px;
+  height: 290px;
+  transform: rotate(-4deg);
   background: #2b381f;
   border-radius: 28px;
   padding: 26px;
@@ -105,7 +106,6 @@
   font-weight: 600;
   font-size: var(--title-fs, 32px);
   line-height: 1.05;
-  max-width: 180px;
 }
 .ft-next-title[data-fit='floor'] { overflow-wrap: anywhere; }
 .ft-next-time {
@@ -118,12 +118,13 @@
 .ft-left {
   position: absolute;
   left: 160px;
-  top: 220px;
+  top: 36px;
   width: 600px;
-  height: 824px;
+  height: 660px;
   display: flex;
   flex-direction: column;
 }
+.ft-left.with-footer { height: 1008px; }
 .ft-lead {
   flex: 1 1 auto;
   min-height: 0;
@@ -170,7 +171,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: calc(26px * var(--ft-s, 1));
+  gap: calc(48px * var(--ft-s, 1));
 }
 .ft-block {
   flex: none;
@@ -201,7 +202,16 @@
   flex-direction: column;
   gap: calc(14px * var(--ft-s, 1));
 }
-.ft-food-section + .ft-food-section { margin-top: calc(16px * var(--ft-s, 1)); }
+.ft-food-section + .ft-food-section { margin-top: calc(32px * var(--ft-s, 1)); }
+/* The featured item's description, one quiet line under its name. */
+.ft-desc {
+  font-size: calc(22px * var(--ft-s, 1));
+  line-height: 1.2;
+  color: #cfc6b2;
+  margin-top: calc(-4px * var(--ft-s, 1));
+}
+.ft-lead-title .ft-desc { font-size: calc(26px * var(--ft-s, 1)); }
+
 /* The photos turn slowly, one revolution per 90s (SPIN_SECONDS in FeaturedLayout). */
 .ft-spin { animation: ftSwirl 90s linear infinite; }
 
