@@ -135,10 +135,10 @@ describe('/projection?layout=rabbit-hole', () => {
 })
 
 describe('/projection without a layout override', () => {
-  it('renders the standard board', async () => {
+  it('renders the featured wall', async () => {
     renderProjection('/projection')
 
-    expect(await screen.findByText('Noble Coffee')).toBeTruthy()
-    expect(screen.queryByTestId('rabbit-hole-stage')).toBeNull()
+    expect(await screen.findByTestId('featured-menu')).toBeTruthy()
+    expect(screen.queryByTestId('rabbit-hole-menu')).toBeNull()
   })
 })

@@ -10,7 +10,7 @@ export interface EffectiveLayoutInputs {
   desiredLayout?: ProjectionLayout | null
 }
 
-/** The layout `/projection` renders: URL override, then display control, then standard. */
+/** The layout `/projection` renders: URL override, then display control, then standard (which renders as featured). */
 export function resolveEffectiveLayout({ search, desiredLayout }: EffectiveLayoutInputs): ProjectionLayout {
   const override = new URLSearchParams(search).get('layout')
   if (isProjectionLayout(override)) return override

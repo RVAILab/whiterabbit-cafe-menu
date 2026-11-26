@@ -46,9 +46,9 @@ const rabbitHoleV2 = (overrides: Record<string, unknown> = {}) =>
 const cache = (snapshot: unknown, etag: string | null = null) =>
   storage.set(DISPLAY_CONTROL_STORAGE_KEY, JSON.stringify({ snapshot, etag }))
 
-const expectStandardBoard = async () => {
-  expect(await screen.findByText('Noble Coffee')).toBeTruthy()
-  expect(screen.queryByTestId('rabbit-hole-stage')).toBeNull()
+const expectFeaturedWall = async () => {
+  expect(await screen.findByTestId('featured-menu')).toBeTruthy()
+  expect(screen.queryByTestId('rabbit-hole-menu')).toBeNull()
 }
 
 describe('/projection driven by display control', () => {
@@ -59,26 +59,26 @@ describe('/projection driven by display control', () => {
     expect(displayControlRequests()[0]).toMatch(/[?&]schemaVersion=2(&|$)/)
   })
 
-  it('renders the standard board for a v1 snapshot', async () => {
+  it('renders the featured wall for a v1 snapshot', async () => {
     renderProjection('/projection')
     await settleDisplayControl()
 
-    await expectStandardBoard()
+    await expectFeaturedWall()
   })
 
-  it('renders the standard board for a v2 standard layout', async () => {
+  it('renders the featured wall for a v2 standard layout', async () => {
     server.displayControl = displayControlV2()
     renderProjection('/projection')
     await settleDisplayControl()
 
-    await expectStandardBoard()
+    await expectFeaturedWall()
   })
 
   it('renders the rabbit hole for v2 layout: rabbit-hole', async () => {
     server.displayControl = rabbitHoleV2()
     renderProjection('/projection')
 
-    expect(await screen.findByTestId('rabbit-hole-stage')).toBeTruthy()
+    expect(await screen.findByTestId('rabbit-hole-menu')).toBeTruthy()
     expect(screen.getAllByText('Noble Coffee')).toHaveLength(1)
   })
 
@@ -87,7 +87,7 @@ describe('/projection driven by display control', () => {
     renderProjection('/projection?layout=standard')
     await settleDisplayControl()
 
-    await expectStandardBoard()
+    await expectFeaturedWall()
   })
 
   it('ignores desired.visualization in the rabbit hole layout', async () => {
@@ -96,9 +96,10 @@ describe('/projection driven by display control', () => {
     })
     renderProjection('/projection')
 
-    const stage = await screen.findByTestId('rabbit-hole-stage')
+    await screen.findByTestId('rabbit-hole-menu')
+    const stage = screen.getByTestId('rabbit-hole-stage')
     await settleDisplayControl()
-    // The standard visualization layer draws on a canvas outside the stage.
+    // Nothing draws a visualization canvas outside the stage.
     const strayCanvases = [...document.querySelectorAll('canvas')].filter((c) => !stage.contains(c))
     expect(strayCanvases).toEqual([])
   })
@@ -108,7 +109,7 @@ describe('/projection driven by display control', () => {
     renderProjection('/projection')
     await settleDisplayControl()
 
-    await expectStandardBoard()
+    await expectFeaturedWall()
   })
 
   it('rejects a malformed v2 snapshot without leaving the cached rabbit hole', async () => {
@@ -120,7 +121,7 @@ describe('/projection driven by display control', () => {
     renderProjection('/projection')
     await settleDisplayControl()
 
-    expect(screen.getByTestId('rabbit-hole-stage')).toBeTruthy()
+    expect(screen.getByTestId('rabbit-hole-menu')).toBeTruthy()
   })
 
   it('restores a cached v2 snapshot on restart', async () => {
@@ -128,9 +129,9 @@ describe('/projection driven by display control', () => {
     server.displayControl = displayControlV1({ revision: 2 })
     renderProjection('/projection')
 
-    expect(await screen.findByTestId('rabbit-hole-stage')).toBeTruthy()
+    expect(await screen.findByTestId('rabbit-hole-menu')).toBeTruthy()
     await settleDisplayControl()
-    expect(screen.getByTestId('rabbit-hole-stage')).toBeTruthy()
+    expect(screen.getByTestId('rabbit-hole-menu')).toBeTruthy()
   })
 
   it('restores a cached v1 snapshot on restart', async () => {
@@ -142,16 +143,16 @@ describe('/projection driven by display control', () => {
     renderProjection('/projection')
 
     expect(await screen.findByText(/closed for today/)).toBeTruthy()
-    await expectStandardBoard()
+    await expectFeaturedWall()
   })
 
-  it('switches back to the standard board when a newer v1 snapshot arrives', async () => {
+  it('switches back to the featured wall when a newer v1 snapshot arrives', async () => {
     cache(rabbitHoleV2({ revision: 3 }))
     server.displayControl = displayControlV1({ revision: 4 })
     renderProjection('/projection')
     await settleDisplayControl()
 
-    await vi.waitFor(() => expect(screen.queryByTestId('rabbit-hole-stage')).toBeNull())
-    await expectStandardBoard()
+    await vi.waitFor(() => expect(screen.queryByTestId('rabbit-hole-menu')).toBeNull())
+    await expectFeaturedWall()
   })
 })

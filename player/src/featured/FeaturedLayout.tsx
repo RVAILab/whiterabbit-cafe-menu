@@ -147,21 +147,18 @@ function WhatsNext() {
   )
 }
 
-/**
- * Report overflow: after each layout (and once web fonts load), any block box
- * whose content overflows it means the menu does not fit this wall.
- */
-/** Drink text scales auto-fit tries, largest first. Above 0.88 names wrap in these columns; 0.82 keeps list text at the rabbit hole's ~23px floor. */
-const FIT_SCALES = [0.88, 0.82] as const
+/** Drink text scales auto-fit tries, largest first. Above 0.88 names wrap in these columns. */
+const FIT_SCALES = [0.88, 0.82, 0.76, 0.7] as const
 /** The food capsule fits on its own scale, so a long food list never shrinks the drinks; it may go a little smaller. */
 const FOOD_FIT_SCALES = [1, 0.94, 0.88, 0.82, 0.76, 0.7] as const
 
-function useOverflowCheck(content: unknown, onDoesNotFit?: () => void) {
+/**
+ * Auto-fit: after each layout (and once web fonts load), shrink the text until
+ * every block box holds its content. Featured is the last layout, so a menu
+ * that still overflows stays up (clipped) and only warns.
+ */
+function useOverflowCheck(content: unknown) {
   const ref = useRef<HTMLDivElement>(null)
-  const onDoesNotFitRef = useRef(onDoesNotFit)
-  useLayoutEffect(() => {
-    onDoesNotFitRef.current = onDoesNotFit
-  })
   useLayoutEffect(() => {
     let disposed = false
     const check = () => {
@@ -187,8 +184,7 @@ function useOverflowCheck(content: unknown, onDoesNotFit?: () => void) {
       if (drinks.fits && foodFit.fits) return
       const over = [...boxes, ...(food ? [food] : [])].filter((box) => box.scrollHeight > box.clientHeight + 1)
       const names = over.map((box) => `${box.getAttribute('aria-label')} (${box.scrollHeight}/${box.clientHeight}px)`)
-      console.warn(`Menu does not fit the featured layout (${names.join(', ')}); falling back to the standard layout.`)
-      onDoesNotFitRef.current?.()
+      console.warn(`Menu does not fit the featured layout (${names.join(', ')}); showing it clipped.`)
     }
     check()
     globalThis.document?.fonts?.ready.then(check, () => {})
@@ -208,8 +204,6 @@ export interface FeaturedLayoutProps {
   overlays?: ReactNode
   /** Stage state classes, e.g. `clubhouse` (dims the menu). */
   stageClassName?: string
-  /** Called when a block's content overflows its box. */
-  onDoesNotFit?: () => void
 }
 
 /**
@@ -217,11 +211,11 @@ export interface FeaturedLayoutProps {
  * behind the drinks, the first drink section as the lead block top-left with
  * "What's next" tilted under it (or the clubhouse notice in its place), the next four in a 2×2 grid, food in a capsule on the right.
  */
-export function FeaturedLayout({ document, calibration, footer, overlays, stageClassName, onDoesNotFit }: FeaturedLayoutProps) {
+export function FeaturedLayout({ document, calibration, footer, overlays, stageClassName }: FeaturedLayoutProps) {
   const plan = useMemo(() => planFeatured(document), [document])
   const hasFooter = Boolean(footer)
   const fitContent = useMemo(() => ({ plan, hasFooter }), [plan, hasFooter])
-  const menuRef = useOverflowCheck(fitContent, onDoesNotFit)
+  const menuRef = useOverflowCheck(fitContent)
   const [lead, ...grid] = plan.drinks
 
   return (

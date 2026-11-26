@@ -138,13 +138,13 @@ describe('the gulp on /projection?layout=rabbit-hole', () => {
   })
 })
 
-describe('the standard layout', () => {
+describe('the featured layout', () => {
   it('does nothing on G', async () => {
     await boot('/projection')
     expect(screen.getAllByText('Noble Coffee').length).toBeGreaterThan(0)
     press('g')
     await advance(3000)
-    expect(screen.queryByTestId('rabbit-hole-stage')).toBeNull()
+    expect(screen.queryByTestId('rabbit-hole-menu')).toBeNull()
     expect(document.querySelector('.gulping')).toBeNull()
   })
 })

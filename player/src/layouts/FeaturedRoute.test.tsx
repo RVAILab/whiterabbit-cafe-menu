@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { sampleProjectedMenu } from '../test/fixtures/sampleProjectedMenu'
 import {
   displayControlV1,
+  projectedMenuV1,
   renderProjection,
   stubLocalStorage,
   stubProjectionServer,
@@ -40,5 +41,36 @@ describe('/projection?layout=featured', () => {
     expect(within(food).getByText('Sweet')).toBeTruthy()
     // Only one copy of the menu is on screen.
     expect(screen.getAllByText('Noble Coffee')).toHaveLength(1)
+  })
+
+  it('never falls back: a block that overflows at the smallest type stays up, clipped, with a warning', async () => {
+    // jsdom has no layout: every featured box is 100px tall and needs 1000px.
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockImplementation(function (this: HTMLElement) {
+      return this.hasAttribute('data-ft-box') ? 100 : 0
+    })
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(function (this: HTMLElement) {
+      return this.hasAttribute('data-ft-box') ? 1000 : 0
+    })
+    renderProjection('/projection?layout=featured')
+
+    const menu = await screen.findByTestId('featured-menu')
+    expect(menu.style.getPropertyValue('--ft-s')).toBe('0.7')
+    expect(console.warn).toHaveBeenCalledWith(expect.stringMatching(/does not fit the featured layout \(Noble Coffee/))
+    expect(screen.getByTestId('featured-menu')).toBe(menu)
+  })
+})
+
+describe('/projection before a v2 menu', () => {
+  it('shows an empty dark stage, with the overlays still working', async () => {
+    stubProjectionServer({
+      projectedMenu: projectedMenuV1(),
+      displayControl: displayControlV1({ desired: { overlay: 'closed', visualization: 'none', visualizationMode: 'background' } }),
+    })
+    renderProjection('/projection')
+
+    expect(await screen.findByTestId('projector-empty')).toBeTruthy()
+    expect(await screen.findByText(/closed for today/)).toBeTruthy()
+    expect(screen.queryByTestId('featured-menu')).toBeNull()
+    expect(screen.queryByText('Latte')).toBeNull()
   })
 })
