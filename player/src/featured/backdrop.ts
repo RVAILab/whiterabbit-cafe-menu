@@ -1,51 +1,30 @@
 import { STAGE_HEIGHT, STAGE_WIDTH } from '../lib/homography'
 
 /**
- * The featured wall's backdrop: soft green and pink glows drifting most of
- * the time; every cycle they resolve into a light snowfall (faint specks that
- * sharpen into six-armed flakes, drift down, then soften away again). Faint
- * and thin throughout so the menu in front stays easy to read. The stage-edge
- * fade is the .ft-backdrop mask, so nothing meets a hard edge.
+ * The featured wall's backdrop: soft green and pink glows drifting, with a
+ * steady snowfall of six-armed flakes drifting down in front of them. A flake
+ * fades as it passes behind the menu's text (`textFade`), so words stay
+ * clean; the stage-edge fade is the .ft-backdrop mask, so nothing meets a
+ * hard edge.
  */
 export const BACKDROP = {
-  /** Seconds per glow → snow → glow cycle. */
-  cycle: 150,
-  /** Within the cycle: snow eases in, holds, eases out (seconds). */
-  snowIn: [80, 100],
-  snowOut: [125, 145],
   glows: [
     { x: 520, y: 380, r: 560, color: '110,150,80', alpha: 0.11, period: 97, ax: 140, ay: 90 },
     { x: 1150, y: 700, r: 520, color: '255,61,154', alpha: 0.07, period: 83, ax: 120, ay: 110 },
     { x: 980, y: 230, r: 460, color: '255,61,154', alpha: 0.05, period: 113, ax: 160, ay: 70 },
     { x: 300, y: 830, r: 500, color: '110,150,80', alpha: 0.09, period: 71, ax: 110, ay: 80 },
   ],
-  flakes: 16,
-  /** Flake line strength at full snow. */
-  lineAlpha: 0.22,
+  flakes: 24,
+  /** Flake line strength. */
+  lineAlpha: 0.45,
 } as const
-
-const smooth = (x: number) => {
-  const c = Math.min(1, Math.max(0, x))
-  return c * c * (3 - 2 * c)
-}
-
-/** 0 (glows only) to 1 (crisp snowflakes) at phase `t` seconds. */
-export function snowAmount(t: number): number {
-  const s = ((t % BACKDROP.cycle) + BACKDROP.cycle) % BACKDROP.cycle
-  const [i0, i1] = BACKDROP.snowIn
-  const [o0, o1] = BACKDROP.snowOut
-  if (s < i0 || s >= o1) return 0
-  if (s < i1) return smooth((s - i0) / (i1 - i0))
-  if (s < o0) return 1
-  return 1 - smooth((s - o0) / (o1 - o0))
-}
 
 /** Deterministic per-flake constants (no Math.random: the same wall every load). */
 const FLAKES = Array.from({ length: BACKDROP.flakes }, (_, i) => {
   const h = (n: number) => ((Math.sin(i * 12.9898 + n * 78.233) * 43758.5453) % 1 + 1) % 1
   return {
     x: 60 + h(1) * 1380,
-    size: 13 + h(2) * 22,
+    size: 15 + h(2) * 22,
     fall: 18 + h(3) * 22,
     offset: h(4) * (STAGE_HEIGHT + 240),
     sway: 18 + h(5) * 26,
@@ -68,6 +47,21 @@ export function flakePose(i: number, t: number): FlakePose {
     angle: t * f.spin + i,
     color: f.color,
   }
+}
+
+/** A text box on the stage, stage px. */
+export interface TextRect { x: number; y: number; w: number; h: number }
+
+/** 1 in open space, easing to 0 as a flake of this size nears or passes behind any text box. */
+export function textFade(x: number, y: number, size: number, rects: readonly TextRect[]): number {
+  let nearest = Infinity
+  for (const r of rects) {
+    const dx = Math.max(r.x - x, 0, x - (r.x + r.w))
+    const dy = Math.max(r.y - y, 0, y - (r.y + r.h))
+    nearest = Math.min(nearest, Math.hypot(dx, dy))
+  }
+  const k = Math.min(1, Math.max(0, (nearest - size * 0.4) / (size + 14)))
+  return k * k * (3 - 2 * k)
 }
 
 function strokeFlake(c: CanvasRenderingContext2D, { x, y, size, angle }: FlakePose) {
@@ -93,7 +87,7 @@ function strokeFlake(c: CanvasRenderingContext2D, { x, y, size, angle }: FlakePo
   c.restore()
 }
 
-export function drawBackdrop(c: CanvasRenderingContext2D, t: number) {
+export function drawBackdrop(c: CanvasRenderingContext2D, t: number, text: readonly TextRect[] = []) {
   c.clearRect(0, 0, STAGE_WIDTH, STAGE_HEIGHT)
 
   for (const g of BACKDROP.glows) {
@@ -108,26 +102,13 @@ export function drawBackdrop(c: CanvasRenderingContext2D, t: number) {
     c.fillRect(x - g.r, y - g.r, g.r * 2, g.r * 2)
   }
 
-  const snow = snowAmount(t)
-  if (snow <= 0) return
   c.lineCap = 'round'
   for (let i = 0; i < BACKDROP.flakes; i++) {
     const p = flakePose(i, t)
-    // A soft speck while the snow resolves, giving way to the crisp flake.
-    const speck = snow * (1 - snow) * 0.9
-    if (speck > 0.01) {
-      const r = p.size * 1.3
-      const grad = c.createRadialGradient(p.x, p.y, 0, p.x, p.y, r)
-      grad.addColorStop(0, `rgba(${p.color},${speck * 0.35})`)
-      grad.addColorStop(1, `rgba(${p.color},0)`)
-      c.fillStyle = grad
-      c.fillRect(p.x - r, p.y - r, r * 2, r * 2)
-    }
-    const line = snow * snow * BACKDROP.lineAlpha
-    if (line > 0.005) {
-      c.strokeStyle = `rgba(${p.color},${line})`
-      c.lineWidth = 1.2 + p.size * 0.035
-      strokeFlake(c, p)
-    }
+    const alpha = BACKDROP.lineAlpha * textFade(p.x, p.y, p.size, text)
+    if (alpha < 0.01) continue
+    c.strokeStyle = `rgba(${p.color},${alpha})`
+    c.lineWidth = 1.6 + p.size * 0.05
+    strokeFlake(c, p)
   }
 }
