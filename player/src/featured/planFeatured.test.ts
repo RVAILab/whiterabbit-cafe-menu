@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { ProjectedMenuDocumentV2, ProjectedMenuSectionV2 } from '../lib/projectedMenu'
 import type { MetaCategory } from '../types'
-import { formatPrice, itemPrice, planFeatured } from './planFeatured'
+import { formatPrice, itemPrice, planFeatured, planShowcase } from './planFeatured'
 
 const item = (id: number, name: string, variants: [string, number][] = [[name, 4]]) => ({
   id: `template-${id}`,
@@ -112,5 +112,23 @@ describe('prices', () => {
     expect(itemPrice(item(2, 'Loose Leaf Teas', [['Earl Grey', 3.5], ['Sencha', 3]]))).toBe('from 3')
     expect(itemPrice(item(3, 'Espresso', [['Espresso', 4]]))).toBe('4')
     expect(itemPrice({ ...item(4, 'Soup'), basePrice: 6.25, variants: [] })).toBe('6.25')
+  })
+})
+
+describe('planShowcase', () => {
+  const cocoa = section('Cacao', 'drink-me', 0, { featuredItemId: undefined })
+  const tea = section('Tea', 'drink-me', 1)
+  const food = section('Sweet', 'eat-me', 0)
+
+  it('is null for a menu that is not a showcase', () => {
+    expect(planShowcase(doc(cocoa, tea, food))).toBeNull()
+    expect(planShowcase({ ...doc(cocoa), menu: { id: 'cafe', name: 'Café' } })).toBeNull()
+  })
+
+  it('titles the wall with the menu name and shows each drink section\'s star only', () => {
+    const starred = { ...tea, featuredItemId: tea.items[2].id }
+    const plan = planShowcase({ ...doc(cocoa, starred, food), menu: { id: 'festival', name: 'Happy Festival of Lights!', showcase: true } })
+    expect(plan?.title).toBe('Happy Festival of Lights!')
+    expect(plan?.drinks.map((d) => d.name)).toEqual(['Cacao A', 'Tea C'])
   })
 })
