@@ -52,6 +52,15 @@ export function planFeatured(document: ProjectedMenuDocumentV2): FeaturedPlan {
   }
 }
 
+/** A showcase menu (e.g. a festival special): its title and each drink section's star; null for any other menu. */
+export function planShowcase(document: ProjectedMenuDocumentV2): { title: string; drinks: ProjectedMenuItemV2[] } | null {
+  const menu = document.menu
+  if (menu?.showcase !== true || typeof menu.name !== 'string') return null
+  // shortcut: four cards fill the 2×2; a fifth star and beyond are dropped.
+  const drinks = planFeatured(document).drinks.flatMap((block) => block.featured ?? []).slice(0, 4)
+  return { title: menu.name, drinks }
+}
+
 /** Whole numbers without decimals ("6"), else two decimals ("5.50"). */
 export function formatPrice(price: number): string {
   return Number.isInteger(price) ? String(price) : price.toFixed(2)

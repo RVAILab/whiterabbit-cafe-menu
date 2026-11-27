@@ -75,6 +75,8 @@ export interface ProjectedMenuDocumentV2 {
   generatedAt: string
   availabilityRevision: string
   sections: ProjectedMenuSectionV2[]
+  /** The named menu on the wall (WR-POS #682); `showcase` draws only each drink section's star, big, under its name. */
+  menu?: { id: string; name: string; showcase?: boolean }
 }
 
 export type ProjectedMenuDocument = ProjectedMenuDocumentV1 | ProjectedMenuDocumentV2

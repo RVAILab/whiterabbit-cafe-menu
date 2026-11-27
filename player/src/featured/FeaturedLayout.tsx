@@ -11,7 +11,7 @@ import { useEventTitleFit } from '../rabbitHole/useEventTitleFit'
 import { Stage, StageLayer } from '../rabbitHole/Stage'
 import { formatClock } from './clock'
 import { FeaturedBackdrop } from './FeaturedBackdrop'
-import { itemPrice, planFeatured, type FeaturedBlock } from './planFeatured'
+import { itemPrice, planFeatured, planShowcase, type FeaturedBlock } from './planFeatured'
 import '../rabbitHole/rabbitHole.css'
 import './featured.css'
 
@@ -126,6 +126,28 @@ function FoodCapsule({ blocks }: { blocks: FeaturedBlock[] }) {
   )
 }
 
+/** A showcase menu's drinks: the title across the top, then each star big, two by two. */
+function Showcase({ title, drinks, footer }: { title: string; drinks: ProjectedMenuItemV2[]; footer?: ReactNode }) {
+  return (
+    <div className={footer ? 'ft-show with-footer' : 'ft-show'}>
+      <h1 className="ft-show-title">{title}</h1>
+      <div className="ft-show-grid">
+        {drinks.map((item, i) => (
+          <section key={item.id} className="ft-show-card ft-dim" aria-label={item.name} data-ft-box>
+            <div className="ft-show-pic"><Picture item={item} color={CUP_COLORS[i]} /></div>
+            <div className="ft-show-text">
+              <div className="ft-show-name">{item.name}</div>
+              {item.description && <div className="ft-desc">{item.description}</div>}
+              <div className="ft-pr">{itemPrice(item)}</div>
+            </div>
+          </section>
+        ))}
+      </div>
+      {footer}
+    </div>
+  )
+}
+
 /** "What's next": the real next event from Rova; a quiet house line when there is none, nothing while loading. */
 // The card's title room: shrinks until the whole title fits and every word fits the card's width.
 const NEXT_TITLE_SIZES = [32, 30, 28, 26, 24, 22, 20, 18] as const
@@ -232,8 +254,9 @@ export interface FeaturedLayoutProps {
  */
 export function FeaturedLayout({ document, calibration, footer, overlays, stageClassName }: FeaturedLayoutProps) {
   const plan = useMemo(() => planFeatured(document), [document])
+  const showcase = useMemo(() => planShowcase(document), [document])
   const hasFooter = Boolean(footer)
-  const fitContent = useMemo(() => ({ plan, hasFooter }), [plan, hasFooter])
+  const fitContent = useMemo(() => ({ plan, showcase, hasFooter }), [plan, showcase, hasFooter])
   const menuRef = useOverflowCheck(fitContent)
   const [lead, ...grid] = plan.drinks
 
@@ -255,9 +278,10 @@ export function FeaturedLayout({ document, calibration, footer, overlays, stageC
           <FeaturedBackdrop />
         </StageLayer>
         {/* The clubhouse notice takes What's next's place under the lead block. */}
-        <StageLayer layer="hole-event">{!hasFooter && <WhatsNext />}</StageLayer>
+        <StageLayer layer="hole-event">{!hasFooter && !showcase && <WhatsNext />}</StageLayer>
         <StageLayer layer="menu">
           <div ref={menuRef} className="ft-menu" data-testid="featured-menu">
+            {showcase ? <Showcase title={showcase.title} drinks={showcase.drinks} footer={footer} /> : <>
             <div className={hasFooter ? 'ft-left with-footer' : 'ft-left'}>
               {lead && <LeadBlock block={lead} />}
               {footer}
@@ -272,6 +296,7 @@ export function FeaturedLayout({ document, calibration, footer, overlays, stageC
                 </div>
               ))}
             </div>
+            </>}
             {plan.food.length > 0 && <FoodCapsule blocks={plan.food} />}
             <FooterStrip />
           </div>
