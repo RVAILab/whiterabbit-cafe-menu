@@ -111,6 +111,7 @@ describe('prices', () => {
     expect(itemPrice(item(1, 'Latte', [['12 oz', 5.5], ['8oz', 4.75]]))).toBe('4.75 / 5.50')
     expect(itemPrice(item(2, 'Loose Leaf Teas', [['Earl Grey', 3.5], ['Sencha', 3]]))).toBe('from 3')
     expect(itemPrice(item(3, 'Espresso', [['Espresso', 4]]))).toBe('4')
+    expect(itemPrice(item(5, 'Outlaw Cider', [['Blackberry', 6], ['Peruvian Ginger', 6]]))).toBe('6')
     expect(itemPrice({ ...item(4, 'Soup'), basePrice: 6.25, variants: [] })).toBe('6.25')
   })
 })
@@ -136,5 +137,14 @@ describe('planShowcase', () => {
     const coffee = { ...tea, featuredItemId: tea.items[1].id, alsoItemId: tea.items[0].id }
     const plan = planShowcase({ ...doc(coffee), menu: { id: 'f', name: 'F', showcase: true } })
     expect(plan?.drinks).toEqual([{ item: tea.items[1], also: tea.items[0] }])
+  })
+
+  it('stars the drink sections and lists bar sections beside them, all of them', () => {
+    const beer = section('Beer', 'bar', 0)
+    const wine = section('Wine', 'bar', 1)
+    const spiked = section('Spiked', 'bar', 2)
+    const plan = planShowcase({ ...doc(cocoa, tea, beer, wine, spiked, food), menu: { id: 'f', name: 'F', showcase: true } })
+    expect(plan?.drinks.map((d) => d.item.name)).toEqual(['Cacao A', 'Tea A'])
+    expect(plan?.bar.map((b) => [b.label, b.items.length])).toEqual([['Beer', 3], ['Wine', 3], ['Spiked', 3]])
   })
 })
