@@ -278,3 +278,6 @@
 .ft-show-text .ft-desc { font-size: calc(30px * var(--ft-s, 1)); margin: 0; }
 .ft-show-text .ft-pr { font-size: calc(40px * var(--ft-s, 1)); }
 .ft-show .rh-clubhouse { flex: none; padding: 14px 20px 16px; }
+/* A showcase card's extra item ("or Brewed Coffee 4"), smaller than the star. */
+.ft-show-also { font-size: calc(30px * var(--ft-s, 1)); color: #cfc6b2; margin-top: calc(6px * var(--ft-s, 1)); }
+.ft-show-text .ft-show-also .ft-pr { font-size: inherit; }

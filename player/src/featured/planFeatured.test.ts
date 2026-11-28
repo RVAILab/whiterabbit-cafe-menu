@@ -129,6 +129,12 @@ describe('planShowcase', () => {
     const starred = { ...tea, featuredItemId: tea.items[2].id }
     const plan = planShowcase({ ...doc(cocoa, starred, food), menu: { id: 'festival', name: 'Happy Festival of Lights!', showcase: true } })
     expect(plan?.title).toBe('Happy Festival of Lights!')
-    expect(plan?.drinks.map((d) => d.name)).toEqual(['Cacao A', 'Tea C'])
+    expect(plan?.drinks.map((d) => d.item.name)).toEqual(['Cacao A', 'Tea C'])
+  })
+
+  it('lists a section\'s extra item under its star', () => {
+    const coffee = { ...tea, featuredItemId: tea.items[1].id, alsoItemId: tea.items[0].id }
+    const plan = planShowcase({ ...doc(coffee), menu: { id: 'f', name: 'F', showcase: true } })
+    expect(plan?.drinks).toEqual([{ item: tea.items[1], also: tea.items[0] }])
   })
 })

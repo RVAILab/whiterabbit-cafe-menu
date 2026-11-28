@@ -53,11 +53,23 @@ export function planFeatured(document: ProjectedMenuDocumentV2): FeaturedPlan {
 }
 
 /** A showcase menu (e.g. a festival special): its title and each drink section's star; null for any other menu. */
-export function planShowcase(document: ProjectedMenuDocumentV2): { title: string; drinks: ProjectedMenuItemV2[] } | null {
+export interface ShowcaseCard {
+  item: ProjectedMenuItemV2
+  /** One more item from the section, listed small under the star. */
+  also?: ProjectedMenuItemV2
+}
+
+export function planShowcase(document: ProjectedMenuDocumentV2): { title: string; drinks: ShowcaseCard[] } | null {
   const menu = document.menu
   if (menu?.showcase !== true || typeof menu.name !== 'string') return null
+  const sections = new Map(document.sections.map((section) => [section.id, section]))
   // shortcut: four cards fill the 2×2; a fifth star and beyond are dropped.
-  const drinks = planFeatured(document).drinks.flatMap((block) => block.featured ?? []).slice(0, 4)
+  const drinks = planFeatured(document).drinks.flatMap((block): ShowcaseCard[] => {
+    if (!block.featured) return []
+    const alsoId = sections.get(block.id)?.alsoItemId
+    const also = alsoId && alsoId !== block.featured.id ? block.items.concat(block.runnerUp ?? []).find(({ id }) => id === alsoId) : undefined
+    return [also ? { item: block.featured, also } : { item: block.featured }]
+  }).slice(0, 4)
   return { title: menu.name, drinks }
 }
 
