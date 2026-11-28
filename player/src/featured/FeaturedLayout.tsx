@@ -127,10 +127,11 @@ function FoodCapsule({ blocks }: { blocks: FeaturedBlock[] }) {
 }
 
 /** A showcase menu's drinks: the title across the top, then each star big, two by two. */
-function Showcase({ title, drinks, footer }: { title: string; drinks: ShowcaseCard[]; footer?: ReactNode }) {
+function Showcase({ title, drinks, bar, footer }: { title: string; drinks: ShowcaseCard[]; bar: FeaturedBlock[]; footer?: ReactNode }) {
   return (
-    <div className={footer ? 'ft-show with-footer' : 'ft-show'}>
+    <div className={['ft-show', footer && 'with-footer', bar.length > 0 && 'with-bar'].filter(Boolean).join(' ')}>
       <h1 className="ft-show-title">{title}</h1>
+      <div className="ft-show-body">
       <div className="ft-show-grid">
         {drinks.map(({ item, also }, i) => (
           <section key={item.id} className="ft-show-card ft-dim" aria-label={item.name} data-ft-box>
@@ -143,6 +144,22 @@ function Showcase({ title, drinks, footer }: { title: string; drinks: ShowcaseCa
             </div>
           </section>
         ))}
+      </div>
+      {bar.length > 0 && (
+        <div className="ft-show-bar" aria-label="Bar" data-ft-box>
+          {bar.map((block) => (
+            <section key={block.id} className="ft-block ft-dim" aria-label={block.label}>
+              <div className="ft-lbl">{block.label}</div>
+              {block.items.map((item) => (
+                <div key={item.id}>
+                  <Line item={item} />
+                  {item.description && <div className="ft-desc">{item.description}</div>}
+                </div>
+              ))}
+            </section>
+          ))}
+        </div>
+      )}
       </div>
       {footer}
     </div>
@@ -282,7 +299,7 @@ export function FeaturedLayout({ document, calibration, footer, overlays, stageC
         <StageLayer layer="hole-event">{!hasFooter && !showcase && <WhatsNext />}</StageLayer>
         <StageLayer layer="menu">
           <div ref={menuRef} className="ft-menu" data-testid="featured-menu">
-            {showcase ? <Showcase title={showcase.title} drinks={showcase.drinks} footer={footer} /> : <>
+            {showcase ? <Showcase title={showcase.title} drinks={showcase.drinks} bar={showcase.bar} footer={footer} /> : <>
             <div className={hasFooter ? 'ft-left with-footer' : 'ft-left'}>
               {lead && <LeadBlock block={lead} />}
               {footer}

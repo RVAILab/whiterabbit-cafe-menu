@@ -59,18 +59,18 @@ export interface ShowcaseCard {
   also?: ProjectedMenuItemV2
 }
 
-export function planShowcase(document: ProjectedMenuDocumentV2): { title: string; drinks: ShowcaseCard[] } | null {
+export function planShowcase(document: ProjectedMenuDocumentV2): { title: string; drinks: ShowcaseCard[]; bar: FeaturedBlock[] } | null {
   const menu = document.menu
   if (menu?.showcase !== true || typeof menu.name !== 'string') return null
-  const sections = new Map(document.sections.map((section) => [section.id, section]))
-  // shortcut: four cards fill the 2×2; a fifth star and beyond are dropped.
-  const drinks = planFeatured(document).drinks.flatMap((block): ShowcaseCard[] => {
-    if (!block.featured) return []
-    const alsoId = sections.get(block.id)?.alsoItemId
-    const also = alsoId && alsoId !== block.featured.id ? block.items.concat(block.runnerUp ?? []).find(({ id }) => id === alsoId) : undefined
-    return [also ? { item: block.featured, also } : { item: block.featured }]
+  // shortcut: four cards fill the stars' grid; a fifth star and beyond are dropped.
+  const drinks = sectionsOn(document, 'drink-me').map((section): ShowcaseCard => {
+    const { featured, items } = pictured(section)
+    const also = section.alsoItemId ? items.find(({ id }) => id === section.alsoItemId) : undefined
+    return also ? { item: featured!, also } : { item: featured! }
   }).slice(0, 4)
-  return { title: menu.name, drinks }
+  // Bar sections (a festival bar menu) are plain lists in a column beside the stars.
+  const bar = sectionsOn(document, 'bar').map((s) => ({ id: s.id, label: s.name, items: s.items }))
+  return { title: menu.name, drinks, bar }
 }
 
 /** Whole numbers without decimals ("6"), else two decimals ("5.50"). */
@@ -84,6 +84,7 @@ const SIZE_LABEL = /\d+\s*oz/i
 export function itemPrice(item: ProjectedMenuItemV1): string {
   if (item.variants.length <= 1) return formatPrice(item.basePrice)
   const prices = item.variants.map(({ price }) => price)
+  if (new Set(prices).size === 1) return formatPrice(prices[0])
   if (item.variants.every(({ label }) => SIZE_LABEL.test(label))) {
     return [...new Set(prices)].sort((a, b) => a - b).map(formatPrice).join(' / ')
   }
