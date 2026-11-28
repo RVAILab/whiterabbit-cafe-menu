@@ -11,7 +11,7 @@ import { useEventTitleFit } from '../rabbitHole/useEventTitleFit'
 import { Stage, StageLayer } from '../rabbitHole/Stage'
 import { formatClock } from './clock'
 import { FeaturedBackdrop } from './FeaturedBackdrop'
-import { itemPrice, planFeatured, planShowcase, type FeaturedBlock } from './planFeatured'
+import { itemPrice, planFeatured, planShowcase, type FeaturedBlock, type ShowcaseCard } from './planFeatured'
 import '../rabbitHole/rabbitHole.css'
 import './featured.css'
 
@@ -127,18 +127,19 @@ function FoodCapsule({ blocks }: { blocks: FeaturedBlock[] }) {
 }
 
 /** A showcase menu's drinks: the title across the top, then each star big, two by two. */
-function Showcase({ title, drinks, footer }: { title: string; drinks: ProjectedMenuItemV2[]; footer?: ReactNode }) {
+function Showcase({ title, drinks, footer }: { title: string; drinks: ShowcaseCard[]; footer?: ReactNode }) {
   return (
     <div className={footer ? 'ft-show with-footer' : 'ft-show'}>
       <h1 className="ft-show-title">{title}</h1>
       <div className="ft-show-grid">
-        {drinks.map((item, i) => (
+        {drinks.map(({ item, also }, i) => (
           <section key={item.id} className="ft-show-card ft-dim" aria-label={item.name} data-ft-box>
             <div className="ft-show-pic"><Picture item={item} color={CUP_COLORS[i]} /></div>
             <div className="ft-show-text">
               <div className="ft-show-name">{item.name}</div>
               {item.description && <div className="ft-desc">{item.description}</div>}
               <div className="ft-pr">{itemPrice(item)}</div>
+              {also && <div className="ft-show-also">or {also.name} <span className="ft-pr">{itemPrice(also)}</span></div>}
             </div>
           </section>
         ))}

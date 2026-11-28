@@ -68,6 +68,8 @@ export interface ProjectedMenuSectionV2 {
   items: ProjectedMenuItemV2[]
   /** Optional: the id of the item the featured layout pictures. */
   featuredItemId?: string | null
+  /** Optional, showcase menus: one more item listed small under the star. */
+  alsoItemId?: string | null
 }
 
 export interface ProjectedMenuDocumentV2 {
@@ -196,7 +198,7 @@ export function parseProjectedMenuDocument(value: unknown): ProjectedMenuDocumen
   return {
     ...value,
     sections: (value.sections as Record<string, unknown>[]).map((section) => ({
-      ...withoutInvalidOptional(section, 'featuredItemId'),
+      ...withoutInvalidOptional(withoutInvalidOptional(section, 'featuredItemId'), 'alsoItemId'),
       items: (section.items as Record<string, unknown>[]).map((item) => withoutInvalidOptional(withoutInvalidOptional(item, 'imageUrl'), 'description')),
     })),
   } as unknown as ProjectedMenuDocumentV2
